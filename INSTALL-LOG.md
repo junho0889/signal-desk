@@ -8,3 +8,7 @@
 - Validated `infra/local/docker-compose.yml` with `docker compose --env-file .env.example -f infra/local/docker-compose.yml config`.
 - Added QA role, git worktree flow, and orchestrator monitoring script.
 - No additional software packages were installed yet.
+- Initialized local git repository on branch `main`.
+- Added remote `origin`: `https://github.com/junho0889/signal-desk.git`.
+- Configured local repo identity: `Codex Orchestrator <codex+signaldesk@local>`.
+- Created worker worktrees: `E:\source\signal-desk-worktrees\prod-001`, `E:\source\signal-desk-worktrees\qa-station`.
