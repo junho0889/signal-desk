@@ -1,0 +1,181 @@
+﻿version: 1
+last_updated: 2026-03-08
+tasks:
+  - id: ORCH-001
+    title: Initialize repo conventions and specialist roles
+    owner: signal-desk-orchestrator
+    status: done
+    depends_on: []
+    files:
+      - AGENTS.md
+      - coordination/working-agreement.md
+      - coordination/tasks.yaml
+      - coordination/handoff-template.md
+      - coordination/decision-log.md
+      - .codex/skills/
+    acceptance:
+      - Team model documented
+      - Task claiming protocol documented
+      - Specialist roles defined
+  - id: ORCH-002
+    title: Define multi-session dispatch and handoff protocol
+    owner: signal-desk-orchestrator
+    status: done
+    depends_on:
+      - ORCH-001
+    files:
+      - AGENTS.md
+      - coordination/working-agreement.md
+      - coordination/dispatch-protocol.md
+      - coordination/dispatch-template.md
+      - coordination/dispatches/
+    acceptance:
+      - Orchestrator and worker session topology is documented
+      - Dispatch format is defined
+      - Handoff and verification loop is defined
+  - id: ORCH-003
+    title: Define git worktree and supervision workflow
+    owner: signal-desk-orchestrator
+    status: done
+    depends_on:
+      - ORCH-002
+    files:
+      - docs/ops/git-worktree-flow.md
+      - coordination/session-prompts.md
+      - scripts/orchestrator/status-board.ps1
+      - INSTALL-LOG.md
+    acceptance:
+      - Worktree workflow is documented
+      - Orchestrator monitoring command exists
+      - Setup history is recorded at repo root
+  - id: INFRA-001
+    title: Establish local Docker stack baseline for backend services
+    owner: signal-desk-ops
+    status: done
+    depends_on:
+      - ORCH-001
+    files:
+      - docs/architecture/system-overview.md
+      - docs/ops/deploy-runbook.md
+      - docs/ops/local-docker-stack.md
+      - infra/local/docker-compose.yml
+      - infra/local/.env.example
+    acceptance:
+      - Local Docker topology is defined
+      - Secret handling rules are documented
+      - PostgreSQL container is wired with health checks and persistence
+  - id: SEC-001
+    title: Define PostgreSQL least-privilege security baseline
+    owner: signal-desk-backend
+    status: done
+    depends_on:
+      - INFRA-001
+    files:
+      - docs/backend/postgres-security.md
+      - docs/backend/db-schema.md
+      - infra/postgres/init/001-bootstrap.sh
+    acceptance:
+      - App, migrator, and readonly roles are defined
+      - Superuser use is restricted to bootstrap and admin only
+      - Schema privilege rules are documented
+  - id: QA-001
+    title: Establish QA role and regression workflow
+    owner: signal-desk-qa
+    status: done
+    depends_on:
+      - ORCH-002
+    files:
+      - docs/ops/qa-strategy.md
+      - docs/ops/quality-gates.md
+      - .codex/skills/signal-desk-qa/SKILL.md
+      - coordination/dispatches/QA-001.md
+    acceptance:
+      - QA role is documented
+      - Review loop and defect handling are documented
+      - A QA dispatch exists
+  - id: PROD-001
+    title: Lock product vision and MVP boundaries
+    owner: signal-desk-product
+    status: todo
+    depends_on:
+      - ORCH-003
+      - QA-001
+    files:
+      - docs/product/vision.md
+      - docs/product/mvp-scope.md
+      - coordination/dispatches/PROD-001.md
+    acceptance:
+      - User problem and outcome are explicit
+      - MVP includes only first-release features
+      - Non-goals are documented
+  - id: DATA-001
+    title: Define source catalog and scoring model v0
+    owner: signal-desk-data
+    status: todo
+    depends_on:
+      - PROD-001
+      - SEC-001
+    files:
+      - docs/data/source-catalog.md
+      - docs/data/keyword-scoring-v0.md
+    acceptance:
+      - Input sources and refresh cadence are defined
+      - Score dimensions and formula are documented
+      - Known data quality risks are listed
+  - id: BE-001
+    title: Freeze API and database contracts
+    owner: signal-desk-backend
+    status: todo
+    depends_on:
+      - DATA-001
+      - SEC-001
+    files:
+      - docs/backend/api-contract.md
+      - docs/backend/db-schema.md
+      - coordination/dispatches/BE-001.md
+    acceptance:
+      - Core endpoints are defined
+      - Response fields are stable enough for UI work
+      - Core tables and relationships are documented
+  - id: UX-001
+    title: Define information hierarchy and screen map
+    owner: signal-desk-design
+    status: todo
+    depends_on:
+      - PROD-001
+      - BE-001
+    files:
+      - docs/design/ui-principles.md
+      - docs/design/screen-map.md
+    acceptance:
+      - Home, ranking, detail, watchlist, and alerts are mapped
+      - Key metrics and layout priorities are documented
+  - id: APP-001
+    title: Prepare mobile implementation plan
+    owner: signal-desk-mobile
+    status: todo
+    depends_on:
+      - UX-001
+      - BE-001
+    files:
+      - docs/architecture/system-overview.md
+      - docs/design/screen-map.md
+      - docs/backend/api-contract.md
+    acceptance:
+      - App layers and data flow are understood
+      - Screen to endpoint mapping is documented in the handoff
+  - id: OPS-001
+    title: Define deployment and service operation baseline
+    owner: signal-desk-ops
+    status: todo
+    depends_on:
+      - INFRA-001
+      - BE-001
+    files:
+      - docs/ops/deploy-runbook.md
+      - docs/ops/service-model.md
+      - coordination/dispatches/OPS-001.md
+    acceptance:
+      - Runtime topology is defined
+      - Monitoring and failure handling are documented
+      - Personal-use release path is documented
