@@ -10,6 +10,7 @@
 - Read `coordination/working-agreement.md` before starting substantial work.
 - Claim tasks in `coordination/tasks.yaml` before editing files.
 - Read the task dispatch in `coordination/dispatches/` when it exists.
+- Read `coordination/resume/<TASK-ID>.md` when resuming a task after interruption or context loss.
 - Write handoff notes in `coordination/handoffs/` when pausing or finishing work.
 - Record product or architecture decisions in `coordination/decision-log.md`.
 
@@ -32,8 +33,8 @@
 - DB model: `docs/backend/db-schema.md`
 - DB security: `docs/backend/postgres-security.md`
 - UX rules: `docs/design/ui-principles.md`, `docs/design/screen-map.md`
-- Operations: `docs/ops/deploy-runbook.md`, `docs/ops/service-model.md`, `docs/ops/local-docker-stack.md`, `docs/ops/quality-gates.md`, `docs/ops/git-worktree-flow.md`, `docs/ops/qa-strategy.md`
-- Coordination protocol: `coordination/dispatch-protocol.md`, `coordination/session-prompts.md`
+- Operations: `docs/ops/deploy-runbook.md`, `docs/ops/service-model.md`, `docs/ops/local-docker-stack.md`, `docs/ops/quality-gates.md`, `docs/ops/git-worktree-flow.md`, `docs/ops/qa-strategy.md`, `docs/ops/app-preview.md`
+- Coordination protocol: `coordination/dispatch-protocol.md`, `coordination/session-prompts.md`, `coordination/checkpoint-policy.md`, `coordination/resume-template.md`
 - Setup and install history: `INSTALL-LOG.md`
 
 ## Working Rules
@@ -45,6 +46,9 @@
 - Never commit secrets. Use `.env` files outside version control and keep examples in the repo.
 - Database access must use least-privilege roles. Application code must never use the PostgreSQL superuser.
 - A task is not done until verification commands are run or the blocker is written down explicitly.
+- Every substantial source change, feature addition, or defect fix requires a checkpoint commit on the task branch.
+- Every meaningful checkpoint must be pushed to the remote branch before the worker pauses, unless push is explicitly blocked and documented.
+- Before stopping because of token or context limits, the worker must update the task resume note.
 - Orchestrator reviews worker diffs and handoffs before signaling downstream work or completion.
 - QA reviews any user-facing or contract-affecting change before final release sign-off.
 
@@ -53,6 +57,7 @@
 2. Review open tasks in `coordination/tasks.yaml`.
 3. Read the relevant skill under `.codex/skills/`.
 4. Read the task dispatch in `coordination/dispatches/` when present.
-5. Read only the domain docs required for the assigned task.
-6. Update task status and owner before editing.
-7. Record verification commands in the handoff before marking done.
+5. Read the task resume note in `coordination/resume/` when present.
+6. Read only the domain docs required for the assigned task.
+7. Update task status and owner before editing.
+8. Record verification commands in the handoff before marking done.

@@ -12,3 +12,7 @@
 - Added remote `origin`: `https://github.com/junho0889/signal-desk.git`.
 - Configured local repo identity: `Codex Orchestrator <codex+signaldesk@local>`.
 - Created worker worktrees: `E:\source\signal-desk-worktrees\prod-001`, `E:\source\signal-desk-worktrees\qa-station`.
+
+- Added app preview guidance and clarified multi-window operating rules.
+
+- Added checkpoint and resume policy docs for branch commit, push, and context-limit recovery.
