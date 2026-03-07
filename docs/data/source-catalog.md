@@ -42,7 +42,7 @@ These are stable targets for `BE-001` schema/API work.
 
 | dataset | Grain | Required Columns | Produced By |
 |---|---|---|---|
-| `keyword_signal_timeslice` | `keyword_id` x `as_of_ts` (hourly) | `mention_count_24h`, `mention_delta_24h`, `trend_index`, `trend_delta`, `market_reaction_raw`, `event_count_7d`, `source_coverage_ratio`, `freshness_minutes` | normalization + feature builder jobs |
+| `keyword_signal_timeslice` | `keyword_id` x `as_of_ts` (30-minute) | `mention_count_24h`, `mention_delta_24h`, `trend_index`, `trend_delta`, `market_reaction_raw`, `event_count_7d`, `source_coverage_ratio`, `freshness_minutes` | normalization + feature builder jobs |
 | `keyword_evidence_event` | one supporting evidence item | `keyword_id`, `event_ts`, `event_type(news/trend/disclosure/market)`, `event_ref_id`, `summary_text`, `source_name`, `symbol`, `quality_flag` | evidence extraction job |
 | `keyword_entity_link` | keyword-symbol relation | `keyword_id`, `symbol`, `sector`, `link_confidence`, `is_primary` | entity resolution job |
 
@@ -64,6 +64,11 @@ These are stable targets for `BE-001` schema/API work.
 - Emit `source_coverage_ratio` per keyword window to expose missing-source conditions.
 - Emit `freshness_minutes` and suppress alert eligibility when freshness breaches threshold.
 - Maintain per-source ingestion health metrics (`success_rate`, `p95_lag_minutes`, `dedup_ratio`).
+
+## Contract Enums (for BE-001)
+- `event_type` enum: `news`, `trend`, `disclosure`, `market`.
+- `quality_flag` enum: `ok`, `deduped`, `low_source_diversity`, `mapping_low_confidence`, `stale_source`.
+- `risk_flag` enum baseline from data layer: `data_freshness_degraded`, `event_coverage_partial`, `mapping_unstable`, `thin_cohort`.
 
 ## Explicit Non-Goals For v0 Data Layer
 - Real-time tick-level ingestion.

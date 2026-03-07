@@ -142,6 +142,19 @@ Set at scoring time; BE-001 can expose directly.
 - Score publish cadence: every 30 minutes.
 - End-of-day recompute: once after market close to stabilize daily comparison baseline.
 
+## Stable Threshold Parameters (for BE-001 config)
+- `confidence_min_for_alert = 0.55`
+- `max_source_staleness_minutes = 360`
+- `single_source_share_penalty_trigger = 0.70`
+- `single_source_share_penalty_factor = 0.80`
+- `no_confirmation_penalty_factor = 0.85`
+- `entity_link_confidence_min = 0.60`
+
+## Contract Notes For Backend
+- `reason_tags` and `risk_flags` should be stored as arrays backed by documented allowed values.
+- `score_total` and each `dimension_*` field should be clamped to `0-100` after penalties.
+- Keep one row per (`keyword_id`, `as_of_ts`) via unique constraint to guarantee idempotent score publishes.
+
 ## Known Risks And v1 Follow-Ups
 - Broad thematic keywords still vulnerable to mapping ambiguity.
 - Relative trend indices can distort cross-keyword comparisons in low-volume terms.
