@@ -1,4 +1,4 @@
-﻿# Dispatch PROD-001
+# Dispatch PROD-001
 
 ## Task
 - id: PROD-001
@@ -32,7 +32,17 @@ Lock the product vision and MVP boundaries tightly enough that data, backend, an
 - run: review docs for contradictions with `docs/architecture/system-overview.md`
 - expected: product scope does not conflict with current system direction
 
+## Checkpoint And Push Requirements
+- create a checkpoint commit after any substantial source change, feature addition, or defect fix
+- use commit messages that start with `PROD-001`
+- push every reviewable checkpoint before pausing unless blocked, then record the exact command and error
+
+## Pause And Resume Requirements
+- before pausing, write a handoff in `coordination/handoffs/` with current state, blockers, and next step
+- before pausing an unfinished task, update `coordination/resume/<TASK-ID>.md` using `coordination/resume-template.md`
+
 ## Handoff
 - summarize scope changes
 - flag anything that blocks `DATA-001` or `UX-001`
 - report what remains uncertain
+
