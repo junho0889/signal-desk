@@ -1,4 +1,4 @@
-﻿version: 1
+version: 1
 last_updated: 2026-03-08
 tasks:
   - id: ORCH-001
@@ -96,7 +96,7 @@ tasks:
   - id: PROD-001
     title: Lock product vision and MVP boundaries
     owner: signal-desk-product
-    status: todo
+    status: in_progress
     depends_on:
       - ORCH-003
       - QA-001
