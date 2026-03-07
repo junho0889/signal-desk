@@ -111,7 +111,7 @@ tasks:
   - id: DATA-001
     title: Define source catalog and scoring model v0
     owner: signal-desk-data
-    status: todo
+    status: in_progress
     depends_on:
       - PROD-001
       - SEC-001
