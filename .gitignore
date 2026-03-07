@@ -1,4 +1,4 @@
-﻿infra/local/.env
+infra/local/.env
 .env
 .venv/
 __pycache__/
@@ -6,3 +6,6 @@ __pycache__/
 *.pyc
 *.pyo
 *.log
+
+automation/runtime/*
+!automation/runtime/.gitignore

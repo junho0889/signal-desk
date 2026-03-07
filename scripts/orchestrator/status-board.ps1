@@ -5,6 +5,8 @@
 $repoRoot = (Resolve-Path $RepoRoot).Path
 $handoffDir = Join-Path $repoRoot 'coordination\handoffs'
 $taskFile = Join-Path $repoRoot 'coordination\tasks.yaml'
+$runtimeStatus = Join-Path $repoRoot 'automation\runtime\status.md'
+$queueDir = Join-Path $repoRoot 'automation\runtime\queue'
 
 Write-Host "== Worktrees ==" -ForegroundColor Cyan
 git -C $repoRoot worktree list
@@ -17,6 +19,20 @@ if (Test-Path $handoffDir) {
   Get-ChildItem $handoffDir -File | Sort-Object LastWriteTime -Descending | Select-Object -First 10 Name, LastWriteTime
 } else {
   Write-Host 'No handoff directory found.'
+}
+
+Write-Host "`n== Prompt Queue ==" -ForegroundColor Cyan
+if (Test-Path $queueDir) {
+  Get-ChildItem $queueDir -File | Sort-Object LastWriteTime -Descending | Select-Object -First 10 Name, LastWriteTime
+} else {
+  Write-Host 'No prompt queue directory found.'
+}
+
+Write-Host "`n== Runtime Status ==" -ForegroundColor Cyan
+if (Test-Path $runtimeStatus) {
+  Get-Content $runtimeStatus
+} else {
+  Write-Host 'No runtime status file found.'
 }
 
 Write-Host "`n== Main Branch Status ==" -ForegroundColor Cyan

@@ -16,3 +16,6 @@
 - Added app preview guidance and clarified multi-window operating rules.
 
 - Added checkpoint and resume policy docs for branch commit, push, and context-limit recovery.
+- Installed Python 3.12.10 via winget.
+- Installed PyYAML 6.0.3 for the automation supervisor.
+- Added the automation supervisor runtime, config, and runner wrapper.

@@ -1,0 +1,17 @@
+﻿agents:
+  signal-desk-product:
+    worktree_mode: per_task
+  signal-desk-data:
+    worktree_mode: per_task
+  signal-desk-backend:
+    worktree_mode: per_task
+  signal-desk-mobile:
+    worktree_mode: per_task
+  signal-desk-design:
+    worktree_mode: per_task
+  signal-desk-ops:
+    worktree_mode: per_task
+  signal-desk-qa:
+    worktree_mode: fixed
+    worktree_name: qa-station
+    branch_name: worker/qa-station

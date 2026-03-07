@@ -1,4 +1,4 @@
-﻿## Project
+## Project
 - Product name: `SignalDesk`
 - Product type: personal Android app for investment keyword, theme, and sector intelligence
 - Primary goal: surface explainable market signals from news, search trends, disclosures, and price reaction
@@ -33,7 +33,7 @@
 - DB model: `docs/backend/db-schema.md`
 - DB security: `docs/backend/postgres-security.md`
 - UX rules: `docs/design/ui-principles.md`, `docs/design/screen-map.md`
-- Operations: `docs/ops/deploy-runbook.md`, `docs/ops/service-model.md`, `docs/ops/local-docker-stack.md`, `docs/ops/quality-gates.md`, `docs/ops/git-worktree-flow.md`, `docs/ops/qa-strategy.md`, `docs/ops/app-preview.md`
+- Operations: `docs/ops/deploy-runbook.md`, `docs/ops/service-model.md`, `docs/ops/local-docker-stack.md`, `docs/ops/quality-gates.md`, `docs/ops/git-worktree-flow.md`, `docs/ops/qa-strategy.md`, `docs/ops/app-preview.md`, `docs/ops/automation-supervisor.md`
 - Coordination protocol: `coordination/dispatch-protocol.md`, `coordination/session-prompts.md`, `coordination/checkpoint-policy.md`, `coordination/resume-template.md`
 - Setup and install history: `INSTALL-LOG.md`
 

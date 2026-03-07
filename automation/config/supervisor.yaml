@@ -1,0 +1,9 @@
+﻿worktrees_root: ../signal-desk-worktrees
+runtime_root: automation/runtime
+main_branch: main
+remote_name: origin
+poll_seconds: 60
+auto_activate_ready_tasks: false
+auto_create_worktrees: true
+worker_command_template: ""
+qa_command_template: ""
