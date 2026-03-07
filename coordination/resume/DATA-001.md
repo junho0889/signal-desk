@@ -6,33 +6,33 @@
 - last updated: 2026-03-08
 
 ## Current State
-- DATA-001 deliverables are implemented in owned files and pushed.
-- Waiting for orchestrator review/acceptance or revision requests.
+- DATA-001 docs are updated and pushed with cadence alignment and explicit backend contract enums/threshold notes.
+- Task remains active and waiting for orchestrator acceptance or revision.
 
 ## Last Completed
-- Finalized source catalog with cadence, constraints, fallback, and derived dataset outputs.
-- Finalized scoring v0 with output contract, formulas, confidence, and noise guardrails.
-- Ran consistency verification against MVP scope and system architecture boundaries.
+- Corrected scoring/data grain consistency (`30-minute` timeslice).
+- Added BE-001-facing enum/value contract details and backend implementation notes.
+- Re-ran manual consistency checks against MVP scope and architecture boundaries.
 
 ## Next Exact Step
-- Address any orchestrator/BE-001 feedback on data contracts; otherwise handoff is ready for BE-001 contract freeze.
+- Await orchestrator or BE-001 review; if requested, apply narrow revisions in `docs/data/source-catalog.md` and `docs/data/keyword-scoring-v0.md` only.
 
 ## Open Blockers
 - None.
 
 ## Verification Status
-- `Select-String -Path .\\docs\\data\\source-catalog.md -Pattern "ranking|detail|watchlist|alert|server-side|derived"` -> matched expected MVP support terms.
-- `Select-String -Path .\\docs\\data\\keyword-scoring-v0.md -Pattern "Home|Ranking|Detail|watchlist|alert|server-side|is_alert_eligible|reason_tags"` -> matched expected scoring output terms.
-- `Select-String -Path .\\docs\\product\\mvp-scope.md -Pattern "Home dashboard|Keyword ranking|Keyword detail|watchlist|Alert rules|Out of Scope"` -> matched target workflows and exclusions.
-- `Select-String -Path .\\docs\\architecture\\system-overview.md -Pattern "API reads stable derived data|Notification rules are evaluated server-side|Jobs write derived data"` -> matched architecture boundary rules.
+- `Select-String -Path .\\docs\\data\\source-catalog.md -Pattern "30-minute|Contract Enums|risk_flag|event_type|quality_flag"` -> expected matches found.
+- `Select-String -Path .\\docs\\data\\keyword-scoring-v0.md -Pattern "Stable Threshold Parameters|Contract Notes For Backend|is_alert_eligible|reason_tags|risk_flags"` -> expected matches found.
+- `Select-String -Path .\\docs\\product\\mvp-scope.md -Pattern "Keyword ranking|Keyword detail|watchlist|Alert rules|Out of Scope"` -> target workflows confirmed.
+- `Select-String -Path .\\docs\\architecture\\system-overview.md -Pattern "Jobs write derived data|API reads stable derived data|Notification rules are evaluated server-side"` -> boundary rules confirmed.
 
 ## Files In Progress
 - None.
 
 ## Last Commit And Push
-- commit: `f9a88a3` (`DATA-001 docs: define source catalog and scoring v0 contracts`)
+- commit: `8ea0de1` (`DATA-001 docs: tighten cadence and backend contract enums`)
 - push: `git push` (success)
 
 ## Notes For Next Session
-- Keep edits restricted to `docs/data/*` unless orchestrator explicitly broadens scope.
-- Preserve scoring output fields/types so BE-001 can freeze contracts without churn.
+- Do not broaden scope beyond `docs/data/*` unless orchestrator reassigns ownership.
+- Keep enum sets and threshold defaults stable to avoid BE-001 contract churn.
