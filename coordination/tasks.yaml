@@ -96,7 +96,7 @@ tasks:
   - id: PROD-001
     title: Lock product vision and MVP boundaries
     owner: signal-desk-product
-    status: in_progress
+    status: done
     depends_on:
       - ORCH-003
       - QA-001
