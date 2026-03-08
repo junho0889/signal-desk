@@ -52,3 +52,7 @@
 one|stdout sink baseline
 - Reason: this preserves current alert persistence behavior while creating a stable bridge to future push delivery without prematurely binding the runtime to a specific provider
 
+### DEC-013
+- Decision: block `REL-002` until `APP-004` either passes Flutter-capable verification or the orchestrator explicitly accepts that blocker in this log
+- Reason: mobile pagination and stale-data changes affect user-facing release confidence, and an undocumented runtime gap is not enough to treat the wave as release-ready
+
