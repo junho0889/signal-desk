@@ -494,7 +494,7 @@ tasks:
   - id: TRUST-002
     title: Freeze trust-to-model feature contract and manual review escalation policy
     owner: signal-desk-trust
-    status: pending
+    status: done
     depends_on:
       - TRUST-001
       - MODEL-002
