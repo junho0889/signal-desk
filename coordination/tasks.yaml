@@ -655,6 +655,25 @@ tasks:
       - normalization, trust, feature, ranking, publish, and alert-evaluation job order is explicit
       - additive API-facing fields and publish-read-model assumptions are documented without breaking v1 clients
       - retry, idempotency, and reprocessing behavior for ranking publishes is clear
+  - id: BE-008
+    title: Freeze raw-ingest metadata schema, source registry contract, and quality-state persistence
+    owner: signal-desk-storage
+    status: in_progress
+    depends_on:
+      - BE-004
+      - BE-005
+      - COL-002
+    files:
+      - docs/backend/db-schema.md
+      - docs/backend/storage-expansion-outline.md
+      - docs/data/collector-metadata-quality-v1.md
+      - coordination/dispatches/BE-008.md
+      - coordination/handoffs/BE-008.md
+      - coordination/resume/BE-008.md
+    acceptance:
+      - raw-ingest tables define required metadata, source registry references, and quality-state fields
+      - weak, duplicate, stale, and dead-letter cases are persistable and replayable
+      - collector and backend lanes can test against the same metadata contract
   - id: OPS-005
     title: Define local collector Docker Compose group and Pi deployment path
     owner: signal-desk-ops
