@@ -1,4 +1,4 @@
-# Operations Checklist (OPS-002)
+# Operations Checklist (OPS-003)
 
 ## 1) Pre-Start
 - confirm working tree is clean or expected
@@ -11,17 +11,26 @@
   - `docker compose -f infra/local/docker-compose.yml --env-file infra/local/.env up -d --build`
 - verify service state:
   - `docker compose -f infra/local/docker-compose.yml --env-file infra/local/.env ps`
+  - `docker compose -f infra/local/docker-compose.yml --env-file infra/local/.env ps -a jobs-bootstrap`
+- expected statuses:
+  - `jobs-bootstrap` -> `Exited (0)`
+  - `postgres`, `api`, `jobs` -> `healthy`
 
 ## 3) Health Checks
 - postgres:
   - health should be `healthy`
   - `docker compose -f infra/local/docker-compose.yml --env-file infra/local/.env logs postgres --tail=80`
+- bootstrap:
+  - startup should finish once with exit code `0`
+  - `docker compose -f infra/local/docker-compose.yml --env-file infra/local/.env ps -a jobs-bootstrap`
+  - `docker compose -f infra/local/docker-compose.yml --env-file infra/local/.env logs jobs-bootstrap --tail=120`
 - api:
   - health should be `healthy`
   - `Invoke-RestMethod "http://127.0.0.1:8000/healthz"`
 - jobs:
   - health should be `healthy`
   - `docker compose -f infra/local/docker-compose.yml --env-file infra/local/.env logs jobs --tail=120`
+  - confirm logs show `evaluate-alerts` and do not repeat `migrate` or `seed-demo`
 
 ## 4) Data Freshness + Contract Smoke
 - freshness query:
@@ -33,11 +42,10 @@
   - `Invoke-RestMethod "http://127.0.0.1:8000/v1/alerts?limit=20"`
 
 ## 5) Restart Procedure
-- restart one service:
-  - `docker compose -f infra/local/docker-compose.yml --env-file infra/local/.env restart <service>`
-- restart full stack:
-  - `docker compose -f infra/local/docker-compose.yml --env-file infra/local/.env down`
-  - `docker compose -f infra/local/docker-compose.yml --env-file infra/local/.env up -d`
+- restart runtime services only:
+  - `docker compose -f infra/local/docker-compose.yml --env-file infra/local/.env restart api jobs`
+- rerun bootstrap only after database reset, restore, or explicit reseed:
+  - `docker compose -f infra/local/docker-compose.yml --env-file infra/local/.env up jobs-bootstrap`
 
 ## 6) Backup Procedure
 - create logical backup:
@@ -48,6 +56,7 @@
 ## 7) Restore Drill (Local)
 - stop app containers (`api`, `jobs`)
 - restore backup into local postgres
+- rerun `jobs-bootstrap`
 - restart `api`, `jobs`
 - rerun health + contract smoke checks
 

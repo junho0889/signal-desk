@@ -37,3 +37,7 @@
 ### DEC-009
 - Decision: run the next task wave in the order `REL-001` -> (`OPS-003` and `APP-003`) -> `QA-002`
 - Reason: the repo has a complete v1 baseline through `OPS-002`, but release smoke must be recorded first and the known jobs-loop issue should be fixed before broader release confidence work
+
+### DEC-010
+- Decision: split one-time runtime bootstrap into `jobs-bootstrap` and keep recurring `jobs` limited to alert evaluation
+- Reason: the previous loop reran migration and demo seed during steady-state operation, which blurred restart semantics and reduced confidence for production-like runtime behavior

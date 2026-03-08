@@ -230,7 +230,7 @@ tasks:
   - id: REL-001
     title: Run integrated release smoke and record release-readiness baseline
     owner: signal-desk-orchestrator
-    status: in_progress
+    status: done
     depends_on:
       - APP-002
       - BE-002
@@ -249,7 +249,7 @@ tasks:
   - id: OPS-003
     title: Split recurring jobs runtime from migration and seed bootstrap
     owner: signal-desk-ops
-    status: pending
+    status: done
     depends_on:
       - REL-001
       - OPS-002
@@ -293,3 +293,5 @@ tasks:
       - Runtime and mobile changes are reviewed against prior MVP baseline behavior
       - Defects or environment blockers are documented with reproduction notes
       - QA sign-off status is recorded for release-readiness follow-up
+
+
