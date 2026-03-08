@@ -41,3 +41,8 @@
 ### DEC-010
 - Decision: split one-time runtime bootstrap into `jobs-bootstrap` and keep recurring `jobs` limited to alert evaluation
 - Reason: the previous loop reran migration and demo seed during steady-state operation, which blurred restart semantics and reduced confidence for production-like runtime behavior
+
+### DEC-011
+- Decision: run the next parallel wave as BE-003, APP-004, and OPS-004, then gate it with QA-003 and REL-002`r
+- Reason: notification delivery, mobile pagination/stale-data behavior, and Flutter-capable verification readiness are the highest-value remaining gaps with clean file boundaries for parallel work
+

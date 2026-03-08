@@ -293,10 +293,82 @@ tasks:
       - Runtime and mobile changes are reviewed against prior MVP baseline behavior
       - Defects or environment blockers are documented with reproduction notes
       - QA sign-off status is recorded for release-readiness follow-up
-
-
-
-
-
-
+  - id: BE-003
+    title: Implement alert notification delivery baseline and payload contract
+    owner: signal-desk-backend
+    status: in_progress
+    depends_on:
+      - BE-002
+      - OPS-003
+    files:
+      - services/jobs/
+      - docs/backend/api-contract.md
+      - docs/backend/implementation-notes.md
+      - coordination/dispatches/BE-003.md
+    acceptance:
+      - notification delivery payload contract is documented for watchlist alerts
+      - jobs produce notification-ready alert payloads without regressing existing alert storage behavior
+      - verification covers alert generation and delivery-adapter behavior or records the exact blocker
+  - id: APP-004
+    title: Add pagination and stale-data behavior to mobile list flows
+    owner: signal-desk-mobile
+    status: in_progress
+    depends_on:
+      - APP-003
+      - BE-002
+    files:
+      - app/mobile/
+      - docs/mobile/implementation-notes.md
+      - coordination/dispatches/APP-004.md
+    acceptance:
+      - ranking and alerts support next-page loading with the current v1 cursor model
+      - stale-data context is surfaced on core read screens using response timestamps
+      - verification records analyzer, tests, and runtime smoke or the exact environment blocker
+  - id: OPS-004
+    title: Add mobile preview and verification workflow for Flutter-capable environments
+    owner: signal-desk-ops
+    status: in_progress
+    depends_on:
+      - APP-003
+      - OPS-003
+    files:
+      - docs/ops/app-preview.md
+      - docs/ops/quality-gates.md
+      - scripts/orchestrator/
+      - coordination/dispatches/OPS-004.md
+    acceptance:
+      - preview and verification workflow covers mock and live API targets
+      - reusable commands or helper script exist for Flutter-capable verification sessions
+      - blocker path for missing Flutter SDK is explicit and documented
+  - id: QA-003
+    title: Review BE-003, APP-004, and OPS-004 integration impact
+    owner: signal-desk-qa
+    status: pending
+    depends_on:
+      - BE-003
+      - APP-004
+      - OPS-004
+    files:
+      - coordination/dispatches/QA-003.md
+      - coordination/handoffs/QA-003.md
+      - docs/ops/quality-gates.md
+    acceptance:
+      - backend, mobile, and ops follow-ups are reviewed for regressions and verification quality
+      - blocked runtime checks are separated from actual defects
+      - QA status is recorded clearly for release follow-up
+  - id: REL-002
+    title: Run release candidate checkpoint after notification and mobile hardening wave
+    owner: signal-desk-orchestrator
+    status: pending
+    depends_on:
+      - QA-003
+    files:
+      - coordination/tasks.yaml
+      - coordination/dispatches/REL-002.md
+      - coordination/handoffs/REL-002.md
+      - coordination/resume/REL-002.md
+    acceptance:
+      - integrated status of the next hardening wave is recorded on main
+      - remaining release blockers are listed with explicit owners
+      - next release decision is documented
 

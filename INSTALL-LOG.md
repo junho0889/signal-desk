@@ -19,3 +19,8 @@
 - Installed Python 3.12.10 via winget.
 - Installed PyYAML 6.0.3 for the automation supervisor.
 - Added the automation supervisor runtime, config, and runner wrapper.
+
+## 2026-03-08 (Next Wave Setup)
+- Created worker worktrees: E:\source\signal-desk-worktrees\be-003, E:\source\signal-desk-worktrees\app-004, E:\source\signal-desk-worktrees\ops-004.
+- Added dispatch, resume, and queued worker prompt files for BE-003, APP-004, OPS-004, QA-003, and REL-002.
+
