@@ -46,119 +46,146 @@
 This workflow is the required local smoke path for collector ingest on this PC. It must be runnable without touching the main app stack and without changing Windows system settings.
 
 ### Required Project Boundary
-- compose project name: `signaldesk-collector-test`
 - compose file path: `infra/collector/docker-compose.yml`
-- env file path: `infra/collector/.env`
+- env file path for local smoke: `infra/collector/.env.example`
 - stack separation:
   - do not reuse `infra/local/docker-compose.yml`
   - do not reuse `infra/local/.env`
   - do not share main app PostgreSQL volumes
 
 ### Boot Commands
-Create env file:
-```powershell
-Copy-Item infra/collector/.env.example infra/collector/.env
-```
-
 Validate config:
 ```powershell
-docker compose -p signaldesk-collector-test -f infra/collector/docker-compose.yml --env-file infra/collector/.env config
+docker compose -f infra/collector/docker-compose.yml --env-file infra/collector/.env.example config
 ```
 
 Start the collector test database:
 ```powershell
-docker compose -p signaldesk-collector-test -f infra/collector/docker-compose.yml --env-file infra/collector/.env up -d collector-db
+docker compose -f infra/collector/docker-compose.yml --env-file infra/collector/.env.example up -d collector-db
 ```
 
 Check status:
 ```powershell
-docker compose -p signaldesk-collector-test -f infra/collector/docker-compose.yml --env-file infra/collector/.env ps
-docker compose -p signaldesk-collector-test -f infra/collector/docker-compose.yml --env-file infra/collector/.env logs collector-db --tail=120
+docker compose -f infra/collector/docker-compose.yml --env-file infra/collector/.env.example ps
+docker compose -f infra/collector/docker-compose.yml --env-file infra/collector/.env.example logs collector-db --tail=120
 ```
 
 ### Reset Commands
 Destructive reset:
 ```powershell
-docker compose -p signaldesk-collector-test -f infra/collector/docker-compose.yml --env-file infra/collector/.env down -v
-docker compose -p signaldesk-collector-test -f infra/collector/docker-compose.yml --env-file infra/collector/.env up -d collector-db
+docker compose -f infra/collector/docker-compose.yml --env-file infra/collector/.env.example down -v --remove-orphans
+docker compose -f infra/collector/docker-compose.yml --env-file infra/collector/.env.example up -d collector-db
 ```
 
 The reset must produce a clean test database with no residual spool rows before the next fixture run.
 
 ### Fixture Ingest Commands
-Run the deterministic baseline fixture set:
+Run schema bootstrap:
 ```powershell
-docker compose -p signaldesk-collector-test -f infra/collector/docker-compose.yml --env-file infra/collector/.env run --rm -e SIGNALDESK_COLLECTOR_RUN_MODE=fixture_once -e SIGNALDESK_FIXTURE_SET=baseline -e SIGNALDESK_COLLECTOR_DISABLE_SHIPPER=true collector-runner
+docker compose -f infra/collector/docker-compose.yml --env-file infra/collector/.env.example run --rm collector-bootstrap
 ```
 
-Re-run the same fixture set after a runner restart:
+Run the deterministic fixture ingest:
 ```powershell
-docker compose -p signaldesk-collector-test -f infra/collector/docker-compose.yml --env-file infra/collector/.env restart collector-runner
-docker compose -p signaldesk-collector-test -f infra/collector/docker-compose.yml --env-file infra/collector/.env run --rm -e SIGNALDESK_COLLECTOR_RUN_MODE=fixture_once -e SIGNALDESK_FIXTURE_SET=baseline -e SIGNALDESK_COLLECTOR_DISABLE_SHIPPER=true collector-runner
+docker compose -f infra/collector/docker-compose.yml --env-file infra/collector/.env.example run --rm collector-runner
 ```
 
-If the local test flow also needs shipper behavior:
+Query spool evidence:
 ```powershell
-docker compose -p signaldesk-collector-test -f infra/collector/docker-compose.yml --env-file infra/collector/.env run --rm -e SIGNALDESK_COLLECTOR_RUN_MODE=fixture_once -e SIGNALDESK_FIXTURE_SET=baseline -e SIGNALDESK_COLLECTOR_DISABLE_SHIPPER=false collector-runner
-docker compose -p signaldesk-collector-test -f infra/collector/docker-compose.yml --env-file infra/collector/.env logs collector-shipper --tail=120
+Get-Content -Raw 'infra/collector/queries/spool-evidence.sql' | docker compose -f infra/collector/docker-compose.yml --env-file infra/collector/.env.example exec -T collector-db psql -U collector -d signaldesk_collector -f -
 ```
 
-### Required Query Commands
-Source registry:
+Run shipper simulation:
 ```powershell
-docker compose -p signaldesk-collector-test -f infra/collector/docker-compose.yml --env-file infra/collector/.env exec collector-db psql -U signaldesk_collector -d signaldesk_collector_test -c "select source_id, source_category, expected_upstream_event_at from ingest_sources order by source_id;"
+docker compose -f infra/collector/docker-compose.yml --env-file infra/collector/.env.example run --rm collector-shipper
 ```
 
-Spool run and latest items:
+Restart DB and rerun fixture ingest:
 ```powershell
-docker compose -p signaldesk-collector-test -f infra/collector/docker-compose.yml --env-file infra/collector/.env exec collector-db psql -U signaldesk_collector -d signaldesk_collector_test -c "select run_status, adapter_version, started_at, completed_at from collector_spool_runs order by started_at desc limit 5;"
-docker compose -p signaldesk-collector-test -f infra/collector/docker-compose.yml --env-file infra/collector/.env exec collector-db psql -U signaldesk_collector -d signaldesk_collector_test -c "select spool_item_key, payload_hash, retrieval_status, delivery_attempt_count, last_delivery_status from collector_spool_items order by spooled_at desc limit 10;"
+docker compose -f infra/collector/docker-compose.yml --env-file infra/collector/.env.example restart collector-db
+docker compose -f infra/collector/docker-compose.yml --env-file infra/collector/.env.example run --rm collector-runner
 ```
 
-Metadata completeness and quality-state proof:
+Query idempotency evidence:
 ```powershell
-docker compose -p signaldesk-collector-test -f infra/collector/docker-compose.yml --env-file infra/collector/.env exec collector-db psql -U signaldesk_collector -d signaldesk_collector_test -c "select ri.payload_hash, ri.publisher_domain, ri.canonical_url, ri.metadata_completeness, q.quality_state from raw_items ri join raw_item_quality_states q on q.raw_item_id = ri.id order by ri.ingested_at desc limit 10;"
-docker compose -p signaldesk-collector-test -f infra/collector/docker-compose.yml --env-file infra/collector/.env exec collector-db psql -U signaldesk_collector -d signaldesk_collector_test -c "select ri.payload_hash, q.quality_state, q.state_reason_codes, q.missing_required_fields from raw_items ri join raw_item_quality_states q on q.raw_item_id = ri.id where q.quality_state <> 'accepted' order by ri.ingested_at desc limit 10;"
+Get-Content -Raw 'infra/collector/queries/spool-idempotency.sql' | docker compose -f infra/collector/docker-compose.yml --env-file infra/collector/.env.example exec -T collector-db psql -U collector -d signaldesk_collector -f -
 ```
 
-Quarantine and dead-letter proof:
+Optional local metrics snapshot:
 ```powershell
-docker compose -p signaldesk-collector-test -f infra/collector/docker-compose.yml --env-file infra/collector/.env exec collector-db psql -U signaldesk_collector -d signaldesk_collector_test -c "select raw_item_id, quarantine_reason, quarantined_at, release_decision from raw_quarantine_records order by quarantined_at desc limit 10;"
-docker compose -p signaldesk-collector-test -f infra/collector/docker-compose.yml --env-file infra/collector/.env exec collector-db psql -U signaldesk_collector -d signaldesk_collector_test -c "select captured_payload_hash, dead_letter_reason, failure_class, captured_at from raw_dead_letter_records order by captured_at desc limit 10;"
+docker compose -f infra/collector/docker-compose.yml --env-file infra/collector/.env.example run --rm collector-monitor
 ```
 
-Idempotent re-run proof:
+Reset helper:
 ```powershell
-docker compose -p signaldesk-collector-test -f infra/collector/docker-compose.yml --env-file infra/collector/.env exec collector-db psql -U signaldesk_collector -d signaldesk_collector_test -c "select payload_hash, count(*) from collector_spool_items group by payload_hash order by count(*) desc, payload_hash limit 10;"
+powershell -ExecutionPolicy Bypass -File infra/collector/reset-test-db.ps1 -StartDb
 ```
 
 ### Expected Results
-- `collector-db` becomes healthy after boot
-- fixture ingest writes at least one `collector_spool_runs` row and one `collector_spool_items` row
-- metadata inspection shows `publisher_domain`, `canonical_url`, `payload_hash`, and `metadata_completeness`
-- non-accepted fixtures, if present, show explicit `quality_state`, `state_reason_codes`, or quarantine/dead-letter evidence
-- fixture re-run after restart is auditable through stable spool keys or duplicate-safe results rather than silent duplication
+- `collector-bootstrap` completes successfully
+- first runner execution reads `2` fixture rows and inserts `2` spool rows
+- shipper simulation touches the same rows and records `last_error_code=central_offline_simulated`
+- rerunning `collector-runner` after restart does not increase logical row count and instead increases `ingest_count`
+- `spool-evidence.sql` and `spool-idempotency.sql` remain the required inspection surface for local smoke
 
 ### Restart And Cleanup
 Restart runtime services only:
 ```powershell
-docker compose -p signaldesk-collector-test -f infra/collector/docker-compose.yml --env-file infra/collector/.env restart collector-runner collector-shipper
+docker compose -f infra/collector/docker-compose.yml --env-file infra/collector/.env.example restart collector-db
 ```
 
 Stop test stack:
 ```powershell
-docker compose -p signaldesk-collector-test -f infra/collector/docker-compose.yml --env-file infra/collector/.env down
+docker compose -f infra/collector/docker-compose.yml --env-file infra/collector/.env.example down
 ```
 
 Destructive cleanup:
 ```powershell
-docker compose -p signaldesk-collector-test -f infra/collector/docker-compose.yml --env-file infra/collector/.env down -v
+docker compose -f infra/collector/docker-compose.yml --env-file infra/collector/.env.example down -v --remove-orphans
 ```
 
 ### Implementation Freeze Notes
-- the command surface above is the required ops contract for `COL-003` local smoke
-- if collector implementation needs different service names, env keys, or query targets, update OPS-006 before QA review
+- the command surface above now matches the actual `COL-003` implementation
+- if collector implementation changes later, update OPS-006 before QA review
 - no Windows system changes should be required for this test path
+
+## Collector Deployment Path For Raspberry Pi 192.168.0.33
+
+### Purpose
+Promote the same collector stack from local PC smoke to the Raspberry Pi collector node at `192.168.0.33` with minimal drift.
+
+### Required Pi Identity
+- collector host IP: `192.168.0.33`
+- collector node id should change from `collector-dev-node` to a Pi-specific value such as `collector-pi-192-168-0-33`
+- central host targeting remains a separate concern from the collector host IP
+
+### Minimal Pi Preparation
+1. check out the repo on the Pi or copy only:
+   - `infra/collector/`
+   - `services/collector/`
+2. copy the example env file:
+   - `cp infra/collector/.env.example infra/collector/.env`
+3. update only the Pi-specific values:
+   - `SIGNALDESK_COLLECTOR_NODE_ID=collector-pi-192-168-0-33`
+   - any future central-host URL or auth values once backend integration is frozen
+
+### Minimal Pi Commands
+Bootstrap and ingest:
+```bash
+docker compose -f infra/collector/docker-compose.yml --env-file infra/collector/.env up -d collector-db
+docker compose -f infra/collector/docker-compose.yml --env-file infra/collector/.env run --rm collector-bootstrap
+docker compose -f infra/collector/docker-compose.yml --env-file infra/collector/.env run --rm collector-runner
+```
+
+Inspect evidence:
+```bash
+cat infra/collector/queries/spool-evidence.sql | docker compose -f infra/collector/docker-compose.yml --env-file infra/collector/.env exec -T collector-db psql -U collector -d signaldesk_collector -f -
+```
+
+### Minimal Pi Operational Rule
+- keep the Pi deployment path command-compatible with the local smoke path
+- change only node identity, host-local env, and future central-target settings
+- do not redesign the stack on the Pi before the local smoke path and shipper behavior are stable
 
 ## Bring-Down / Cleanup
 - stop stack:

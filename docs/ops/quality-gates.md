@@ -14,22 +14,24 @@
 - QA review: defect-focused recheck on integrated or reviewable work
 
 ## Collector Test-DB Gate
-- use a separate collector project such as `signaldesk-collector-test`, never the main app stack project
-- record exact boot, reset, fixture-ingest, restart, and SQL inspection commands
+- use the concrete `COL-003` command surface under `infra/collector/`, never the main app stack project
+- record exact boot, bootstrap, fixture-ingest, shipper, restart, and SQL inspection commands
 - local collector smoke must be fixture-driven, not dependent on ambient live-source data
 - the minimum acceptable evidence set is:
-  - config validation for `infra/collector/docker-compose.yml`
+  - `docker compose ... config` for `infra/collector/docker-compose.yml`
   - `collector-db` startup status
+  - one `collector-bootstrap` run
   - one fixture ingest run
+  - one `collector-shipper` run when shipper simulation is part of the smoke
   - one re-run after restart
-  - SQL proof for spool rows
-  - SQL proof for metadata completeness and quality states
+  - SQL proof from `infra/collector/queries/spool-evidence.sql`
+  - SQL proof from `infra/collector/queries/spool-idempotency.sql`
 - if implementation changes the required command surface, update the ops docs before QA review
 - blocked collector verification is acceptable only when the exact missing asset or contract gap is recorded, such as:
   - missing `infra/collector/docker-compose.yml`
-  - missing `collector-runner` fixture entrypoint
-  - missing test-db tables or compatibility views
-  - missing frozen backend/storage handoff for a required query surface
+  - missing `collector-bootstrap`, `collector-runner`, or `collector-shipper` entrypoints
+  - missing `spool-evidence.sql` or `spool-idempotency.sql`
+  - runtime drift between the local smoke path and the Pi deployment path
 
 ## Debugging Rules
 - reproduce before changing behavior when possible
