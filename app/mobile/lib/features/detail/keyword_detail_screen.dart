@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/localization/app_localization.dart';
 import '../../core/models/api_models.dart';
 import '../../core/network/api_exception.dart';
 import '../../core/repositories/signaldesk_repository.dart';
@@ -43,6 +44,8 @@ class _KeywordDetailScreenState extends State<KeywordDetailScreen> {
   }
 
   Future<void> _addToWatchlist(String keywordId) async {
+    final strings = AppLanguageScope.stringsOf(context);
+
     setState(() {
       _watchlistUpdating = true;
     });
@@ -56,8 +59,8 @@ class _KeywordDetailScreenState extends State<KeywordDetailScreen> {
         SnackBar(
           content: Text(
             ok
-                ? 'Added to watchlist.'
-                : 'Watchlist update completed without confirmation.',
+                ? strings.addedToWatchlistMessage
+                : strings.watchlistUpdateNoConfirmationMessage,
           ),
         ),
       );
@@ -67,7 +70,7 @@ class _KeywordDetailScreenState extends State<KeywordDetailScreen> {
       }
       final message = error is ApiException ? error.message : error.toString();
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to update watchlist: $message')),
+        SnackBar(content: Text(strings.watchlistUpdateFailedMessage(message))),
       );
     } finally {
       if (mounted) {
@@ -80,12 +83,14 @@ class _KeywordDetailScreenState extends State<KeywordDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final strings = AppLanguageScope.stringsOf(context);
+
     return SignalDeskShell(
-      title: 'Keyword Detail',
+      title: strings.detailTitle,
       currentRoute: AppRoutes.ranking,
       child: LoadableView<KeywordDetailResponse>(
         controller: _controller,
-        emptyMessage: 'No keyword detail is available.',
+        emptyMessage: strings.noKeywordDetail,
         builder: (context, data) {
           return RefreshIndicator(
             onRefresh: _controller.refresh,
@@ -99,35 +104,44 @@ class _KeywordDetailScreenState extends State<KeywordDetailScreen> {
                 const SizedBox(height: 12),
                 Text(data.keyword, style: Theme.of(context).textTheme.headlineSmall),
                 const SizedBox(height: 12),
-                Text('Score: ${data.scoreSummary.score.toStringAsFixed(2)}'),
-                Text('Delta 24h: ${data.scoreSummary.delta1d?.toStringAsFixed(2) ?? '-'}'),
-                Text('Confidence: ${data.scoreSummary.confidence.toStringAsFixed(3)}'),
-                Text('Alert eligible: ${data.scoreSummary.isAlertEligible ? 'yes' : 'no'}'),
-                const SizedBox(height: 12),
+                Text('${strings.scoreLabel}: ${data.scoreSummary.score.toStringAsFixed(2)}'),
                 Text(
-                  'Reason: ${data.reasonBlock == null || data.reasonBlock!.isEmpty ? 'insufficient data' : data.reasonBlock!}',
+                  '${strings.delta24hLabel}: '
+                  '${data.scoreSummary.delta1d?.toStringAsFixed(2) ?? strings.unavailableText}',
+                ),
+                Text('${strings.confidenceLabel}: ${data.scoreSummary.confidence.toStringAsFixed(3)}'),
+                Text(
+                  '${strings.alertEligibleLabel}: '
+                  '${strings.boolToYesNo(data.scoreSummary.isAlertEligible)}',
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  'Risk flags: ${data.riskFlags.isEmpty ? '-' : data.riskFlags.join(', ')}',
+                  '${strings.reasonLabel}: '
+                  '${data.reasonBlock == null || data.reasonBlock!.isEmpty ? strings.insufficientDataText : data.reasonBlock!}',
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  'Related sectors: ${data.relatedSectors.isEmpty ? '-' : data.relatedSectors.join(', ')}',
+                  '${strings.riskFlagsLabel}: '
+                  '${data.riskFlags.isEmpty ? strings.unavailableText : data.riskFlags.join(', ')}',
                 ),
                 const SizedBox(height: 12),
-                const Text(
-                  'Related stocks',
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                Text(
+                  '${strings.relatedSectorsLabel}: '
+                  '${data.relatedSectors.isEmpty ? strings.unavailableText : data.relatedSectors.join(', ')}',
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  strings.relatedStocksHeader,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
                 ...data.relatedStocks.map(
                   (stock) => ListTile(
                     dense: true,
                     title: Text('${stock.ticker} | ${stock.name}'),
                     subtitle: Text(
-                      'Market ${stock.market.toUpperCase()} | '
-                      'Sector ${stock.sector ?? '-'} | '
-                      'Link ${stock.linkConfidence?.toStringAsFixed(3) ?? '-'}',
+                      '${strings.marketLabel} ${stock.market.toUpperCase()} | '
+                      '${strings.sectorLabel} ${stock.sector ?? strings.unavailableText} | '
+                      '${strings.linkLabel} ${stock.linkConfidence?.toStringAsFixed(3) ?? strings.unavailableText}',
                     ),
                   ),
                 ),
@@ -137,7 +151,9 @@ class _KeywordDetailScreenState extends State<KeywordDetailScreen> {
                       ? null
                       : () => _addToWatchlist(data.keywordId),
                   child: Text(
-                    _watchlistUpdating ? 'Adding...' : 'Add To Watchlist',
+                    _watchlistUpdating
+                        ? strings.addingToWatchlistAction
+                        : strings.addToWatchlistAction,
                   ),
                 ),
               ],

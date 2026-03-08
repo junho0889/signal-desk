@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/localization/app_localization.dart';
 import '../../core/models/api_models.dart';
 import '../../core/repositories/signaldesk_repository.dart';
 import '../../core/routes/app_routes.dart';
@@ -37,12 +38,14 @@ class _WatchlistScreenState extends State<WatchlistScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final strings = AppLanguageScope.stringsOf(context);
+
     return SignalDeskShell(
-      title: 'Watchlist',
+      title: strings.watchlistTitle,
       currentRoute: AppRoutes.watchlist,
       child: LoadableView<WatchlistResponse>(
         controller: _controller,
-        emptyMessage: 'No watchlist items are being tracked yet.',
+        emptyMessage: strings.noWatchlistData,
         builder: (context, data) {
           final isEmpty = data.keywords.isEmpty && data.stocks.isEmpty;
           if (isEmpty) {
@@ -54,10 +57,10 @@ class _WatchlistScreenState extends State<WatchlistScreen> {
                 children: <Widget>[
                   DataFreshnessBanner(generatedAt: data.generatedAt),
                   const SizedBox(height: 12),
-                  const Card(
+                  Card(
                     child: Padding(
-                      padding: EdgeInsets.all(16),
-                      child: Text('No watchlist items are being tracked yet.'),
+                      padding: const EdgeInsets.all(16),
+                      child: Text(strings.noWatchlistData),
                     ),
                   ),
                 ],
@@ -73,8 +76,8 @@ class _WatchlistScreenState extends State<WatchlistScreen> {
               children: <Widget>[
                 DataFreshnessBanner(generatedAt: data.generatedAt),
                 const SizedBox(height: 12),
-                const Text(
-                  'Keywords',
+                Text(
+                  strings.keywordsHeader,
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 8),
@@ -82,13 +85,13 @@ class _WatchlistScreenState extends State<WatchlistScreen> {
                   (item) => ListTile(
                     title: Text(item.keyword),
                     subtitle: Text(
-                      'Score ${item.score?.toStringAsFixed(2) ?? '-'} | '
-                      'Delta ${item.delta1d?.toStringAsFixed(2) ?? '-'}\n'
-                      'Alert ${item.isAlertEligible == null ? '-' : (item.isAlertEligible! ? 'yes' : 'no')} | '
-                      'Risk ${item.riskFlags.isEmpty ? '-' : item.riskFlags.join(', ')}',
+                      '${strings.scoreLabel} ${item.score?.toStringAsFixed(2) ?? strings.unavailableText} | '
+                      '${strings.deltaLabel} ${item.delta1d?.toStringAsFixed(2) ?? strings.unavailableText}\n'
+                      '${strings.alertLabel} ${item.isAlertEligible == null ? strings.unavailableText : strings.boolToYesNo(item.isAlertEligible!)} | '
+                      '${strings.riskLabel} ${item.riskFlags.isEmpty ? strings.unavailableText : item.riskFlags.join(', ')}',
                     ),
                     isThreeLine: true,
-                    trailing: Text(item.severity ?? '-'),
+                    trailing: Text(item.severity == null ? strings.unavailableText : strings.severityOption(item.severity)),
                     onTap: () => Navigator.of(context).pushNamed(
                       AppRoutes.detail,
                       arguments: item.keywordId,
@@ -96,16 +99,16 @@ class _WatchlistScreenState extends State<WatchlistScreen> {
                   ),
                 ),
                 const Divider(),
-                const Text(
-                  'Stocks',
+                Text(
+                  strings.stocksHeader,
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 8),
                 ...data.stocks.map(
                   (item) => ListTile(
                     title: Text('${item.ticker} | ${item.name}'),
-                    subtitle: Text('Market ${item.market.toUpperCase()}'),
-                    trailing: Text(item.severity ?? '-'),
+                    subtitle: Text('${strings.marketLabel} ${item.market.toUpperCase()}'),
+                    trailing: Text(item.severity == null ? strings.unavailableText : strings.severityOption(item.severity)),
                   ),
                 ),
               ],

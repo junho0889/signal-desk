@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../core/localization/app_localization.dart';
+
 class FreshnessPolicy {
   static const Duration defaultStaleAfter = Duration(hours: 6);
   static const Duration intradayStaleAfter = Duration(hours: 2);
@@ -28,6 +30,7 @@ class DataFreshnessBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final strings = AppLanguageScope.stringsOf(context);
     final generatedUtc = generatedAt.toUtc();
     final age = DateTime.now().toUtc().difference(generatedUtc);
     final safeAge = age.isNegative ? Duration.zero : age;
@@ -35,13 +38,13 @@ class DataFreshnessBanner extends StatelessWidget {
 
     final icon = isStale ? Icons.warning_amber_rounded : Icons.schedule;
     final color = isStale ? Colors.orange.shade900 : Colors.blueGrey.shade700;
-    final label = isStale ? 'Stale snapshot' : 'Snapshot freshness';
-    final ageLabel = _formatAge(safeAge);
-    final thresholdLabel = _formatAge(staleAfter);
+    final label = isStale ? strings.freshnessStaleLabel : strings.freshnessFreshLabel;
+    final ageLabel = _formatAge(safeAge, strings);
+    final thresholdLabel = _formatAge(staleAfter, strings);
     final generatedLabel = _formatLocalTimestamp(generatedUtc.toLocal());
     final message = isStale
-        ? 'Age $ageLabel. Generated $generatedLabel (local time). Refresh recommended (stale after $thresholdLabel).'
-        : 'Age $ageLabel. Generated $generatedLabel (local time).';
+        ? strings.freshnessStaleMessage(ageLabel, generatedLabel, thresholdLabel)
+        : strings.freshnessFreshMessage(ageLabel, generatedLabel);
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -74,25 +77,25 @@ class DataFreshnessBanner extends StatelessWidget {
     );
   }
 
-  String _formatAge(Duration duration) {
+  String _formatAge(Duration duration, AppStrings strings) {
     if (duration.inMinutes < 1) {
-      return 'under 1m';
+      return strings.underOneMinute;
     }
     if (duration.inHours < 1) {
-      return '${duration.inMinutes}m';
+      return strings.minutesLabel(duration.inMinutes);
     }
     if (duration.inDays < 1) {
       final minutesRemainder = duration.inMinutes.remainder(60);
       if (minutesRemainder == 0) {
-        return '${duration.inHours}h';
+        return strings.hoursLabel(duration.inHours);
       }
-      return '${duration.inHours}h ${minutesRemainder}m';
+      return '${strings.hoursLabel(duration.inHours)} ${strings.minutesLabel(minutesRemainder)}';
     }
     final hoursRemainder = duration.inHours.remainder(24);
     if (hoursRemainder == 0) {
-      return '${duration.inDays}d';
+      return strings.daysLabel(duration.inDays);
     }
-    return '${duration.inDays}d ${hoursRemainder}h';
+    return '${strings.daysLabel(duration.inDays)} ${strings.hoursLabel(hoursRemainder)}';
   }
 
   String _formatLocalTimestamp(DateTime localTime) {

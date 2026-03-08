@@ -1,16 +1,20 @@
 import 'package:flutter/material.dart';
 
+import '../../core/localization/app_localization.dart';
 import '../../core/network/api_exception.dart';
 import '../../core/state/loadable_controller.dart';
 
 class LoadableView<T> extends StatelessWidget {
+  static const String defaultLoadingMessage = 'Loading data...';
+  static const String defaultEmptyMessage = 'Nothing to show yet.';
+
   const LoadableView({
     super.key,
     required this.controller,
     required this.builder,
     this.isEmpty,
-    this.loadingMessage = 'Loading data...',
-    this.emptyMessage = 'Nothing to show yet.',
+    this.loadingMessage = defaultLoadingMessage,
+    this.emptyMessage = defaultEmptyMessage,
     this.errorMessageBuilder,
   });
 
@@ -23,6 +27,12 @@ class LoadableView<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final strings = AppLanguageScope.stringsOf(context);
+    final resolvedLoadingMessage =
+        loadingMessage == defaultLoadingMessage ? strings.loadingDataMessage : loadingMessage;
+    final resolvedEmptyMessage =
+        emptyMessage == defaultEmptyMessage ? strings.nothingToShowMessage : emptyMessage;
+
     return AnimatedBuilder(
       animation: controller,
       builder: (context, _) {
@@ -31,24 +41,24 @@ class LoadableView<T> extends StatelessWidget {
           if (controller.isLoading || !controller.hasAttemptedLoad) {
             return _StateCard(
               icon: Icons.hourglass_bottom_outlined,
-              title: 'Loading',
-              message: loadingMessage,
+              title: strings.loadingTitle,
+              message: resolvedLoadingMessage,
             );
           }
           if (controller.error != null) {
             return _StateCard(
               icon: Icons.cloud_off_outlined,
-              title: 'Could not load',
+              title: strings.couldNotLoadTitle,
               message: _messageForError(controller.error!),
-              actionLabel: 'Retry',
+              actionLabel: strings.retryAction,
               onAction: controller.refresh,
             );
           }
           return _StateCard(
             icon: Icons.inbox_outlined,
-            title: 'No data',
-            message: emptyMessage,
-            actionLabel: 'Refresh',
+            title: strings.noDataTitle,
+            message: resolvedEmptyMessage,
+            actionLabel: strings.refreshAction,
             onAction: controller.refresh,
           );
         }
@@ -56,9 +66,9 @@ class LoadableView<T> extends StatelessWidget {
         if (isEmpty?.call(data) ?? false) {
           return _StateCard(
             icon: Icons.inbox_outlined,
-            title: 'Nothing yet',
-            message: emptyMessage,
-            actionLabel: 'Refresh',
+            title: strings.nothingYetTitle,
+            message: resolvedEmptyMessage,
+            actionLabel: strings.refreshAction,
             onAction: controller.refresh,
           );
         }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/localization/app_localization.dart';
 import '../../core/models/api_models.dart';
 import '../../core/repositories/signaldesk_repository.dart';
 import '../../core/routes/app_routes.dart';
@@ -88,7 +89,8 @@ class _AlertsScreenState extends State<AlertsScreen> {
     }
   }
 
-  Widget _buildPaginationFooter(AlertsResponse data) {
+  Widget _buildPaginationFooter(BuildContext context, AlertsResponse data) {
+    final strings = AppLanguageScope.stringsOf(context);
     final hasMore = data.nextCursor != null && data.nextCursor!.isNotEmpty;
 
     if (_isLoadingNextPage) {
@@ -104,13 +106,13 @@ class _AlertsScreenState extends State<AlertsScreen> {
         child: Column(
           children: <Widget>[
             Text(
-              'Could not load next page. ${_nextPageError.toString()}',
+              strings.nextPageLoadError(_nextPageError.toString()),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
             OutlinedButton(
               onPressed: _loadNextPage,
-              child: const Text('Retry'),
+              child: Text(strings.retryAction),
             ),
           ],
         ),
@@ -122,21 +124,23 @@ class _AlertsScreenState extends State<AlertsScreen> {
         padding: const EdgeInsets.symmetric(vertical: 8),
         child: OutlinedButton(
           onPressed: _loadNextPage,
-          child: const Text('Load More'),
+          child: Text(strings.loadMoreAction),
         ),
       );
     }
 
-    return const Padding(
-      padding: EdgeInsets.symmetric(vertical: 12),
-      child: Center(child: Text('End of alerts')),
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      child: Center(child: Text(strings.endOfAlerts)),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final strings = AppLanguageScope.stringsOf(context);
+
     return SignalDeskShell(
-      title: 'Alerts',
+      title: strings.alertsTitle,
       currentRoute: AppRoutes.alerts,
       child: Column(
         children: <Widget>[
@@ -144,16 +148,16 @@ class _AlertsScreenState extends State<AlertsScreen> {
             padding: const EdgeInsets.all(12),
             child: Row(
               children: <Widget>[
-                const Text('Severity:'),
+                Text(strings.severityLabel),
                 const SizedBox(width: 12),
                 DropdownButton<String?>(
                   value: _severity,
-                  items: const <DropdownMenuItem<String?>>[
-                    DropdownMenuItem<String?>(value: null, child: Text('All')),
-                    DropdownMenuItem<String?>(value: 'low', child: Text('low')),
-                    DropdownMenuItem<String?>(value: 'medium', child: Text('medium')),
-                    DropdownMenuItem<String?>(value: 'high', child: Text('high')),
-                    DropdownMenuItem<String?>(value: 'critical', child: Text('critical')),
+                  items: <DropdownMenuItem<String?>>[
+                    DropdownMenuItem<String?>(value: null, child: Text(strings.severityOption(null))),
+                    DropdownMenuItem<String?>(value: 'low', child: Text(strings.severityOption('low'))),
+                    DropdownMenuItem<String?>(value: 'medium', child: Text(strings.severityOption('medium'))),
+                    DropdownMenuItem<String?>(value: 'high', child: Text(strings.severityOption('high'))),
+                    DropdownMenuItem<String?>(value: 'critical', child: Text(strings.severityOption('critical'))),
                   ],
                   onChanged: (value) {
                     if (value == _severity) {
@@ -172,7 +176,7 @@ class _AlertsScreenState extends State<AlertsScreen> {
           Expanded(
             child: LoadableView<AlertsResponse>(
               controller: _controller,
-              emptyMessage: 'No recent triggers match this severity filter.',
+              emptyMessage: strings.noAlertsData,
               builder: (context, data) {
                 if (data.items.isEmpty) {
                   return RefreshIndicator(
@@ -181,16 +185,16 @@ class _AlertsScreenState extends State<AlertsScreen> {
                       physics: const AlwaysScrollableScrollPhysics(),
                       children: <Widget>[
                         DataFreshnessBanner(generatedAt: data.generatedAt),
-                        const Padding(
+                        Padding(
                           padding: EdgeInsets.symmetric(horizontal: 16, vertical: 20),
                           child: Card(
                             child: Padding(
                               padding: EdgeInsets.all(16),
-                              child: Text('No recent triggers match this severity filter.'),
+                              child: Text(strings.noAlertsData),
                             ),
                           ),
                         ),
-                        _buildPaginationFooter(data),
+                        _buildPaginationFooter(context, data),
                       ],
                     ),
                   );
@@ -207,18 +211,21 @@ class _AlertsScreenState extends State<AlertsScreen> {
                       }
 
                       if (index == data.items.length + 1) {
-                        return _buildPaginationFooter(data);
+                        return _buildPaginationFooter(context, data);
                       }
 
                       final item = data.items[index - 1];
+                      final severity = strings.isKorean
+                          ? strings.severityOption(item.severity)
+                          : item.severity.toUpperCase();
                       return Card(
                         margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                         child: ListTile(
                           title: Text(item.message),
                           subtitle: Text(
-                            '${item.severity.toUpperCase()} | '
+                            '$severity | '
                             '${item.triggeredAt.toIso8601String()}\n'
-                            'Target ${item.targetType} | ${item.targetLabel}',
+                            '${strings.targetLabel} ${strings.targetType(item.targetType)} | ${item.targetLabel}',
                           ),
                           isThreeLine: true,
                           onTap: () {

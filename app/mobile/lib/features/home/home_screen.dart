@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/localization/app_localization.dart';
 import '../../core/models/api_models.dart';
 import '../../core/repositories/signaldesk_repository.dart';
 import '../../core/routes/app_routes.dart';
@@ -37,12 +38,14 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final strings = AppLanguageScope.stringsOf(context);
+
     return SignalDeskShell(
-      title: 'SignalDesk Home',
+      title: strings.homeTitle,
       currentRoute: AppRoutes.home,
       child: LoadableView<DashboardResponse>(
         controller: _controller,
-        emptyMessage: 'No dashboard data is available yet.',
+        emptyMessage: strings.noDashboardData,
         builder: (context, data) {
           final isEmpty =
               data.topKeywords.isEmpty &&
@@ -56,12 +59,12 @@ class _HomeScreenState extends State<HomeScreen> {
                 physics: const AlwaysScrollableScrollPhysics(),
                 children: <Widget>[
                   DataFreshnessBanner(generatedAt: data.generatedAt),
-                  const Padding(
+                  Padding(
                     padding: EdgeInsets.symmetric(horizontal: 16, vertical: 20),
                     child: Card(
                       child: Padding(
                         padding: EdgeInsets.all(16),
-                        child: Text('No dashboard data is available yet.'),
+                        child: Text(strings.noDashboardData),
                       ),
                     ),
                   ),
@@ -77,10 +80,10 @@ class _HomeScreenState extends State<HomeScreen> {
               children: <Widget>[
                 DataFreshnessBanner(generatedAt: data.generatedAt),
                 const SizedBox(height: 8),
-                const Padding(
+                Padding(
                   padding: EdgeInsets.symmetric(horizontal: 16),
                   child: Text(
-                    'Top Keywords',
+                    strings.topKeywordsHeader,
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                 ),
@@ -91,12 +94,12 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: ListTile(
                       title: Text(item.keyword),
                       subtitle: Text(
-                        'Score ${item.score.toStringAsFixed(2)} | '
-                        'Delta ${item.delta1d?.toStringAsFixed(2) ?? '-'} | '
-                        'Confidence ${item.confidence.toStringAsFixed(3)}\n'
-                        'Alert ${item.isAlertEligible ? 'yes' : 'no'} | '
-                        'Reasons ${item.reasonTags.isEmpty ? '-' : item.reasonTags.join(', ')}\n'
-                        'Risk ${item.riskFlags.isEmpty ? '-' : item.riskFlags.join(', ')}',
+                        '${strings.scoreLabel} ${item.score.toStringAsFixed(2)} | '
+                        '${strings.deltaLabel} ${item.delta1d?.toStringAsFixed(2) ?? strings.unavailableText} | '
+                        '${strings.confidenceLabel} ${item.confidence.toStringAsFixed(3)}\n'
+                        '${strings.alertLabel} ${strings.boolToYesNo(item.isAlertEligible)} | '
+                        '${strings.reasonsLabel} ${item.reasonTags.isEmpty ? strings.unavailableText : item.reasonTags.join(', ')}\n'
+                        '${strings.riskLabel} ${item.riskFlags.isEmpty ? strings.unavailableText : item.riskFlags.join(', ')}',
                       ),
                       isThreeLine: true,
                       onTap: () => Navigator.of(context).pushNamed(
@@ -107,10 +110,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   );
                 }),
                 const SizedBox(height: 16),
-                const Padding(
+                Padding(
                   padding: EdgeInsets.symmetric(horizontal: 16),
                   child: Text(
-                    'Sector Movers',
+                    strings.sectorMoversHeader,
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                 ),
@@ -120,27 +123,30 @@ class _HomeScreenState extends State<HomeScreen> {
                     dense: true,
                     title: Text(sector.sector),
                     subtitle: Text(
-                      'Keywords ${sector.keywordCount} | '
-                      'Avg score ${sector.avgScore.toStringAsFixed(2)}',
+                      '${strings.keywordCountLabel} ${sector.keywordCount} | '
+                      '${strings.avgScoreLabel} ${sector.avgScore.toStringAsFixed(2)}',
                     ),
                     trailing: Text(sector.delta1d?.toStringAsFixed(2) ?? '-'),
                   );
                 }),
                 const SizedBox(height: 16),
-                const Padding(
+                Padding(
                   padding: EdgeInsets.symmetric(horizontal: 16),
                   child: Text(
-                    'Recent Alerts',
+                    strings.recentAlertsHeader,
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                 ),
                 const SizedBox(height: 8),
                 ...data.riskAlerts.map((alert) {
+                  final severity = strings.isKorean
+                      ? strings.severityOption(alert.severity)
+                      : alert.severity.toUpperCase();
                   return ListTile(
                     dense: true,
                     title: Text(alert.message),
                     subtitle: Text(
-                      '${alert.severity.toUpperCase()} | '
+                      '$severity | '
                       '${alert.triggeredAt.toIso8601String()}',
                     ),
                   );

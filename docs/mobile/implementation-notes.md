@@ -85,11 +85,43 @@ Outcome:
 - static checks confirm empty-state/refresh wiring and mock cursor parsing helpers are present
 - SDK/toolchain unavailable in this worker environment, so compile/runtime verification remains pending
 
+## APP-005 Language Toggle
+- added a lightweight app-wide language mode controller (`AppLanguageController`) with no external localization package
+- toggle entrypoint is in the shared shell app bar (`KO` / `EN`) and applies across all routes
+- mode behavior is session-only in this implementation (not persisted across full app restart)
+
+Localization coverage in APP-005:
+- app bar titles and bottom navigation labels
+- shell-level language toggle label/tooltip
+- loading, empty, error, retry, and refresh state text in `LoadableView`
+- freshness labels/messages in `DataFreshnessBanner`
+- key MVP screen chrome and actions on Home, Ranking, Detail, Watchlist, Alerts
+  - section headers
+  - key field labels
+  - pagination footer labels (`Load More`, retry, end-of-results)
+  - watchlist action button and snackbar feedback
+
+APP-004 behavior preservation notes:
+- existing cursor pagination flow remains intact for Ranking and Alerts
+- stale-data thresholds and rendering paths remain intact
+- no backend or ops contract changes
+
+## Verification Status (APP-005 Session)
+Commands attempted in `app/mobile`:
+- `flutter pub get`
+- `flutter analyze`
+- `flutter test`
+- `flutter run -d chrome --dart-define=SIGNALDESK_USE_MOCK=true`
+
+Outcome:
+- all Flutter commands blocked with `flutter : The term 'flutter' is not recognized ...`
+- static checks confirm localization wiring and APP-004 pagination/freshness paths remain referenced after localization changes
+
 ## Current Limitations
 - no persistent local cache or offline store yet
 - no authentication flow (out of scope for current personal MVP)
 - push notification deep-link handling is still deferred
 
 ## Next Hardening Targets
-- APP-005: push notification deep-link handling implementation and tests
+- APP-006: push notification deep-link handling implementation and tests
 - QA-003: regression review for BE-003, APP-004, and OPS-004 integration

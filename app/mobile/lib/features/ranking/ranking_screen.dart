@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/localization/app_localization.dart';
 import '../../core/models/api_models.dart';
 import '../../core/repositories/signaldesk_repository.dart';
 import '../../core/routes/app_routes.dart';
@@ -88,7 +89,8 @@ class _RankingScreenState extends State<RankingScreen> {
     }
   }
 
-  Widget _buildPaginationFooter(KeywordsResponse data) {
+  Widget _buildPaginationFooter(BuildContext context, KeywordsResponse data) {
+    final strings = AppLanguageScope.stringsOf(context);
     final hasMore = data.nextCursor != null && data.nextCursor!.isNotEmpty;
 
     if (_isLoadingNextPage) {
@@ -104,13 +106,13 @@ class _RankingScreenState extends State<RankingScreen> {
         child: Column(
           children: <Widget>[
             Text(
-              'Could not load next page. ${_nextPageError.toString()}',
+              strings.nextPageLoadError(_nextPageError.toString()),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
             OutlinedButton(
               onPressed: _loadNextPage,
-              child: const Text('Retry'),
+              child: Text(strings.retryAction),
             ),
           ],
         ),
@@ -122,21 +124,23 @@ class _RankingScreenState extends State<RankingScreen> {
         padding: const EdgeInsets.symmetric(vertical: 8),
         child: OutlinedButton(
           onPressed: _loadNextPage,
-          child: const Text('Load More'),
+          child: Text(strings.loadMoreAction),
         ),
       );
     }
 
-    return const Padding(
-      padding: EdgeInsets.symmetric(vertical: 12),
-      child: Center(child: Text('End of ranking results')),
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      child: Center(child: Text(strings.endOfRankingResults)),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final strings = AppLanguageScope.stringsOf(context);
+
     return SignalDeskShell(
-      title: 'Keyword Ranking',
+      title: strings.rankingTitle,
       currentRoute: AppRoutes.ranking,
       child: Column(
         children: <Widget>[
@@ -144,7 +148,7 @@ class _RankingScreenState extends State<RankingScreen> {
             padding: const EdgeInsets.all(12),
             child: Row(
               children: <Widget>[
-                const Text('Period:'),
+                Text(strings.periodLabel),
                 const SizedBox(width: 12),
                 DropdownButton<String>(
                   value: _period,
@@ -152,7 +156,7 @@ class _RankingScreenState extends State<RankingScreen> {
                       .map(
                         (value) => DropdownMenuItem<String>(
                           value: value,
-                          child: Text(value),
+                          child: Text(strings.periodOption(value)),
                         ),
                       )
                       .toList(growable: false),
@@ -173,7 +177,7 @@ class _RankingScreenState extends State<RankingScreen> {
           Expanded(
             child: LoadableView<KeywordsResponse>(
               controller: _controller,
-              emptyMessage: 'No ranking data is available for this filter.',
+              emptyMessage: strings.noRankingData,
               builder: (context, data) {
                 if (data.items.isEmpty) {
                   return RefreshIndicator(
@@ -185,16 +189,16 @@ class _RankingScreenState extends State<RankingScreen> {
                           generatedAt: data.generatedAt,
                           staleAfter: FreshnessPolicy.forPeriod(_period),
                         ),
-                        const Padding(
+                        Padding(
                           padding: EdgeInsets.symmetric(horizontal: 16, vertical: 20),
                           child: Card(
                             child: Padding(
                               padding: EdgeInsets.all(16),
-                              child: Text('No ranking data is available for this filter.'),
+                              child: Text(strings.noRankingData),
                             ),
                           ),
                         ),
-                        _buildPaginationFooter(data),
+                        _buildPaginationFooter(context, data),
                       ],
                     ),
                   );
@@ -214,7 +218,7 @@ class _RankingScreenState extends State<RankingScreen> {
                       }
 
                       if (index == data.items.length + 1) {
-                        return _buildPaginationFooter(data);
+                        return _buildPaginationFooter(context, data);
                       }
 
                       final item = data.items[index - 1];
@@ -223,12 +227,12 @@ class _RankingScreenState extends State<RankingScreen> {
                         child: ListTile(
                           title: Text('#${item.rankPosition} ${item.keyword}'),
                           subtitle: Text(
-                            'Score ${item.score.toStringAsFixed(2)} | '
-                            'Delta ${item.delta1d?.toStringAsFixed(2) ?? '-'}\n'
-                            'Confidence ${item.confidence.toStringAsFixed(3)} | '
-                            'Alert ${item.isAlertEligible ? 'yes' : 'no'}\n'
-                            'Reasons ${item.reasonTags.isEmpty ? '-' : item.reasonTags.join(', ')}\n'
-                            'Risk ${item.riskFlags.isEmpty ? '-' : item.riskFlags.join(', ')}',
+                            '${strings.scoreLabel} ${item.score.toStringAsFixed(2)} | '
+                            '${strings.deltaLabel} ${item.delta1d?.toStringAsFixed(2) ?? strings.unavailableText}\n'
+                            '${strings.confidenceLabel} ${item.confidence.toStringAsFixed(3)} | '
+                            '${strings.alertLabel} ${strings.boolToYesNo(item.isAlertEligible)}\n'
+                            '${strings.reasonsLabel} ${item.reasonTags.isEmpty ? strings.unavailableText : item.reasonTags.join(', ')}\n'
+                            '${strings.riskLabel} ${item.riskFlags.isEmpty ? strings.unavailableText : item.riskFlags.join(', ')}',
                           ),
                           isFourLine: true,
                           onTap: () => Navigator.of(context).pushNamed(
