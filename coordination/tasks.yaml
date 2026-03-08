@@ -662,7 +662,7 @@ tasks:
   - id: COL-006
     title: Deploy collector stack to Raspberry Pi and run remote ingest smoke
     owner: signal-desk-collector
-    status: pending
+    status: in_progress
     depends_on:
       - COL-005
     files:

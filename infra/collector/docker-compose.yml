@@ -1,0 +1,125 @@
+services:
+  collector-db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${COLLECTOR_POSTGRES_DB}
+      POSTGRES_USER: ${COLLECTOR_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${COLLECTOR_POSTGRES_PASSWORD}
+    ports:
+      - "127.0.0.1:${COLLECTOR_POSTGRES_PORT:-55432}:5432"
+    volumes:
+      - collector-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${COLLECTOR_POSTGRES_USER} -d ${COLLECTOR_POSTGRES_DB}",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - signaldesk-collector-internal
+
+  collector-bootstrap:
+    build:
+      context: ../../services/collector
+      dockerfile: Dockerfile
+    restart: "no"
+    environment:
+      SIGNALDESK_COLLECTOR_DB_URL: postgresql://${COLLECTOR_POSTGRES_USER}:${COLLECTOR_POSTGRES_PASSWORD}@collector-db:5432/${COLLECTOR_POSTGRES_DB}
+      SIGNALDESK_COLLECTOR_FIXTURE_PATH: signaldesk_collector/fixtures/news_primary.json
+      SIGNALDESK_COLLECTOR_NODE_ID: ${SIGNALDESK_COLLECTOR_NODE_ID:-collector-dev-node}
+      SIGNALDESK_COLLECTOR_SOURCE_ID: news_primary
+      SIGNALDESK_COLLECTOR_SOURCE_CATEGORY: news
+      SIGNALDESK_COLLECTOR_DEFAULT_LANGUAGE: en
+      SIGNALDESK_COLLECTOR_MARKET_SCOPE: KRX
+      SIGNALDESK_COLLECTOR_ADAPTER_VERSION: ${SIGNALDESK_COLLECTOR_ADAPTER_VERSION:-collector-v1}
+      SIGNALDESK_COLLECTOR_RETRIEVAL_STATUS: ${SIGNALDESK_COLLECTOR_RETRIEVAL_STATUS:-ok}
+      SIGNALDESK_COLLECTOR_EXPECTS_UPSTREAM_EVENT_AT: ${SIGNALDESK_COLLECTOR_EXPECTS_UPSTREAM_EVENT_AT:-true}
+      SIGNALDESK_COLLECTOR_MAX_FUTURE_SKEW_SECONDS: ${SIGNALDESK_COLLECTOR_MAX_FUTURE_SKEW_SECONDS:-600}
+      SIGNALDESK_COLLECTOR_CENTRAL_HOST: ${SIGNALDESK_COLLECTOR_CENTRAL_HOST:-192.168.0.200}
+      SIGNALDESK_COLLECTOR_SHIPPER_MODE: simulate-offline
+      SIGNALDESK_COLLECTOR_SHIPPER_BATCH_SIZE: ${SIGNALDESK_COLLECTOR_SHIPPER_BATCH_SIZE:-20}
+    command: ["python", "-m", "signaldesk_collector.main", "migrate"]
+    depends_on:
+      collector-db:
+        condition: service_healthy
+    networks:
+      - signaldesk-collector-internal
+    profiles:
+      - manual
+
+  collector-runner:
+    build:
+      context: ../../services/collector
+      dockerfile: Dockerfile
+    restart: "no"
+    environment:
+      SIGNALDESK_COLLECTOR_DB_URL: postgresql://${COLLECTOR_POSTGRES_USER}:${COLLECTOR_POSTGRES_PASSWORD}@collector-db:5432/${COLLECTOR_POSTGRES_DB}
+      SIGNALDESK_COLLECTOR_FIXTURE_PATH: signaldesk_collector/fixtures/news_primary.json
+      SIGNALDESK_COLLECTOR_NODE_ID: ${SIGNALDESK_COLLECTOR_NODE_ID:-collector-dev-node}
+      SIGNALDESK_COLLECTOR_SOURCE_ID: news_primary
+      SIGNALDESK_COLLECTOR_SOURCE_CATEGORY: news
+      SIGNALDESK_COLLECTOR_DEFAULT_LANGUAGE: en
+      SIGNALDESK_COLLECTOR_MARKET_SCOPE: KRX
+      SIGNALDESK_COLLECTOR_ADAPTER_VERSION: ${SIGNALDESK_COLLECTOR_ADAPTER_VERSION:-collector-v1}
+      SIGNALDESK_COLLECTOR_RETRIEVAL_STATUS: ${SIGNALDESK_COLLECTOR_RETRIEVAL_STATUS:-ok}
+      SIGNALDESK_COLLECTOR_SOURCE_CURSOR: ${SIGNALDESK_COLLECTOR_SOURCE_CURSOR:-}
+      SIGNALDESK_COLLECTOR_EXPECTS_UPSTREAM_EVENT_AT: ${SIGNALDESK_COLLECTOR_EXPECTS_UPSTREAM_EVENT_AT:-true}
+      SIGNALDESK_COLLECTOR_MAX_FUTURE_SKEW_SECONDS: ${SIGNALDESK_COLLECTOR_MAX_FUTURE_SKEW_SECONDS:-600}
+      SIGNALDESK_COLLECTOR_CENTRAL_HOST: ${SIGNALDESK_COLLECTOR_CENTRAL_HOST:-192.168.0.200}
+    command: ["python", "-m", "signaldesk_collector.main", "ingest-fixture"]
+    depends_on:
+      collector-db:
+        condition: service_healthy
+    networks:
+      - signaldesk-collector-internal
+    profiles:
+      - manual
+
+  collector-shipper:
+    build:
+      context: ../../services/collector
+      dockerfile: Dockerfile
+    restart: "no"
+    environment:
+      SIGNALDESK_COLLECTOR_DB_URL: postgresql://${COLLECTOR_POSTGRES_USER}:${COLLECTOR_POSTGRES_PASSWORD}@collector-db:5432/${COLLECTOR_POSTGRES_DB}
+      SIGNALDESK_COLLECTOR_SHIPPER_MODE: ${SIGNALDESK_COLLECTOR_SHIPPER_MODE:-simulate-offline}
+      SIGNALDESK_COLLECTOR_SHIPPER_BATCH_SIZE: ${SIGNALDESK_COLLECTOR_SHIPPER_BATCH_SIZE:-20}
+      SIGNALDESK_COLLECTOR_CENTRAL_HOST: ${SIGNALDESK_COLLECTOR_CENTRAL_HOST:-192.168.0.200}
+      SIGNALDESK_COLLECTOR_SIMULATED_INTAKE_STATUS: ${SIGNALDESK_COLLECTOR_SIMULATED_INTAKE_STATUS:-retryable_failure}
+      SIGNALDESK_COLLECTOR_SIMULATED_REASON_CODE: ${SIGNALDESK_COLLECTOR_SIMULATED_REASON_CODE:-storage_unavailable}
+    command: ["python", "-m", "signaldesk_collector.main", "ship-once"]
+    depends_on:
+      collector-db:
+        condition: service_healthy
+    networks:
+      - signaldesk-collector-internal
+    profiles:
+      - manual
+
+  collector-monitor:
+    build:
+      context: ../../services/collector
+      dockerfile: Dockerfile
+    restart: "no"
+    environment:
+      SIGNALDESK_COLLECTOR_DB_URL: postgresql://${COLLECTOR_POSTGRES_USER}:${COLLECTOR_POSTGRES_PASSWORD}@collector-db:5432/${COLLECTOR_POSTGRES_DB}
+    command: ["python", "-m", "signaldesk_collector.main", "metrics"]
+    depends_on:
+      collector-db:
+        condition: service_healthy
+    networks:
+      - signaldesk-collector-internal
+    profiles:
+      - manual
+
+networks:
+  signaldesk-collector-internal:
+    driver: bridge
+
+volumes:
+  collector-postgres-data:

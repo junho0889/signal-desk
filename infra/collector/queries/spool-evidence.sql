@@ -1,0 +1,26 @@
+SELECT
+  spool_id::text,
+  source_id,
+  source_category,
+  collector_node_id,
+  publisher_name,
+  publisher_domain,
+  payload_hash,
+  idempotency_key,
+  status,
+  ingest_status,
+  quality_state,
+  adapter_version,
+  retrieval_status,
+  source_cursor,
+  transport_status,
+  reason_code,
+  last_intake_status,
+  retry_count,
+  ingest_count,
+  collected_at,
+  upstream_event_at,
+  last_ship_attempt_at,
+  last_error_code
+FROM spool_items
+ORDER BY collected_at, spool_id;
