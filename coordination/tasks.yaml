@@ -185,3 +185,19 @@ tasks:
 
 
 
+  - id: APP-002
+    title: Implement mobile app shell and API wiring baseline
+    owner: signal-desk-mobile
+    status: done
+    depends_on:
+      - APP-001
+      - BE-001
+      - OPS-001
+    files:
+      - app/mobile/
+      - docs/mobile/implementation-notes.md
+      - coordination/dispatches/APP-002.md
+    acceptance:
+      - Mobile app shell boots with baseline navigation
+      - Core API clients are wired to BE-001 contracts
+      - Implementation notes include setup, run, and known gaps
