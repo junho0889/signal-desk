@@ -140,7 +140,7 @@ tasks:
   - id: UX-001
     title: Define information hierarchy and screen map
     owner: signal-desk-design
-    status: in_progress
+    status: done
     depends_on:
       - PROD-001
       - BE-001
@@ -153,7 +153,7 @@ tasks:
   - id: APP-001
     title: Prepare mobile implementation plan
     owner: signal-desk-mobile
-    status: todo
+    status: in_progress
     depends_on:
       - UX-001
       - BE-001
@@ -167,7 +167,7 @@ tasks:
   - id: OPS-001
     title: Define deployment and service operation baseline
     owner: signal-desk-ops
-    status: in_progress
+    status: done
     depends_on:
       - INFRA-001
       - BE-001
@@ -179,6 +179,7 @@ tasks:
       - Runtime topology is defined
       - Monitoring and failure handling are documented
       - Personal-use release path is documented
+
 
 
 
