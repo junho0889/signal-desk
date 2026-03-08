@@ -6,8 +6,10 @@ Lock the user-facing thread names so orchestration messages always refer to the 
 ## Fixed Thread Names
 - `Collector`
   - role: `signal-desk-collector`
-  - primary task lane: `COL-001`
-  - worktree: `E:\source\signal-desk-worktrees\collector-001`
+  - primary task lanes: `COL-001`, `COL-002`
+  - worktrees:
+    - `E:\source\signal-desk-worktrees\collector-001`
+    - `E:\source\signal-desk-worktrees\collector-002`
 
 - `BE-storage`
   - role: `signal-desk-storage`
@@ -46,13 +48,17 @@ Lock the user-facing thread names so orchestration messages always refer to the 
 
 - `Ops thread`
   - role: `signal-desk-ops`
-  - primary task lane: `OPS-004`
-  - worktree: `E:\source\signal-desk-worktrees\ops-004`
+  - primary task lanes: `OPS-004`, `OPS-005`
+  - worktrees:
+    - `E:\source\signal-desk-worktrees\ops-004`
+    - `E:\source\signal-desk-worktrees\ops-005`
 
 - `Backend thread`
   - role: `signal-desk-backend`
-  - primary support lane: `BE-003`
-  - worktree: `E:\source\signal-desk-worktrees\be-003`
+  - primary task lanes: `BE-003`, `BE-005`
+  - worktrees:
+    - `E:\source\signal-desk-worktrees\be-003`
+    - `E:\source\signal-desk-worktrees\be-005`
 
 - `Orchestrator thread`
   - role: `signal-desk-orchestrator`
