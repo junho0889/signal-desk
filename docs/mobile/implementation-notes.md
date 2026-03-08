@@ -108,14 +108,18 @@ APP-004 behavior preservation notes:
 
 ## Verification Status (APP-005 Session)
 Commands attempted in `app/mobile`:
-- `flutter pub get`
-- `flutter analyze`
-- `flutter test`
-- `flutter run -d chrome --dart-define=SIGNALDESK_USE_MOCK=true`
+- `E:\source\signal-desk\flutter\bin\flutter.bat pub get`
+- `E:\source\signal-desk\flutter\bin\flutter.bat analyze`
+- `E:\source\signal-desk\flutter\bin\flutter.bat test`
+- `E:\source\signal-desk\flutter\bin\flutter.bat run -d chrome --dart-define=SIGNALDESK_USE_MOCK=true`
+- `E:\source\signal-desk\flutter\bin\flutter.bat run -d chrome --dart-define=SIGNALDESK_USE_MOCK=true --no-resident`
 
 Outcome:
-- all Flutter commands blocked with `flutter : The term 'flutter' is not recognized ...`
-- static checks confirm localization wiring and APP-004 pagination/freshness paths remain referenced after localization changes
+- `pub get`: success
+- `analyze`: success (`No issues found!`)
+- `test`: failed (`Test directory "test" not found.`)
+- `run -d chrome ...` (resident mode): timed out in worker terminal after 184s
+- `run -d chrome ... --no-resident`: launch smoke succeeded and exited
 
 ## Current Limitations
 - no persistent local cache or offline store yet

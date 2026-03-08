@@ -78,7 +78,7 @@ class _WatchlistScreenState extends State<WatchlistScreen> {
                 const SizedBox(height: 12),
                 Text(
                   strings.keywordsHeader,
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 8),
                 ...data.keywords.map(
@@ -101,7 +101,7 @@ class _WatchlistScreenState extends State<WatchlistScreen> {
                 const Divider(),
                 Text(
                   strings.stocksHeader,
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 8),
                 ...data.stocks.map(

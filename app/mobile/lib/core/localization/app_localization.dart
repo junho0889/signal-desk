@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
 enum AppLanguage { english, korean }
@@ -82,9 +81,9 @@ class AppStrings {
   }
 
   String get underOneMinute => isKorean ? '1분 미만' : 'under 1m';
-  String minutesLabel(int minutes) => isKorean ? '${minutes}분' : '${minutes}m';
-  String hoursLabel(int hours) => isKorean ? '${hours}시간' : '${hours}h';
-  String daysLabel(int days) => isKorean ? '${days}일' : '${days}d';
+  String minutesLabel(int minutes) => isKorean ? '$minutes분' : '${minutes}m';
+  String hoursLabel(int hours) => isKorean ? '$hours시간' : '${hours}h';
+  String daysLabel(int days) => isKorean ? '$days일' : '${days}d';
 
   String get topKeywordsHeader => isKorean ? '상위 키워드' : 'Top Keywords';
   String get sectorMoversHeader => isKorean ? '섹터 변동' : 'Sector Movers';

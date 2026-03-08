@@ -190,10 +190,10 @@ class _RankingScreenState extends State<RankingScreen> {
                           staleAfter: FreshnessPolicy.forPeriod(_period),
                         ),
                         Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
                           child: Card(
                             child: Padding(
-                              padding: EdgeInsets.all(16),
+                              padding: const EdgeInsets.all(16),
                               child: Text(strings.noRankingData),
                             ),
                           ),
@@ -234,7 +234,7 @@ class _RankingScreenState extends State<RankingScreen> {
                             '${strings.reasonsLabel} ${item.reasonTags.isEmpty ? strings.unavailableText : item.reasonTags.join(', ')}\n'
                             '${strings.riskLabel} ${item.riskFlags.isEmpty ? strings.unavailableText : item.riskFlags.join(', ')}',
                           ),
-                          isFourLine: true,
+                          isThreeLine: true,
                           onTap: () => Navigator.of(context).pushNamed(
                             AppRoutes.detail,
                             arguments: item.keywordId,

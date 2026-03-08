@@ -186,10 +186,10 @@ class _AlertsScreenState extends State<AlertsScreen> {
                       children: <Widget>[
                         DataFreshnessBanner(generatedAt: data.generatedAt),
                         Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
                           child: Card(
                             child: Padding(
-                              padding: EdgeInsets.all(16),
+                              padding: const EdgeInsets.all(16),
                               child: Text(strings.noAlertsData),
                             ),
                           ),
