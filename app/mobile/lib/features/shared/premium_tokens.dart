@@ -10,15 +10,21 @@ abstract final class SignalDeskSpacing {
 }
 
 abstract final class SignalDeskShape {
+  static const radiusCard = 14.0;
+  static const radiusSecondary = 10.0;
+
   static final card = RoundedRectangleBorder(
-    borderRadius: BorderRadius.circular(14),
+    borderRadius: BorderRadius.circular(radiusCard),
   );
   static final secondary = RoundedRectangleBorder(
-    borderRadius: BorderRadius.circular(10),
+    borderRadius: BorderRadius.circular(radiusSecondary),
   );
 }
 
 abstract final class SignalDeskPalette {
+  static const shellTop = Color(0xFFEAF3F8);
+  static const shellBottom = Color(0xFFF8FAFC);
+  static const accent = Color(0xFF0A6B8A);
   static const momentumUp = Color(0xFF157347);
   static const momentumDown = Color(0xFFB3261E);
   static const trustHigh = Color(0xFF0A7A5A);

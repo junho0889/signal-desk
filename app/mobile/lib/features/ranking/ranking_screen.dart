@@ -8,6 +8,7 @@ import '../../src/signal_desk_localizations.dart';
 import '../shared/loadable_view.dart';
 import '../shared/premium_tokens.dart';
 import '../shared/signal_desk_context_rail.dart';
+import '../shared/signal_desk_filter_panel.dart';
 import '../shared/signal_desk_metric_row.dart';
 import '../shared/signal_desk_shell.dart';
 
@@ -57,33 +58,34 @@ class _RankingScreenState extends State<RankingScreen> {
       child: Column(
         children: <Widget>[
           Padding(
-            padding: const EdgeInsets.fromLTRB(
-              SignalDeskSpacing.s16,
-              SignalDeskSpacing.s8,
-              SignalDeskSpacing.s16,
-              SignalDeskSpacing.s8,
-            ),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: Wrap(
-                spacing: SignalDeskSpacing.s8,
-                children: _periods
-                    .map(
-                      (value) => ChoiceChip(
-                        label: Text(l10n.periodLabel(value)),
-                        selected: _period == value,
-                        onSelected: (_) {
-                          if (_period == value) {
-                            return;
-                          }
-                          setState(() {
-                            _period = value;
-                          });
-                          _controller.refresh();
-                        },
-                      ),
-                    )
-                    .toList(growable: false),
+            padding: const EdgeInsets.only(top: 0),
+            child: SignalDeskFilterPanel(
+              label: l10n.rankingFilterPeriod,
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: _periods
+                      .map(
+                        (value) => Padding(
+                          padding: const EdgeInsets.only(
+                              right: SignalDeskSpacing.s8),
+                          child: ChoiceChip(
+                            label: Text(l10n.periodLabel(value)),
+                            selected: _period == value,
+                            onSelected: (_) {
+                              if (_period == value) {
+                                return;
+                              }
+                              setState(() {
+                                _period = value;
+                              });
+                              _controller.refresh();
+                            },
+                          ),
+                        ),
+                      )
+                      .toList(growable: false),
+                ),
               ),
             ),
           ),

@@ -126,19 +126,41 @@ class _KeywordDetailScreenState extends State<KeywordDetailScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
-                      Text(
-                        '${l10n.scoreLabel} ${SignalDeskFormatters.score(data.scoreSummary.score)}',
-                        style: Theme.of(context).textTheme.headlineSmall,
-                      ),
-                      const SizedBox(height: SignalDeskSpacing.s4),
-                      Text(
-                        '${l10n.deltaLabel} ${SignalDeskFormatters.delta(data.scoreSummary.delta1d)}',
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: (data.scoreSummary.delta1d ?? 0) >= 0
+                      Row(
+                        children: <Widget>[
+                          Expanded(
+                            child: _kpiTile(
+                              context,
+                              label: l10n.scoreLabel,
+                              value: SignalDeskFormatters.score(
+                                data.scoreSummary.score,
+                              ),
+                              toneColor: Theme.of(context).colorScheme.primary,
+                            ),
+                          ),
+                          const SizedBox(width: SignalDeskSpacing.s8),
+                          Expanded(
+                            child: _kpiTile(
+                              context,
+                              label: l10n.deltaLabel,
+                              value: SignalDeskFormatters.delta(
+                                data.scoreSummary.delta1d,
+                              ),
+                              toneColor: (data.scoreSummary.delta1d ?? 0) >= 0
                                   ? SignalDeskPalette.momentumUp
                                   : SignalDeskPalette.momentumDown,
-                              fontWeight: FontWeight.w700,
                             ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: SignalDeskSpacing.s8),
+                      _kpiTile(
+                        context,
+                        label: l10n.confidenceLabel,
+                        value: SignalDeskFormatters.confidence(
+                          data.scoreSummary.confidence,
+                        ),
+                        toneColor: SignalDeskPalette.trustHigh,
                       ),
                       const SizedBox(height: SignalDeskSpacing.s8),
                       SignalDeskTrustStrip(
@@ -253,6 +275,46 @@ class _KeywordDetailScreenState extends State<KeywordDetailScreen> {
           ClipRRect(
             borderRadius: BorderRadius.circular(999),
             child: LinearProgressIndicator(value: normalized),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _kpiTile(
+    BuildContext context, {
+    required String label,
+    required String value,
+    required Color toneColor,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: SignalDeskSpacing.s8,
+        vertical: SignalDeskSpacing.s8,
+      ),
+      decoration: BoxDecoration(
+        color: toneColor.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(SignalDeskShape.radiusSecondary),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.outlineVariant,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Text(
+            label,
+            style: Theme.of(context).textTheme.labelSmall,
+          ),
+          const SizedBox(height: SignalDeskSpacing.s4),
+          Text(
+            value,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  color: toneColor,
+                  fontWeight: FontWeight.w700,
+                ),
           ),
         ],
       ),

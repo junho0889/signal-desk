@@ -70,6 +70,39 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               children: <Widget>[
                 SignalDeskSectionCard(
+                  title: l10n.homeOverviewTitle,
+                  child: Row(
+                    children: <Widget>[
+                      Expanded(
+                        child: _overviewMetric(
+                          context,
+                          label: l10n.topKeywords,
+                          value: '${data.topKeywords.length}',
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                      ),
+                      const SizedBox(width: SignalDeskSpacing.s8),
+                      Expanded(
+                        child: _overviewMetric(
+                          context,
+                          label: l10n.sectorMovers,
+                          value: '${data.hotSectors.length}',
+                          color: SignalDeskPalette.momentumUp,
+                        ),
+                      ),
+                      const SizedBox(width: SignalDeskSpacing.s8),
+                      Expanded(
+                        child: _overviewMetric(
+                          context,
+                          label: l10n.recentAlerts,
+                          value: '${data.riskAlerts.length}',
+                          color: SignalDeskPalette.risk,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                SignalDeskSectionCard(
                   title: l10n.topKeywords,
                   child: Column(
                     children: data.topKeywords
@@ -148,6 +181,47 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           );
         },
+      ),
+    );
+  }
+
+  Widget _overviewMetric(
+    BuildContext context, {
+    required String label,
+    required String value,
+    required Color color,
+  }) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: SignalDeskSpacing.s8,
+        vertical: SignalDeskSpacing.s8,
+      ),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(SignalDeskShape.radiusSecondary),
+        border: Border.all(
+          color: colorScheme.outlineVariant,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Text(
+            value,
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  color: color,
+                  fontWeight: FontWeight.w700,
+                ),
+          ),
+          const SizedBox(height: SignalDeskSpacing.s4),
+          Text(
+            label,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(context).textTheme.labelSmall,
+          ),
+        ],
       ),
     );
   }

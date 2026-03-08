@@ -99,10 +99,44 @@ class _WatchlistScreenState extends State<WatchlistScreen> {
                             margin: const EdgeInsets.only(
                                 bottom: SignalDeskSpacing.s8),
                             child: ListTile(
+                              leading: CircleAvatar(
+                                radius: 16,
+                                backgroundColor: Theme.of(context)
+                                    .colorScheme
+                                    .primary
+                                    .withValues(alpha: 0.12),
+                                child: Text(
+                                  item.ticker.isEmpty
+                                      ? '?'
+                                      : item.ticker.characters.first,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .labelMedium
+                                      ?.copyWith(
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                ),
+                              ),
                               title: Text('${item.ticker} | ${item.name}'),
                               subtitle: Text(item.market.toUpperCase()),
-                              trailing: Text(
-                                l10n.severityLabel(item.severity),
+                              trailing: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: SignalDeskSpacing.s8,
+                                  vertical: SignalDeskSpacing.s4,
+                                ),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(999),
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .surfaceContainerHighest,
+                                ),
+                                child: Text(
+                                  l10n.severityLabel(item.severity),
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .labelSmall
+                                      ?.copyWith(fontWeight: FontWeight.w700),
+                                ),
                               ),
                             ),
                           ),

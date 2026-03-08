@@ -49,7 +49,16 @@ class _SignalDeskAppState extends State<SignalDeskApp> {
   @override
   Widget build(BuildContext context) {
     final theme = FlexThemeData.light(
-      scheme: FlexScheme.blue,
+      colors: const FlexSchemeColor(
+        primary: Color(0xFF0B5C74),
+        primaryContainer: Color(0xFFCDEAF2),
+        secondary: Color(0xFF1F6A57),
+        secondaryContainer: Color(0xFFD8EEE6),
+        tertiary: Color(0xFF7B5A2E),
+        tertiaryContainer: Color(0xFFF2E7D7),
+        appBarColor: Color(0xFFF3F7FA),
+        error: Color(0xFFB3261E),
+      ),
       useMaterial3: true,
       fontFamilyFallback: const <String>[
         'Pretendard Variable',
@@ -59,7 +68,14 @@ class _SignalDeskAppState extends State<SignalDeskApp> {
       subThemesData: const FlexSubThemesData(
         defaultRadius: 14,
         inputDecoratorRadius: 10,
+        navigationBarIndicatorRadius: 10,
+        navigationBarLabelTextStyle: TextStyle(fontWeight: FontWeight.w600),
+        cardRadius: 14,
+        cardElevation: 0,
       ),
+      surfaceMode: FlexSurfaceMode.levelSurfacesLowScaffold,
+      blendLevel: 7,
+      appBarStyle: FlexAppBarStyle.surface,
       visualDensity: FlexColorScheme.comfortablePlatformDensity,
     );
 
@@ -78,9 +94,12 @@ class _SignalDeskAppState extends State<SignalDeskApp> {
       initialRoute: AppRoutes.home,
       routes: <String, WidgetBuilder>{
         AppRoutes.home: (_) => HomeScreen(repository: SignalDeskApp.repository),
-        AppRoutes.ranking: (_) => RankingScreen(repository: SignalDeskApp.repository),
-        AppRoutes.watchlist: (_) => WatchlistScreen(repository: SignalDeskApp.repository),
-        AppRoutes.alerts: (_) => AlertsScreen(repository: SignalDeskApp.repository),
+        AppRoutes.ranking: (_) =>
+            RankingScreen(repository: SignalDeskApp.repository),
+        AppRoutes.watchlist: (_) =>
+            WatchlistScreen(repository: SignalDeskApp.repository),
+        AppRoutes.alerts: (_) =>
+            AlertsScreen(repository: SignalDeskApp.repository),
       },
       onGenerateRoute: (settings) {
         if (settings.name == AppRoutes.detail) {

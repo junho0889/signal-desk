@@ -48,64 +48,106 @@ class SignalDeskShell extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = SignalDeskLocalizations.of(context);
     final appScope = SignalDeskAppScope.of(context);
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(title),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Text(
+              title,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+            ),
+            Text(
+              l10n.appTitle,
+              style: Theme.of(context).textTheme.labelSmall,
+            ),
+          ],
+        ),
         actions: <Widget>[
-          TextButton(
-            onPressed: appScope.toggleLocale,
-            child: Text(appScope.isKorean ? 'EN' : 'KO'),
+          Padding(
+            padding: const EdgeInsets.only(right: SignalDeskSpacing.s12),
+            child: FilledButton.tonalIcon(
+              onPressed: appScope.toggleLocale,
+              icon: const Icon(Icons.language, size: 18),
+              label: Text(appScope.isKorean ? 'EN' : 'KO'),
+            ),
           ),
-          const SizedBox(width: SignalDeskSpacing.s8),
         ],
       ),
       body: SafeArea(
-        child: Column(
-          children: <Widget>[
-            if (contextRail != null) contextRail!,
-            Expanded(child: child),
-            if (primaryAction != null)
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.fromLTRB(
-                  SignalDeskSpacing.s16,
-                  SignalDeskSpacing.s8,
-                  SignalDeskSpacing.s16,
-                  SignalDeskSpacing.s12,
-                ),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surface,
-                  border: Border(
-                    top: BorderSide(
-                      color: Theme.of(context).colorScheme.outlineVariant,
-                    ),
+        child: DecoratedBox(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: <Color>[
+                SignalDeskPalette.shellTop,
+                SignalDeskPalette.shellBottom,
+              ],
+            ),
+          ),
+          child: Column(
+            children: <Widget>[
+              if (contextRail != null) contextRail!,
+              Expanded(child: child),
+              if (primaryAction != null)
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.fromLTRB(
+                    SignalDeskSpacing.s16,
+                    SignalDeskSpacing.s8,
+                    SignalDeskSpacing.s16,
+                    SignalDeskSpacing.s12,
                   ),
+                  decoration: BoxDecoration(
+                    color: colorScheme.surface,
+                    border: Border(
+                      top: BorderSide(
+                        color: colorScheme.outlineVariant,
+                      ),
+                    ),
+                    boxShadow: <BoxShadow>[
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.04),
+                        blurRadius: 12,
+                        offset: const Offset(0, -2),
+                      ),
+                    ],
+                  ),
+                  child: primaryAction!,
                 ),
-                child: primaryAction!,
-              ),
-          ],
+            ],
+          ),
         ),
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _indexForRoute(currentRoute),
-        type: BottomNavigationBarType.fixed,
-        onTap: (index) => _onNavTap(context, index),
-        items: <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: _indexForRoute(currentRoute),
+        onDestinationSelected: (index) => _onNavTap(context, index),
+        destinations: <Widget>[
+          NavigationDestination(
             icon: const Icon(Icons.home_outlined),
+            selectedIcon: const Icon(Icons.home),
             label: l10n.homeTitle,
           ),
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.format_list_numbered),
+          NavigationDestination(
+            icon: const Icon(Icons.leaderboard_outlined),
+            selectedIcon: const Icon(Icons.leaderboard),
             label: l10n.rankingTitle,
           ),
-          BottomNavigationBarItem(
+          NavigationDestination(
             icon: const Icon(Icons.bookmark_border),
+            selectedIcon: const Icon(Icons.bookmark),
             label: l10n.watchlistTitle,
           ),
-          BottomNavigationBarItem(
+          NavigationDestination(
             icon: const Icon(Icons.notifications_none),
+            selectedIcon: const Icon(Icons.notifications),
             label: l10n.alertsTitle,
           ),
         ],

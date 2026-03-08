@@ -8,6 +8,7 @@ import '../../src/signal_desk_localizations.dart';
 import '../shared/loadable_view.dart';
 import '../shared/premium_tokens.dart';
 import '../shared/signal_desk_context_rail.dart';
+import '../shared/signal_desk_filter_panel.dart';
 import '../shared/signal_desk_formatters.dart';
 import '../shared/signal_desk_shell.dart';
 import '../shared/signal_desk_trust_strip.dart';
@@ -64,31 +65,35 @@ class _AlertsScreenState extends State<AlertsScreen> {
       child: Column(
         children: <Widget>[
           Padding(
-            padding: const EdgeInsets.fromLTRB(
-              SignalDeskSpacing.s16,
-              SignalDeskSpacing.s8,
-              SignalDeskSpacing.s16,
-              0,
-            ),
-            child: Wrap(
-              spacing: SignalDeskSpacing.s8,
-              children: _severityValues
-                  .map(
-                    (value) => ChoiceChip(
-                      label: Text(l10n.severityLabel(value)),
-                      selected: _severity == value,
-                      onSelected: (_) {
-                        if (_severity == value) {
-                          return;
-                        }
-                        setState(() {
-                          _severity = value;
-                        });
-                        _controller.refresh();
-                      },
-                    ),
-                  )
-                  .toList(growable: false),
+            padding: const EdgeInsets.only(top: 0),
+            child: SignalDeskFilterPanel(
+              label: l10n.alertsFilterSeverity,
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: _severityValues
+                      .map(
+                        (value) => Padding(
+                          padding: const EdgeInsets.only(
+                              right: SignalDeskSpacing.s8),
+                          child: ChoiceChip(
+                            label: Text(l10n.severityLabel(value)),
+                            selected: _severity == value,
+                            onSelected: (_) {
+                              if (_severity == value) {
+                                return;
+                              }
+                              setState(() {
+                                _severity = value;
+                              });
+                              _controller.refresh();
+                            },
+                          ),
+                        ),
+                      )
+                      .toList(growable: false),
+                ),
+              ),
             ),
           ),
           Expanded(
@@ -127,72 +132,99 @@ class _AlertsScreenState extends State<AlertsScreen> {
                               child: Padding(
                                 padding:
                                     const EdgeInsets.all(SignalDeskSpacing.s12),
-                                child: Column(
+                                child: Row(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: <Widget>[
-                                    Row(
-                                      children: <Widget>[
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: SignalDeskSpacing.s8,
-                                            vertical: SignalDeskSpacing.s4,
+                                    Container(
+                                      width: 4,
+                                      height: 86,
+                                      decoration: BoxDecoration(
+                                        color: _severityColor(item.severity),
+                                        borderRadius:
+                                            BorderRadius.circular(999),
+                                      ),
+                                    ),
+                                    const SizedBox(width: SignalDeskSpacing.s8),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: <Widget>[
+                                          Row(
+                                            children: <Widget>[
+                                              Container(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                  horizontal:
+                                                      SignalDeskSpacing.s8,
+                                                  vertical:
+                                                      SignalDeskSpacing.s4,
+                                                ),
+                                                decoration: BoxDecoration(
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                          999),
+                                                  color: _severityColor(
+                                                          item.severity)
+                                                      .withValues(alpha: 0.12),
+                                                ),
+                                                child: Text(
+                                                  l10n.severityLabel(
+                                                      item.severity),
+                                                  style: Theme.of(context)
+                                                      .textTheme
+                                                      .labelMedium
+                                                      ?.copyWith(
+                                                        color: _severityColor(
+                                                            item.severity),
+                                                        fontWeight:
+                                                            FontWeight.w700,
+                                                      ),
+                                                ),
+                                              ),
+                                              const Spacer(),
+                                              Text(
+                                                SignalDeskFormatters
+                                                    .relativeAge(
+                                                  context,
+                                                  item.triggeredAt,
+                                                ),
+                                                style: Theme.of(context)
+                                                    .textTheme
+                                                    .labelMedium,
+                                              ),
+                                            ],
                                           ),
-                                          decoration: BoxDecoration(
-                                            borderRadius:
-                                                BorderRadius.circular(999),
-                                            color: _severityColor(item.severity)
-                                                .withValues(alpha: 0.12),
-                                          ),
-                                          child: Text(
-                                            l10n.severityLabel(item.severity),
+                                          const SizedBox(
+                                              height: SignalDeskSpacing.s8),
+                                          Text(
+                                            item.message,
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
                                             style: Theme.of(context)
                                                 .textTheme
-                                                .labelMedium
-                                                ?.copyWith(
-                                                  color: _severityColor(
-                                                      item.severity),
-                                                  fontWeight: FontWeight.w700,
-                                                ),
+                                                .titleSmall,
                                           ),
-                                        ),
-                                        const Spacer(),
-                                        Text(
-                                          SignalDeskFormatters.relativeAge(
-                                            context,
-                                            item.triggeredAt,
+                                          const SizedBox(
+                                              height: SignalDeskSpacing.s4),
+                                          Text(
+                                            '${item.targetType} | ${item.targetLabel}',
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .bodySmall,
                                           ),
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .labelMedium,
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(
-                                        height: SignalDeskSpacing.s8),
-                                    Text(
-                                      item.message,
-                                      maxLines: 2,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .titleSmall,
-                                    ),
-                                    const SizedBox(
-                                        height: SignalDeskSpacing.s4),
-                                    Text(
-                                      '${item.targetType} | ${item.targetLabel}',
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style:
-                                          Theme.of(context).textTheme.bodySmall,
-                                    ),
-                                    const SizedBox(
-                                        height: SignalDeskSpacing.s8),
-                                    SignalDeskTrustStrip(
-                                      confidence:
-                                          _confidenceForSeverity(item.severity),
-                                      isAlertEligible: true,
-                                      riskFlags: const <String>[],
+                                          const SizedBox(
+                                              height: SignalDeskSpacing.s8),
+                                          SignalDeskTrustStrip(
+                                            confidence: _confidenceForSeverity(
+                                                item.severity),
+                                            isAlertEligible: true,
+                                            riskFlags: const <String>[],
+                                          ),
+                                        ],
+                                      ),
                                     ),
                                   ],
                                 ),

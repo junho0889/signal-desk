@@ -44,6 +44,8 @@ class SignalDeskLocalizations {
 
   String get topKeywords =>
       isKorean ? '\uC0C1\uC704 \uD0A4\uC6CC\uB4DC' : 'Top Keywords';
+  String get homeOverviewTitle =>
+      isKorean ? '\uC624\uB298\uC758 \uC694\uC57D' : 'Today at a glance';
   String get sectorMovers =>
       isKorean ? '\uC139\uD130 \uBAA8\uBA58\uD140' : 'Sector Movers';
   String get recentAlerts =>
