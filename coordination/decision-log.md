@@ -116,3 +116,7 @@ one|stdout sink baseline
 - Decision: require a local collector test database and fixture-backed ingest smoke before calling the collector runtime ready
 - Reason: collection reliability is a core project risk, so the first implementation wave must prove that payloads and metadata actually land in a replayable spool store with exact query evidence
 
+### DEC-028
+- Decision: run the collector lane in the explicit order `COL-005` review -> `COL-006` Raspberry Pi deployment -> `COL-007` remote debug stabilization -> `OPS-007` runbook freeze
+- Reason: collection is now the most critical track, and the highest-risk failure points are contract drift before deployment and runtime drift after deployment
+

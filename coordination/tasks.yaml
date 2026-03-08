@@ -637,6 +637,61 @@ tasks:
       - source adapters have explicit required metadata, idempotency, and quality-filter rules
       - collector can reject or downgrade weak payloads without AI inference
       - downstream lanes can rely on metadata fields and quality states consistently
+  - id: COL-005
+    title: Review collector design against implementation and close pre-deployment gaps
+    owner: signal-desk-collector
+    status: pending
+    depends_on:
+      - COL-003
+      - COL-004
+      - BE-008
+      - BE-009
+      - OPS-006
+    files:
+      - infra/collector/
+      - services/collector/
+      - docs/ops/collector-runtime-v1.md
+      - docs/data/collector-metadata-quality-v1.md
+      - coordination/dispatches/COL-005.md
+      - coordination/handoffs/COL-005.md
+      - coordination/resume/COL-005.md
+    acceptance:
+      - implementation is checked against the frozen metadata, storage, and intake contracts
+      - pre-deployment gaps are either fixed or written down explicitly
+      - runnable local collector stack remains green after gap-closing changes
+  - id: COL-006
+    title: Deploy collector stack to Raspberry Pi and run remote ingest smoke
+    owner: signal-desk-collector
+    status: pending
+    depends_on:
+      - COL-005
+    files:
+      - infra/collector/
+      - services/collector/
+      - docs/ops/deploy-runbook.md
+      - coordination/dispatches/COL-006.md
+      - coordination/handoffs/COL-006.md
+      - coordination/resume/COL-006.md
+    acceptance:
+      - collector assets are copied or synced to Raspberry Pi `192.168.0.33`
+      - Docker Compose runs on the Pi with the collector stack booting successfully
+      - remote fixture ingest and spool evidence queries are recorded with exact commands and outcomes
+  - id: COL-007
+    title: Debug Raspberry Pi collector deployment and stabilize remote smoke workflow
+    owner: signal-desk-collector
+    status: pending
+    depends_on:
+      - COL-006
+    files:
+      - infra/collector/
+      - docs/ops/deploy-runbook.md
+      - coordination/dispatches/COL-007.md
+      - coordination/handoffs/COL-007.md
+      - coordination/resume/COL-007.md
+    acceptance:
+      - deployment blockers on the Pi are reproduced with exact commands
+      - fixes or operator actions are documented clearly
+      - remote smoke workflow is either stable or blocked with concrete evidence
   - id: BE-005
     title: Define central collector intake API and backend raw-ingest contract
     owner: signal-desk-backend
@@ -764,6 +819,23 @@ tasks:
       - developer can bring up the collector stack, create or reset the local collector test database, and run fixture ingest without guessing
       - query commands for spool evidence and metadata inspection are documented
       - local smoke path remains separate from the main app stack and Windows system changes
+  - id: OPS-007
+    title: Freeze Raspberry Pi deployment and recovery runbook for the collector stack
+    owner: signal-desk-ops
+    status: pending
+    depends_on:
+      - COL-006
+      - COL-007
+    files:
+      - docs/ops/deploy-runbook.md
+      - docs/ops/quality-gates.md
+      - coordination/dispatches/OPS-007.md
+      - coordination/handoffs/OPS-007.md
+      - coordination/resume/OPS-007.md
+    acceptance:
+      - Pi deployment, restart, log, and rollback commands are explicit
+      - remote smoke and recovery checks are documented against `192.168.0.33`
+      - operator can recover the collector without guessing
   - id: QA-006
     title: Review explainable model pipeline, publish contract, and evaluation safety gates
     owner: signal-desk-qa
