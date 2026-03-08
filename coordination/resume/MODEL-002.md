@@ -31,8 +31,8 @@
 - none
 
 ## Last Commit And Push
-- commit:
-- push:
+- commit: `23132ed` (`MODEL-002 docs: freeze explainable model system and publish-safety contract`)
+- push: `origin/codex/model-002`
 
 ## Notes For Next Session
 - preserve terminal publish-state contract (`published|published_degraded|blocked`) and immutable-run rule during backend implementation
