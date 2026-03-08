@@ -36,9 +36,7 @@ class SignalDeskTrustStrip extends StatelessWidget {
         ),
         _buildChip(
           context,
-          isAlertEligible
-              ? (l10n.isKorean ? '알림 가능' : 'Alert Ready')
-              : (l10n.isKorean ? '알림 보류' : 'Alert Hold'),
+          isAlertEligible ? l10n.alertReadyLabel : l10n.alertHoldLabel,
           isAlertEligible ? Colors.indigo : Colors.grey,
         ),
         if (riskFlags.isNotEmpty)
@@ -65,9 +63,9 @@ class SignalDeskTrustStrip extends StatelessWidget {
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
         style: Theme.of(context).textTheme.labelSmall?.copyWith(
-          color: color,
-          fontWeight: FontWeight.w600,
-        ),
+              color: color,
+              fontWeight: FontWeight.w600,
+            ),
       ),
     );
   }

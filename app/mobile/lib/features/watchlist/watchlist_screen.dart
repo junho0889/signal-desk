@@ -8,7 +8,6 @@ import '../../src/signal_desk_localizations.dart';
 import '../shared/loadable_view.dart';
 import '../shared/premium_tokens.dart';
 import '../shared/signal_desk_context_rail.dart';
-import '../shared/signal_desk_formatters.dart';
 import '../shared/signal_desk_metric_row.dart';
 import '../shared/signal_desk_section_card.dart';
 import '../shared/signal_desk_shell.dart';
@@ -53,7 +52,7 @@ class _WatchlistScreenState extends State<WatchlistScreen> {
       child: LoadableView<WatchlistResponse>(
         controller: _controller,
         generatedAt: (data) => data.generatedAt,
-        emptyMessage: 'No watchlist items are being tracked yet.',
+        emptyMessage: l10n.watchlistEmptyMessage,
         isEmpty: (data) => data.keywords.isEmpty && data.stocks.isEmpty,
         builder: (context, data) {
           return RefreshIndicator(
@@ -67,7 +66,7 @@ class _WatchlistScreenState extends State<WatchlistScreen> {
               ),
               children: <Widget>[
                 SignalDeskSectionCard(
-                  title: l10n.isKorean ? '키워드' : 'Keywords',
+                  title: l10n.keywordsLabel,
                   child: Column(
                     children: data.keywords
                         .map(
@@ -75,11 +74,12 @@ class _WatchlistScreenState extends State<WatchlistScreen> {
                             title: item.keyword,
                             score: item.score,
                             delta1d: item.delta1d,
-                            confidence: item.isAlertEligible == true ? 0.8 : 0.5,
+                            confidence:
+                                item.isAlertEligible == true ? 0.8 : 0.5,
                             generatedAt: data.generatedAt,
                             isAlertEligible: item.isAlertEligible ?? false,
                             riskFlags: item.riskFlags,
-                            supportingText: item.severity ?? '-',
+                            supportingText: l10n.severityLabel(item.severity),
                             onTap: () => Navigator.of(context).pushNamed(
                               AppRoutes.detail,
                               arguments: item.keywordId,
@@ -90,18 +90,19 @@ class _WatchlistScreenState extends State<WatchlistScreen> {
                   ),
                 ),
                 SignalDeskSectionCard(
-                  title: l10n.isKorean ? '종목' : 'Stocks',
+                  title: l10n.stocksLabel,
                   child: Column(
                     children: data.stocks
                         .map(
                           (item) => Card(
                             shape: SignalDeskShape.secondary,
-                            margin: const EdgeInsets.only(bottom: SignalDeskSpacing.s8),
+                            margin: const EdgeInsets.only(
+                                bottom: SignalDeskSpacing.s8),
                             child: ListTile(
-                              title: Text('${item.ticker} · ${item.name}'),
+                              title: Text('${item.ticker} | ${item.name}'),
                               subtitle: Text(item.market.toUpperCase()),
                               trailing: Text(
-                                SignalDeskFormatters.severity(item.severity ?? ''),
+                                l10n.severityLabel(item.severity),
                               ),
                             ),
                           ),

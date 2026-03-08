@@ -20,6 +20,8 @@ class SignalDeskTrendChartCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = SignalDeskLocalizations.of(context);
+
     if (points.length < 2) {
       return Container(
         height: height,
@@ -29,9 +31,7 @@ class SignalDeskTrendChartCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(10),
         ),
         child: Text(
-          SignalDeskLocalizations.of(context).isKorean
-              ? '차트 데이터가 부족합니다'
-              : 'Insufficient chart data',
+          l10n.insufficientChartDataMessage,
           style: Theme.of(context).textTheme.labelMedium,
         ),
       );
@@ -79,7 +79,8 @@ class SignalDeskTrendChartCard extends StatelessWidget {
                 ),
                 titlesData: FlTitlesData(
                   leftTitles: AxisTitles(
-                    sideTitles: SideTitles(showTitles: !compact, reservedSize: 34),
+                    sideTitles:
+                        SideTitles(showTitles: !compact, reservedSize: 34),
                   ),
                   rightTitles: const AxisTitles(
                     sideTitles: SideTitles(showTitles: false),
@@ -88,7 +89,8 @@ class SignalDeskTrendChartCard extends StatelessWidget {
                     sideTitles: SideTitles(showTitles: false),
                   ),
                   bottomTitles: AxisTitles(
-                    sideTitles: SideTitles(showTitles: !compact, reservedSize: 24),
+                    sideTitles:
+                        SideTitles(showTitles: !compact, reservedSize: 24),
                   ),
                 ),
                 lineBarsData: <LineChartBarData>[

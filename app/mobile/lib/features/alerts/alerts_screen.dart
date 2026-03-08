@@ -59,7 +59,7 @@ class _AlertsScreenState extends State<AlertsScreen> {
           ? null
           : SignalDeskContextRail(
               generatedAt: _controller.data!.generatedAt,
-              scopeLabel: _severity ?? l10n.allSeverity,
+              scopeLabel: l10n.severityLabel(_severity),
             ),
       child: Column(
         children: <Widget>[
@@ -75,7 +75,7 @@ class _AlertsScreenState extends State<AlertsScreen> {
               children: _severityValues
                   .map(
                     (value) => ChoiceChip(
-                      label: Text(value ?? l10n.allSeverity),
+                      label: Text(l10n.severityLabel(value)),
                       selected: _severity == value,
                       onSelected: (_) {
                         if (_severity == value) {
@@ -95,7 +95,7 @@ class _AlertsScreenState extends State<AlertsScreen> {
             child: LoadableView<AlertsResponse>(
               controller: _controller,
               generatedAt: (data) => data.generatedAt,
-              emptyMessage: 'No recent triggers match this severity filter.',
+              emptyMessage: l10n.alertsEmptyMessage,
               isEmpty: (data) => data.items.isEmpty,
               builder: (context, data) {
                 return RefreshIndicator(
@@ -111,7 +111,8 @@ class _AlertsScreenState extends State<AlertsScreen> {
                         .map(
                           (item) => Card(
                             shape: SignalDeskShape.card,
-                            margin: const EdgeInsets.only(bottom: SignalDeskSpacing.s8),
+                            margin: const EdgeInsets.only(
+                                bottom: SignalDeskSpacing.s8),
                             child: InkWell(
                               borderRadius: BorderRadius.circular(14),
                               onTap: () {
@@ -124,7 +125,8 @@ class _AlertsScreenState extends State<AlertsScreen> {
                                 }
                               },
                               child: Padding(
-                                padding: const EdgeInsets.all(SignalDeskSpacing.s12),
+                                padding:
+                                    const EdgeInsets.all(SignalDeskSpacing.s12),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: <Widget>[
@@ -136,17 +138,19 @@ class _AlertsScreenState extends State<AlertsScreen> {
                                             vertical: SignalDeskSpacing.s4,
                                           ),
                                           decoration: BoxDecoration(
-                                            borderRadius: BorderRadius.circular(999),
+                                            borderRadius:
+                                                BorderRadius.circular(999),
                                             color: _severityColor(item.severity)
                                                 .withValues(alpha: 0.12),
                                           ),
                                           child: Text(
-                                            SignalDeskFormatters.severity(item.severity),
+                                            l10n.severityLabel(item.severity),
                                             style: Theme.of(context)
                                                 .textTheme
                                                 .labelMedium
                                                 ?.copyWith(
-                                                  color: _severityColor(item.severity),
+                                                  color: _severityColor(
+                                                      item.severity),
                                                   fontWeight: FontWeight.w700,
                                                 ),
                                           ),
@@ -157,27 +161,36 @@ class _AlertsScreenState extends State<AlertsScreen> {
                                             context,
                                             item.triggeredAt,
                                           ),
-                                          style: Theme.of(context).textTheme.labelMedium,
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .labelMedium,
                                         ),
                                       ],
                                     ),
-                                    const SizedBox(height: SignalDeskSpacing.s8),
+                                    const SizedBox(
+                                        height: SignalDeskSpacing.s8),
                                     Text(
                                       item.message,
                                       maxLines: 2,
                                       overflow: TextOverflow.ellipsis,
-                                      style: Theme.of(context).textTheme.titleSmall,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .titleSmall,
                                     ),
-                                    const SizedBox(height: SignalDeskSpacing.s4),
+                                    const SizedBox(
+                                        height: SignalDeskSpacing.s4),
                                     Text(
-                                      '${item.targetType} · ${item.targetLabel}',
+                                      '${item.targetType} | ${item.targetLabel}',
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
-                                      style: Theme.of(context).textTheme.bodySmall,
+                                      style:
+                                          Theme.of(context).textTheme.bodySmall,
                                     ),
-                                    const SizedBox(height: SignalDeskSpacing.s8),
+                                    const SizedBox(
+                                        height: SignalDeskSpacing.s8),
                                     SignalDeskTrustStrip(
-                                      confidence: _confidenceForSeverity(item.severity),
+                                      confidence:
+                                          _confidenceForSeverity(item.severity),
                                       isAlertEligible: true,
                                       riskFlags: const <String>[],
                                     ),

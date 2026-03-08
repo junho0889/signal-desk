@@ -75,11 +75,11 @@ class SignalDeskFreshnessBadge extends StatelessWidget {
         border: Border.all(color: foreground.withValues(alpha: 0.3)),
       ),
       child: Text(
-        '$label · ${SignalDeskFormatters.relativeAge(context, timestamp)}',
+        '$label | ${SignalDeskFormatters.relativeAge(context, timestamp)}',
         style: Theme.of(context).textTheme.labelSmall?.copyWith(
-          color: foreground,
-          fontWeight: FontWeight.w600,
-        ),
+              color: foreground,
+              fontWeight: FontWeight.w600,
+            ),
       ),
     );
   }

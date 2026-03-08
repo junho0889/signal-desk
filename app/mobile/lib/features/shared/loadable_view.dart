@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/network/api_exception.dart';
 import '../../core/state/loadable_controller.dart';
+import '../../src/signal_desk_localizations.dart';
 import 'signal_desk_formatters.dart';
 import 'signal_desk_state_surface.dart';
 
@@ -28,6 +29,7 @@ class LoadableView<T> extends StatelessWidget {
     return AnimatedBuilder(
       animation: controller,
       builder: (context, _) {
+        final l10n = SignalDeskLocalizations.of(context);
         final data = controller.data;
         if (data == null) {
           if (controller.isLoading || !controller.hasAttemptedLoad) {
@@ -42,9 +44,9 @@ class LoadableView<T> extends StatelessWidget {
           }
           return SignalDeskStateSurface(
             icon: Icons.inbox_outlined,
-            title: 'No data',
+            title: l10n.noDataTitle,
             message: emptyMessage,
-            actionLabel: 'Refresh',
+            actionLabel: l10n.refreshLabel,
             onAction: controller.refresh,
           );
         }
@@ -52,9 +54,9 @@ class LoadableView<T> extends StatelessWidget {
         if (isEmpty?.call(data) ?? false) {
           return SignalDeskStateSurface(
             icon: Icons.inbox_outlined,
-            title: 'No data',
+            title: l10n.noDataTitle,
             message: emptyMessage,
-            actionLabel: 'Refresh',
+            actionLabel: l10n.refreshLabel,
             onAction: controller.refresh,
           );
         }
@@ -87,8 +89,9 @@ class LoadableView<T> extends StatelessWidget {
           children: <Widget>[
             SignalDeskStateSurface.stale(
               context,
-              message:
-                  'Data is ${SignalDeskFormatters.relativeAge(context, staleAt)} old. Interpret with caution.',
+              message: l10n.staleDataMessage(
+                SignalDeskFormatters.relativeAge(context, staleAt),
+              ),
             ),
             Expanded(child: visibleContent),
           ],

@@ -53,7 +53,7 @@ class _HomeScreenState extends State<HomeScreen> {
       child: LoadableView<DashboardResponse>(
         controller: _controller,
         generatedAt: (data) => data.generatedAt,
-        emptyMessage: 'No dashboard data is available yet.',
+        emptyMessage: l10n.dashboardEmptyMessage,
         isEmpty: (data) =>
             data.topKeywords.isEmpty &&
             data.hotSectors.isEmpty &&
@@ -106,7 +106,8 @@ class _HomeScreenState extends State<HomeScreen> {
                             contentPadding: EdgeInsets.zero,
                             title: Text(sector.sector),
                             subtitle: Text(
-                              '${sector.keywordCount} keywords · ${l10n.scoreLabel} ${SignalDeskFormatters.score(sector.avgScore)}',
+                              '${l10n.keywordCountLabel(sector.keywordCount)} | '
+                              '${l10n.scoreLabel} ${SignalDeskFormatters.score(sector.avgScore)}',
                             ),
                             trailing: Text(
                               SignalDeskFormatters.delta(sector.delta1d),
@@ -135,7 +136,8 @@ class _HomeScreenState extends State<HomeScreen> {
                               overflow: TextOverflow.ellipsis,
                             ),
                             subtitle: Text(
-                              '${SignalDeskFormatters.severity(alert.severity)} · ${SignalDeskFormatters.relativeAge(context, alert.triggeredAt)}',
+                              '${l10n.severityLabel(alert.severity)} | '
+                              '${SignalDeskFormatters.relativeAge(context, alert.triggeredAt)}',
                             ),
                           ),
                         )

@@ -55,20 +55,17 @@ class _KeywordDetailScreenState extends State<KeywordDetailScreen> {
       _watchlistUpdating = true;
     });
 
+    final l10n = SignalDeskLocalizations.of(context);
+
     try {
       final ok = await widget.repository.addKeywordToWatchlist(keywordId);
       if (!mounted) {
         return;
       }
-      final l10n = SignalDeskLocalizations.of(context);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            ok
-                ? (l10n.isKorean ? '관심목록에 추가했습니다.' : 'Added to watchlist.')
-                : (l10n.isKorean
-                    ? '서버 확인 없이 처리되었습니다.'
-                    : 'Watchlist update completed without confirmation.'),
+            ok ? l10n.watchlistAdded : l10n.watchlistPendingConfirm,
           ),
         ),
       );
@@ -78,7 +75,7 @@ class _KeywordDetailScreenState extends State<KeywordDetailScreen> {
       }
       final message = error is ApiException ? error.message : error.toString();
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to update watchlist: $message')),
+        SnackBar(content: Text('${l10n.watchlistUpdateFailedPrefix} $message')),
       );
     } finally {
       if (mounted) {
@@ -112,7 +109,7 @@ class _KeywordDetailScreenState extends State<KeywordDetailScreen> {
       child: LoadableView<KeywordDetailResponse>(
         controller: _controller,
         generatedAt: (data) => data.generatedAt,
-        emptyMessage: 'No keyword detail is available.',
+        emptyMessage: l10n.detailEmptyMessage,
         builder: (context, data) {
           return RefreshIndicator(
             onRefresh: _controller.refresh,
@@ -137,11 +134,11 @@ class _KeywordDetailScreenState extends State<KeywordDetailScreen> {
                       Text(
                         '${l10n.deltaLabel} ${SignalDeskFormatters.delta(data.scoreSummary.delta1d)}',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: (data.scoreSummary.delta1d ?? 0) >= 0
-                              ? SignalDeskPalette.momentumUp
-                              : SignalDeskPalette.momentumDown,
-                          fontWeight: FontWeight.w700,
-                        ),
+                              color: (data.scoreSummary.delta1d ?? 0) >= 0
+                                  ? SignalDeskPalette.momentumUp
+                                  : SignalDeskPalette.momentumDown,
+                              fontWeight: FontWeight.w700,
+                            ),
                       ),
                       const SizedBox(height: SignalDeskSpacing.s8),
                       SignalDeskTrustStrip(
@@ -156,21 +153,19 @@ class _KeywordDetailScreenState extends State<KeywordDetailScreen> {
                 ),
                 SignalDeskRiskCallout(riskFlags: data.riskFlags),
                 SignalDeskSectionCard(
-                  title: l10n.isKorean
-                      ? '점수와 신뢰도 추이'
-                      : 'Score and confidence over daily period',
+                  title: l10n.scoreConfidenceTrendTitle,
                   child: SignalDeskTrendChartCard(
-                    title: l10n.isKorean
-                        ? '점수와 신뢰도 추이'
-                        : 'Score and confidence trend',
-                    points: data.timeseries.map((point) => point.score).toList(growable: false),
+                    title: l10n.scoreConfidenceTrendTitle,
+                    points: data.timeseries
+                        .map((point) => point.score)
+                        .toList(growable: false),
                   ),
                 ),
                 SignalDeskSectionCard(
                   title: l10n.reasonLabel,
                   child: Text(
                     data.reasonBlock == null || data.reasonBlock!.isEmpty
-                        ? 'insufficient data'
+                        ? l10n.insufficientDataMessage
                         : data.reasonBlock!,
                     maxLines: 4,
                     overflow: TextOverflow.ellipsis,
@@ -178,19 +173,24 @@ class _KeywordDetailScreenState extends State<KeywordDetailScreen> {
                   ),
                 ),
                 SignalDeskSectionCard(
-                  title: l10n.isKorean ? '기여 지표' : 'Dimension contributions',
+                  title: l10n.dimensionContributionsTitle,
                   child: Column(
                     children: <Widget>[
-                      _dimensionRow(context, l10n.isKorean ? '언급량' : 'Mentions', data.scoreSummary.dimensionMentions),
-                      _dimensionRow(context, l10n.isKorean ? '트렌드' : 'Trends', data.scoreSummary.dimensionTrends),
-                      _dimensionRow(context, l10n.isKorean ? '시장반응' : 'Market', data.scoreSummary.dimensionMarket),
-                      _dimensionRow(context, l10n.isKorean ? '이벤트' : 'Events', data.scoreSummary.dimensionEvents),
-                      _dimensionRow(context, l10n.isKorean ? '지속성' : 'Persistence', data.scoreSummary.dimensionPersistence),
+                      _dimensionRow(context, l10n.mentionsLabel,
+                          data.scoreSummary.dimensionMentions),
+                      _dimensionRow(context, l10n.trendsLabel,
+                          data.scoreSummary.dimensionTrends),
+                      _dimensionRow(context, l10n.marketLabel,
+                          data.scoreSummary.dimensionMarket),
+                      _dimensionRow(context, l10n.eventsLabel,
+                          data.scoreSummary.dimensionEvents),
+                      _dimensionRow(context, l10n.persistenceLabel,
+                          data.scoreSummary.dimensionPersistence),
                     ],
                   ),
                 ),
                 SignalDeskSectionCard(
-                  title: l10n.isKorean ? '연관 종목 및 섹터' : 'Related stocks and sectors',
+                  title: l10n.relatedStocksSectorsTitle,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
@@ -198,15 +198,16 @@ class _KeywordDetailScreenState extends State<KeywordDetailScreen> {
                         (stock) => ListTile(
                           contentPadding: EdgeInsets.zero,
                           dense: true,
-                          title: Text('${stock.ticker} · ${stock.name}'),
+                          title: Text('${stock.ticker} | ${stock.name}'),
                           subtitle: Text(
-                            '${stock.market.toUpperCase()} · ${stock.sector ?? '-'} · ${SignalDeskFormatters.confidence(stock.linkConfidence ?? 0)}',
+                            '${stock.market.toUpperCase()} | ${stock.sector ?? '-'} | ${SignalDeskFormatters.confidence(stock.linkConfidence ?? 0)}',
                           ),
                         ),
                       ),
                       if (data.relatedSectors.isNotEmpty)
                         Padding(
-                          padding: const EdgeInsets.only(top: SignalDeskSpacing.s8),
+                          padding:
+                              const EdgeInsets.only(top: SignalDeskSpacing.s8),
                           child: Wrap(
                             spacing: SignalDeskSpacing.s8,
                             runSpacing: SignalDeskSpacing.s8,
@@ -242,7 +243,9 @@ class _KeywordDetailScreenState extends State<KeywordDetailScreen> {
         children: <Widget>[
           Row(
             children: <Widget>[
-              Expanded(child: Text(label, style: Theme.of(context).textTheme.bodySmall)),
+              Expanded(
+                  child: Text(label,
+                      style: Theme.of(context).textTheme.bodySmall)),
               Text(value == null ? '-' : value.toStringAsFixed(2)),
             ],
           ),

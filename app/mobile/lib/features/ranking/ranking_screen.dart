@@ -52,7 +52,7 @@ class _RankingScreenState extends State<RankingScreen> {
           ? null
           : SignalDeskContextRail(
               generatedAt: _controller.data!.generatedAt,
-              scopeLabel: _period,
+              scopeLabel: l10n.periodLabel(_period),
             ),
       child: Column(
         children: <Widget>[
@@ -70,7 +70,7 @@ class _RankingScreenState extends State<RankingScreen> {
                 children: _periods
                     .map(
                       (value) => ChoiceChip(
-                        label: Text(value),
+                        label: Text(l10n.periodLabel(value)),
                         selected: _period == value,
                         onSelected: (_) {
                           if (_period == value) {
@@ -91,7 +91,7 @@ class _RankingScreenState extends State<RankingScreen> {
             child: LoadableView<KeywordsResponse>(
               controller: _controller,
               generatedAt: (data) => data.generatedAt,
-              emptyMessage: 'No ranking data is available for this filter.',
+              emptyMessage: l10n.rankingEmptyMessage,
               isEmpty: (data) => data.items.isEmpty,
               builder: (context, data) {
                 return RefreshIndicator(

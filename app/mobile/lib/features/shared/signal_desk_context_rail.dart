@@ -38,10 +38,12 @@ class SignalDeskContextRail extends StatelessWidget {
       ),
       child: Row(
         children: <Widget>[
+          const Icon(Icons.schedule_outlined, size: 16),
+          const SizedBox(width: SignalDeskSpacing.s8),
           Expanded(
             child: Text(
-              '$l10n.generatedAtLabel ${SignalDeskFormatters.timestamp(context, generatedAt)}'
-              '${scopeLabel == null ? '' : ' · $scopeLabel'}',
+              '${l10n.generatedAtLabel} ${SignalDeskFormatters.timestamp(context, generatedAt)}'
+              '${scopeLabel == null ? '' : ' | $scopeLabel'}',
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: Theme.of(context).textTheme.labelMedium,
