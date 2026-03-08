@@ -186,3 +186,50 @@ tasks:
 
 
 
+  - id: APP-002
+    title: Implement mobile app shell and API wiring baseline
+    owner: signal-desk-mobile
+    status: in_progress
+    depends_on:
+      - APP-001
+      - BE-001
+      - OPS-001
+    files:
+      - app/mobile/
+      - docs/mobile/implementation-notes.md
+      - coordination/dispatches/APP-002.md
+    acceptance:
+      - Mobile app shell boots with baseline navigation
+      - Core API clients are wired to BE-001 contracts
+      - Implementation notes include setup, run, and known gaps
+  - id: BE-002
+    title: Implement backend v1 endpoints and persistence from frozen contracts
+    owner: signal-desk-backend
+    status: todo
+    depends_on:
+      - APP-002
+    files:
+      - services/api/
+      - services/jobs/
+      - docs/backend/implementation-notes.md
+      - coordination/dispatches/BE-002.md
+    acceptance:
+      - BE-001 contract endpoints are implemented end-to-end
+      - Persistence paths for ranking, detail, watchlist, and alerts are operational
+      - Implementation notes include migration and local run verification
+  - id: OPS-002
+    title: Operationalize app and backend runtime for repeatable local deployment
+    owner: signal-desk-ops
+    status: todo
+    depends_on:
+      - BE-002
+      - OPS-001
+    files:
+      - infra/local/
+      - docs/ops/deploy-runbook.md
+      - docs/ops/operations-checklist.md
+      - coordination/dispatches/OPS-002.md
+    acceptance:
+      - Local deployment is reproducible with documented commands
+      - Health checks, logs, and restart behavior are documented and validated
+      - Backup and rollback procedures are verified for v1 runtime
