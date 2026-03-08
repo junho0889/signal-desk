@@ -371,5 +371,21 @@ tasks:
       - integrated status of the next hardening wave is recorded on main
       - remaining release blockers are listed with explicit owners
       - next release decision is documented
+  - id: APP-005
+    title: Add Korean language toggle mode to the mobile app shell
+    owner: signal-desk-mobile
+    status: pending
+    depends_on:
+      - APP-004
+    files:
+      - app/mobile/
+      - docs/mobile/implementation-notes.md
+      - coordination/dispatches/APP-005.md
+      - coordination/handoffs/APP-005.md
+      - coordination/resume/APP-005.md
+    acceptance:
+      - app shell exposes a user-visible Korean or English toggle
+      - core navigation and key screen chrome render in Korean when Korean mode is enabled
+      - verification records analyzer, tests, and at least one runtime smoke on the active preview target
 
 

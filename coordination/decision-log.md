@@ -56,3 +56,7 @@ one|stdout sink baseline
 - Decision: block `REL-002` until `APP-004` either passes Flutter-capable verification or the orchestrator explicitly accepts that blocker in this log
 - Reason: mobile pagination and stale-data changes affect user-facing release confidence, and an undocumented runtime gap is not enough to treat the wave as release-ready
 
+### DEC-014
+- Decision: run Korean language toggle work as `APP-005` in a fresh `codex/app-005` worktree instead of reusing the currently dirty `codex/app-004` worktree
+- Reason: the feature is a new mobile scope item, and a clean worktree keeps orchestration, handoff ownership, and verification boundaries clearer for the worker
+
