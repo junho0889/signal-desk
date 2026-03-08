@@ -32,7 +32,7 @@ function Resolve-ExistingPath {
   return (Resolve-Path $PathValue).Path
 }
 
-function Resolve-FlutterExecutable {
+function Try-Resolve-FlutterExecutable {
   param([string]$ExplicitPath)
 
   $candidates = @()
@@ -66,7 +66,7 @@ function Resolve-FlutterExecutable {
     return $command.Source
   }
 
-  throw 'Flutter SDK was not found. Install Flutter manually or set SIGNALDESK_FLUTTER_BIN to flutter.bat.'
+  return $null
 }
 
 function Invoke-External {
@@ -115,6 +115,10 @@ function Get-PlatformDirectoryName {
 function Get-FlutterDevices {
   param([string]$FlutterExecutable)
 
+  if (-not $FlutterExecutable) {
+    return @()
+  }
+
   $json = & $FlutterExecutable devices --machine 2>$null
   if ($LASTEXITCODE -ne 0 -or -not $json) {
     return @()
@@ -131,7 +135,7 @@ function Get-FlutterDevices {
   }
 }
 
-function Assert-LiveApiHealth {
+function Test-LiveApiHealth {
   param([string]$BaseUrl)
 
   $trimmed = $BaseUrl.TrimEnd('/')
@@ -140,39 +144,162 @@ function Assert-LiveApiHealth {
   try {
     $response = Invoke-WebRequest -Uri $healthUrl -UseBasicParsing -TimeoutSec 5
   } catch {
-    throw "Live API health check failed for $healthUrl. Start the local stack first and verify docs/ops/deploy-runbook.md. Error: $($_.Exception.Message)"
+    return @{
+      ok = $false
+      message = "Live API health check failed for $healthUrl. Start the local stack first and verify docs/ops/deploy-runbook.md. Error: $($_.Exception.Message)"
+    }
   }
 
   if ($response.StatusCode -ne 200) {
-    throw "Live API health check returned HTTP $($response.StatusCode) for $healthUrl."
+    return @{
+      ok = $false
+      message = "Live API health check returned HTTP $($response.StatusCode) for $healthUrl."
+    }
   }
 
-  Write-Host "[ok] live API reachable at $healthUrl" -ForegroundColor Green
+  return @{
+    ok = $true
+    message = "live API reachable at $healthUrl"
+  }
 }
 
-function Invoke-Doctor {
+function Add-CheckResult {
+  param(
+    [System.Collections.Generic.List[object]]$Checks,
+    [string]$Status,
+    [string]$Category,
+    [string]$Message
+  )
+
+  $Checks.Add([pscustomobject]@{
+      Status = $Status
+      Category = $Category
+      Message = $Message
+    }) | Out-Null
+}
+
+function Write-CheckResults {
+  param([System.Collections.Generic.List[object]]$Checks)
+
+  foreach ($check in $Checks) {
+    switch ($check.Status) {
+      'ok' {
+        Write-Host "[ok] $($check.Category): $($check.Message)" -ForegroundColor Green
+      }
+      'warn' {
+        Write-Host "[warn] $($check.Category): $($check.Message)" -ForegroundColor Yellow
+      }
+      'blocker' {
+        Write-Host "[blocker] $($check.Category): $($check.Message)" -ForegroundColor Red
+      }
+      default {
+        Write-Host "[$($check.Status)] $($check.Category): $($check.Message)"
+      }
+    }
+  }
+}
+
+function Get-PreflightReport {
   param(
     [string]$FlutterExecutable,
     [string]$MobileAppPath,
-    [string]$SelectedMode
+    [string]$SelectedMode,
+    [string]$SelectedTarget,
+    [string]$SelectedDeviceId,
+    [string]$SelectedCommand
   )
 
-  Write-Host "[ok] mobile app path: $MobileAppPath" -ForegroundColor Green
-  Write-Host "[ok] flutter executable: $FlutterExecutable" -ForegroundColor Green
+  $checks = New-Object 'System.Collections.Generic.List[object]'
+  Add-CheckResult -Checks $checks -Status 'ok' -Category 'app-path' -Message $MobileAppPath
 
-  $devices = Get-FlutterDevices -FlutterExecutable $FlutterExecutable
-  if ($devices.Count -gt 0) {
-    Write-Host "[ok] visible Flutter devices:" -ForegroundColor Green
-    foreach ($device in $devices) {
-      Write-Host " - $($device.id) ($($device.name))"
-    }
+  $platformDirName = Get-PlatformDirectoryName -SelectedTarget $SelectedTarget
+  $platformDirPath = Join-Path $MobileAppPath $platformDirName
+  if (Test-Path $platformDirPath) {
+    Add-CheckResult -Checks $checks -Status 'ok' -Category 'platform-scaffold' -Message "$SelectedTarget scaffold found at $platformDirPath"
   } else {
-    Write-Host "[warn] no Flutter devices reported. Android preview will remain blocked until an emulator or device is available." -ForegroundColor Yellow
+    Add-CheckResult -Checks $checks -Status 'blocker' -Category 'platform-scaffold' -Message "$SelectedTarget requires $platformDirPath. Do not generate it from the ops workflow; hand off to the mobile owner."
+  }
+
+  if ($FlutterExecutable) {
+    Add-CheckResult -Checks $checks -Status 'ok' -Category 'flutter' -Message $FlutterExecutable
+  } else {
+    Add-CheckResult -Checks $checks -Status 'blocker' -Category 'flutter' -Message 'Flutter SDK was not found. Install Flutter manually or set SIGNALDESK_FLUTTER_BIN to flutter.bat.'
+  }
+
+  $devices = @(Get-FlutterDevices -FlutterExecutable $FlutterExecutable)
+  if ($FlutterExecutable) {
+    if ($devices.Count -gt 0) {
+      $visibleDevices = ($devices | ForEach-Object { "$($_.id) ($($_.name))" }) -join ', '
+      Add-CheckResult -Checks $checks -Status 'ok' -Category 'devices' -Message $visibleDevices
+    } else {
+      Add-CheckResult -Checks $checks -Status 'warn' -Category 'devices' -Message 'No Flutter devices were reported.'
+    }
+  }
+
+  if ($SelectedTarget -eq 'android') {
+    if ($SelectedCommand -eq 'run' -and -not $SelectedDeviceId) {
+      Add-CheckResult -Checks $checks -Status 'blocker' -Category 'device-selection' -Message 'Android preview requires -DeviceId so emulator and device selection stays deterministic.'
+    } elseif ($SelectedDeviceId) {
+      if ($devices.Count -eq 0) {
+        Add-CheckResult -Checks $checks -Status 'blocker' -Category 'device-selection' -Message "Requested Android device '$SelectedDeviceId' cannot be validated because no Flutter devices were reported."
+      } elseif ($devices | Where-Object { $_.id -eq $SelectedDeviceId }) {
+        Add-CheckResult -Checks $checks -Status 'ok' -Category 'device-selection' -Message "Requested Android device '$SelectedDeviceId' is available."
+      } else {
+        Add-CheckResult -Checks $checks -Status 'blocker' -Category 'device-selection' -Message "Requested Android device '$SelectedDeviceId' was not reported by 'flutter devices'."
+      }
+    } elseif ($SelectedCommand -eq 'doctor' -and $devices.Count -eq 0) {
+      Add-CheckResult -Checks $checks -Status 'warn' -Category 'device-selection' -Message 'Start an emulator or connect a device before Android preview.'
+    }
+  } elseif ($SelectedCommand -eq 'run') {
+    $selectedDesktopDevice = $devices | Where-Object { $_.id -eq $SelectedTarget } | Select-Object -First 1
+    if ($FlutterExecutable -and -not $selectedDesktopDevice) {
+      Add-CheckResult -Checks $checks -Status 'blocker' -Category 'device-selection' -Message "Target device '$SelectedTarget' was not reported by 'flutter devices'."
+    }
   }
 
   if ($SelectedMode -eq 'live') {
-    Assert-LiveApiHealth -BaseUrl $ApiBaseUrl
+    $apiHealth = Test-LiveApiHealth -BaseUrl $ApiBaseUrl
+    if ($apiHealth.ok) {
+      Add-CheckResult -Checks $checks -Status 'ok' -Category 'api-health' -Message $apiHealth.message
+    } else {
+      Add-CheckResult -Checks $checks -Status 'blocker' -Category 'api-health' -Message $apiHealth.message
+    }
+  } else {
+    Add-CheckResult -Checks $checks -Status 'ok' -Category 'api-mode' -Message 'Mock mode selected; live API health check skipped.'
   }
+
+  $blockingCategories = @()
+  foreach ($check in $checks) {
+    if ($check.Status -eq 'blocker') {
+      $blockingCategories += $check.Category
+    }
+  }
+
+  return [pscustomobject]@{
+    Checks = $checks
+    Devices = @($devices)
+    HasBlockers = $blockingCategories.Count -gt 0
+    BlockingCategories = @($blockingCategories)
+  }
+}
+
+function Assert-NoBlockers {
+  param(
+    [pscustomobject]$Report,
+    [string]$SelectedCommand
+  )
+
+  if (-not $Report.HasBlockers) {
+    return
+  }
+
+  $messages = foreach ($check in $Report.Checks) {
+    if ($check.Status -eq 'blocker') {
+      "- $($check.Category): $($check.Message)"
+    }
+  }
+
+  throw "Preview preflight blocked for '$SelectedCommand':`n$($messages -join "`n")"
 }
 
 function Invoke-Verify {
@@ -201,27 +328,9 @@ function Invoke-RunPreview {
     [string]$SelectedDeviceId
   )
 
-  $platformDir = Join-Path $MobileAppPath (Get-PlatformDirectoryName -SelectedTarget $SelectedTarget)
-  if (-not (Test-Path $platformDir)) {
-    throw "Target '$SelectedTarget' requires platform scaffold '$platformDir'. Do not generate it from this ops workflow; hand off to the mobile owner."
-  }
-
   $deviceToUse = $SelectedDeviceId
   if (-not $deviceToUse) {
-    if ($SelectedTarget -eq 'android') {
-      throw "Android preview requires -DeviceId so emulator and device selection stays deterministic."
-    }
     $deviceToUse = $SelectedTarget
-  }
-
-  $availableDevices = Get-FlutterDevices -FlutterExecutable $FlutterExecutable
-  if ($availableDevices.Count -gt 0) {
-    $matchingDevice = $availableDevices | Where-Object { $_.id -eq $deviceToUse } | Select-Object -First 1
-    if (-not $matchingDevice) {
-      throw "Requested device '$deviceToUse' was not reported by 'flutter devices'."
-    }
-  } elseif ($SelectedTarget -eq 'android') {
-    throw "No Flutter devices were reported. Start an emulator or connect a device before running Android preview."
   }
 
   $dartDefines = @()
@@ -247,19 +356,24 @@ if (-not $AppPath) {
 }
 $AppPath = Resolve-ExistingPath -PathValue $AppPath -Description 'Mobile app path'
 
-$flutterExe = Resolve-FlutterExecutable -ExplicitPath $FlutterPath
-
-Invoke-Doctor -FlutterExecutable $flutterExe -MobileAppPath $AppPath -SelectedMode $Mode
+$flutterExe = Try-Resolve-FlutterExecutable -ExplicitPath $FlutterPath
+$report = Get-PreflightReport -FlutterExecutable $flutterExe -MobileAppPath $AppPath -SelectedMode $Mode -SelectedTarget $Target -SelectedDeviceId $DeviceId -SelectedCommand $Command
+Write-CheckResults -Checks $report.Checks
 
 switch ($Command) {
   'doctor' {
+    if ($report.HasBlockers) {
+      Assert-NoBlockers -Report $report -SelectedCommand $Command
+    }
     return
   }
   'verify' {
+    Assert-NoBlockers -Report $report -SelectedCommand $Command
     Invoke-Verify -FlutterExecutable $flutterExe -MobileAppPath $AppPath
     return
   }
   'run' {
+    Assert-NoBlockers -Report $report -SelectedCommand $Command
     Invoke-Verify -FlutterExecutable $flutterExe -MobileAppPath $AppPath
     Invoke-RunPreview -FlutterExecutable $flutterExe -MobileAppPath $AppPath -SelectedMode $Mode -SelectedTarget $Target -SelectedDeviceId $DeviceId
     return
