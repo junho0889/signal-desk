@@ -122,7 +122,7 @@ Outcome:
 - `pub get`: success
 - `analyze`: success (`No issues found!`)
 - `test`: success (`app shell language toggle switches home chrome`, `All tests passed!`)
-- `run -d chrome ... --no-resident`: launch smoke succeeded (`Waiting for connection from debug service on Chrome...`, `Application finished.`)
+- `run -d chrome ... --no-resident`: launch smoke succeeded (`Waiting for connection from debug service on Chrome...`, `Application finished.`) after Flutter pre-launch warning (`This application is not configured to build on the web.`)
 - `run -d windows ... --no-resident`: expected failure in this repo because Windows desktop project is not configured
 
 ## Current Limitations
