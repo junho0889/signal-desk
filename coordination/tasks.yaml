@@ -281,7 +281,7 @@ tasks:
   - id: QA-002
     title: Review regressions and release impact for OPS-003 and APP-003
     owner: signal-desk-qa
-    status: pending
+    status: done
     depends_on:
       - OPS-003
       - APP-003
@@ -293,6 +293,7 @@ tasks:
       - Runtime and mobile changes are reviewed against prior MVP baseline behavior
       - Defects or environment blockers are documented with reproduction notes
       - QA sign-off status is recorded for release-readiness follow-up
+
 
 
 
