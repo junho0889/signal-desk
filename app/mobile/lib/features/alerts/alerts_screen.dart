@@ -72,7 +72,7 @@ class _AlertsScreenState extends State<AlertsScreen> {
                       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                       child: ListTile(
                         title: Text(item.message),
-                        subtitle: Text('${item.severity.toUpperCase()} ¡¤ ${item.triggeredAt.toIso8601String()}'),
+                        subtitle: Text('${item.severity.toUpperCase()} | ${item.triggeredAt.toIso8601String()}'),
                         onTap: () {
                           final keywordId = item.keywordId;
                           if (keywordId != null && keywordId.isNotEmpty) {
@@ -94,3 +94,4 @@ class _AlertsScreenState extends State<AlertsScreen> {
     );
   }
 }
+

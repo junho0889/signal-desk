@@ -57,7 +57,7 @@ class HomeScreen extends StatelessWidget {
                 return ListTile(
                   dense: true,
                   title: Text(alert.message),
-                  subtitle: Text('${alert.severity.toUpperCase()} ¡¤ ${alert.triggeredAt.toIso8601String()}'),
+                  subtitle: Text('${alert.severity.toUpperCase()} | ${alert.triggeredAt.toIso8601String()}'),
                 );
               }),
             ],
@@ -67,3 +67,4 @@ class HomeScreen extends StatelessWidget {
     );
   }
 }
+

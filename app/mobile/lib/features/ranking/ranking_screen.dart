@@ -71,7 +71,7 @@ class _RankingScreenState extends State<RankingScreen> {
                       child: ListTile(
                         title: Text('#${item.rankPosition} ${item.keyword}'),
                         subtitle: Text(
-                          'Score ${item.score.toStringAsFixed(2)} ¡¤ '
+                          'Score ${item.score.toStringAsFixed(2)} | '
                           'Confidence ${item.confidence.toStringAsFixed(3)}',
                         ),
                         trailing: Text(item.delta1d?.toStringAsFixed(2) ?? '-'),
@@ -91,3 +91,4 @@ class _RankingScreenState extends State<RankingScreen> {
     );
   }
 }
+

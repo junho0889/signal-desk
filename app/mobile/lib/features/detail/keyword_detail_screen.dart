@@ -52,7 +52,7 @@ class KeywordDetailScreen extends StatelessWidget {
               const Text('Related stocks', style: TextStyle(fontWeight: FontWeight.bold)),
               ...data.relatedStocks.map((stock) => ListTile(
                     dense: true,
-                    title: Text('${stock.ticker} ¡¤ ${stock.name}'),
+                    title: Text('${stock.ticker} | ${stock.name}'),
                     subtitle: Text('Market ${stock.market.toUpperCase()} | Sector ${stock.sector ?? '-'}'),
                   )),
               const SizedBox(height: 12),
@@ -78,3 +78,4 @@ class KeywordDetailScreen extends StatelessWidget {
     );
   }
 }
+

@@ -37,7 +37,7 @@ class WatchlistScreen extends StatelessWidget {
               ...data.keywords.map((item) => ListTile(
                     title: Text(item.keyword),
                     subtitle: Text(
-                      'Score ${item.score?.toStringAsFixed(2) ?? '-'} ¡¤ '
+                      'Score ${item.score?.toStringAsFixed(2) ?? '-'} | '
                       'Delta ${item.delta1d?.toStringAsFixed(2) ?? '-'}',
                     ),
                     trailing: Text(item.severity ?? '-'),
@@ -49,7 +49,7 @@ class WatchlistScreen extends StatelessWidget {
               const Divider(),
               const Text('Stocks', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
               ...data.stocks.map((item) => ListTile(
-                    title: Text('${item.ticker} ¡¤ ${item.name}'),
+                    title: Text('${item.ticker} | ${item.name}'),
                     subtitle: Text('Market ${item.market.toUpperCase()}'),
                     trailing: Text(item.severity ?? '-'),
                   )),
@@ -60,3 +60,4 @@ class WatchlistScreen extends StatelessWidget {
     );
   }
 }
+
