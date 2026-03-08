@@ -8,19 +8,24 @@
 - last updated: 2026-03-08
 
 ## Current State
-- task is dispatched and ready for worker pickup
+- roadmap deliverables are complete and documented
+- task status is set to `done` in `coordination/tasks.yaml`
 
 ## Last Completed
-- orchestrator added the model lane and roadmap starter doc
+- replaced roadmap starter content with concrete phase plan, feature groups, output contracts, and evaluation gates
+- wrote handoff with downstream expected fields and BE-004/TRUST-001 dependency notes
 
 ## Next Exact Step
-- turn the roadmap into a concrete feature, output, and evaluation contract
+- orchestrator review and downstream dispatch sequencing (`BE-004`, `TRUST-001`, `DESIGN-002`, `APP-006`)
 
 ## Open Blockers
-- wait for `BE-004` handoff before freezing persisted model artifacts
+- `BE-004` must freeze storage schema for new model artifacts (`run_manifest`, `evaluation_snapshot`, explanation payload persistence)
+- `TRUST-001` must define trust outputs before Group F features can be finalized
 
 ## Verification Status
-- not started
+- completed:
+  - `git -C E:\source\signal-desk-worktrees\model-001 diff --check` (pass)
+  - consistency review against DATA/BE docs (pass, additive-only evolution)
 
 ## Files In Progress
 - none
@@ -28,3 +33,6 @@
 ## Last Commit And Push
 - commit:
 - push:
+
+## Notes For Next Session
+- if follow-up changes are needed after `BE-004` handoff, keep all new fields additive and preserve BE-001 alias semantics (`score`, `delta_1d`)

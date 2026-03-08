@@ -442,7 +442,7 @@ tasks:
   - id: MODEL-001
     title: Define ranking model roadmap, feature contract, and evaluation plan
     owner: signal-desk-model
-    status: pending
+    status: done
     depends_on:
       - COL-001
       - BE-004
