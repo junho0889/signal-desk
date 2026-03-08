@@ -6,7 +6,9 @@ This schema defines the BE-001 baseline for ranking, detail, watchlist, and aler
 ## Conventions
 - id columns: UUID (`gen_random_uuid()`), unless noted
 - timestamps: `timestamptz` in UTC
-- score-like values: `numeric(6,3)` unless tighter bound is needed
+- score precision follows DATA-001 contract:
+  - score/delta/dimension fields: `numeric(5,2)`
+  - confidence: `numeric(4,3)`
 - text enums are documented as constrained values and should be backed by `CHECK` constraints
 
 ## Core Tables
@@ -31,25 +33,29 @@ Purpose: read model for ranking and detail.
 Columns:
 - `id` UUID PK
 - `keyword_id` UUID not null FK -> `keywords.id`
-- `snapshot_at` timestamptz not null
-- `period` text not null check in (`intraday`,`daily`,`weekly`)
-- `score` numeric(6,3) not null
-- `confidence` numeric(6,3) not null
-- `mention_velocity` numeric(6,3) null
-- `trend_velocity` numeric(6,3) null
-- `market_reaction` numeric(6,3) null
-- `event_weight` numeric(6,3) null
-- `persistence` numeric(6,3) null
-- `delta_1d` numeric(6,3) null
-- `reason_tags` jsonb not null default `'[]'::jsonb`
-- `risk_flags` jsonb not null default `'[]'::jsonb`
+- `as_of_ts` timestamptz not null
+- `score_total` numeric(5,2) not null
+- `score_delta_24h` numeric(5,2) null
+- `confidence` numeric(4,3) not null
+- `rank_position` integer not null
+- `dimension_mentions` numeric(5,2) null
+- `dimension_trends` numeric(5,2) null
+- `dimension_market` numeric(5,2) null
+- `dimension_events` numeric(5,2) null
+- `dimension_persistence` numeric(5,2) null
+- `is_alert_eligible` boolean not null default `false`
+- `reason_tags` text[] not null default `'{}'::text[]`
+- `risk_flags` text[] not null default `'{}'::text[]`
 
 Constraints:
-- unique (`keyword_id`,`period`,`snapshot_at`)
+- unique (`keyword_id`,`as_of_ts`)
+- check (`confidence` >= 0.000 and `confidence` <= 1.000)
+- check (all `risk_flags` entries are in `data_freshness_degraded|event_coverage_partial|mapping_unstable|thin_cohort`)
 
 Indexes:
-- btree (`period`,`snapshot_at` desc)
-- btree (`score` desc)
+- btree (`as_of_ts` desc)
+- btree (`score_total` desc)
+- btree (`is_alert_eligible`,`as_of_ts` desc)
 - gin (`reason_tags`)
 - gin (`risk_flags`)
 
@@ -76,7 +82,7 @@ Columns:
 - `keyword_id` UUID not null FK -> `keywords.id`
 - `news_item_id` UUID not null FK -> `news_items.id`
 - `snapshot_id` UUID null FK -> `keyword_snapshots.id`
-- `relevance_score` numeric(6,3) null
+- `relevance_score` numeric(5,2) null
 
 Constraints:
 - primary key (`keyword_id`,`news_item_id`)
@@ -108,7 +114,7 @@ Columns:
 - `keyword_id` UUID not null FK -> `keywords.id`
 - `stock_id` UUID not null FK -> `stocks.id`
 - `snapshot_id` UUID null FK -> `keyword_snapshots.id`
-- `link_confidence` numeric(6,3) null
+- `link_confidence` numeric(4,3) null
 
 Constraints:
 - primary key (`keyword_id`,`stock_id`)
@@ -124,7 +130,7 @@ Columns:
 - `keyword_id` UUID not null FK -> `keywords.id`
 - `sector` text not null
 - `snapshot_id` UUID null FK -> `keyword_snapshots.id`
-- `link_confidence` numeric(6,3) null
+- `link_confidence` numeric(4,3) null
 
 Constraints:
 - primary key (`keyword_id`,`sector`)
@@ -200,11 +206,12 @@ Required grants pattern:
 
 ## API Mapping
 - Home: `keyword_snapshots`, `keyword_sector_links`, `alerts`
-- Keyword ranking: latest `keyword_snapshots` by `period`
+- Keyword ranking: latest `keyword_snapshots` by `as_of_ts` (+ query-time period slicing)
 - Keyword detail: `keyword_snapshots` + link tables + `news_items` + `stocks`
 - Watchlist: `watchlist_items` + latest snapshots + `watchlist_alert_rules`
 - Alerts: `alerts` ordered by `triggered_at`
 
 ## Open Implementation Notes
-- Introduce taxonomy tables later for `reason_tags` and `risk_flags` when DATA quality stabilizes.
+- Keep `reason_tags` and `risk_flags` array types stable for API compatibility.
+- Enforce canonical `risk_flags` values in migrations to prevent DATA/BE enum drift.
 - Multi-user ownership for watchlist is intentionally out of scope for current personal-use MVP.

@@ -13,6 +13,12 @@
 - default sort for rankings: `score DESC`
 - default page size for list endpoints: `20`
 - max page size for list endpoints: `100`
+- canonical `risk_flags` literals: `data_freshness_degraded|event_coverage_partial|mapping_unstable|thin_cohort`
+- canonical `reason_tags` literals: `mentions_accelerating|search_confirmation|price_volume_confirmation|disclosure_backed|persistent_multi_window|low_source_diversity|stale_input_risk|weak_market_confirmation`
+
+API field aliases for mobile readability:
+- `score` maps to DATA `score_total`
+- `delta_1d` maps to DATA `score_delta_24h`
 
 ## Error Shape
 All non-2xx responses use:
@@ -50,7 +56,9 @@ Response fields:
 - `score` (`number`, non-null)
 - `delta_1d` (`number`, nullable)
 - `confidence` (`number`, non-null)
+- `is_alert_eligible` (`boolean`, non-null)
 - `reason_tags` (`string[]`, non-null, may be empty)
+- `risk_flags` (`string[]`, non-null, may be empty)
 
 `hot_sectors[]`:
 - `sector` (`string`, non-null)
@@ -84,9 +92,11 @@ Response fields:
 `items[]`:
 - `keyword_id` (`string`, non-null)
 - `keyword` (`string`, non-null)
+- `rank_position` (`integer`, non-null)
 - `score` (`number`, non-null)
 - `delta_1d` (`number`, nullable)
 - `confidence` (`number`, non-null)
+- `is_alert_eligible` (`boolean`, non-null)
 - `reason_tags` (`string[]`, non-null, may be empty)
 - `risk_flags` (`string[]`, non-null, may be empty)
 - `related_sectors` (`string[]`, non-null, may be empty)
@@ -117,11 +127,12 @@ Response fields:
 - `score` (`number`, non-null)
 - `delta_1d` (`number`, nullable)
 - `confidence` (`number`, non-null)
-- `mention_velocity` (`number`, nullable)
-- `trend_velocity` (`number`, nullable)
-- `market_reaction` (`number`, nullable)
-- `event_weight` (`number`, nullable)
-- `persistence` (`number`, nullable)
+- `is_alert_eligible` (`boolean`, non-null)
+- `dimension_mentions` (`number`, nullable)
+- `dimension_trends` (`number`, nullable)
+- `dimension_market` (`number`, nullable)
+- `dimension_events` (`number`, nullable)
+- `dimension_persistence` (`number`, nullable)
 
 `timeseries[]`:
 - `snapshot_at` (`string`, non-null)
@@ -158,6 +169,8 @@ Response fields:
 - `keyword` (`string`, non-null)
 - `score` (`number`, nullable)
 - `delta_1d` (`number`, nullable)
+- `is_alert_eligible` (`boolean`, nullable)
+- `risk_flags` (`string[]`, non-null, may be empty)
 - `severity` (`low|medium|high|critical`, nullable)
 
 `stocks[]`:
@@ -207,16 +220,19 @@ Response fields:
 Explicit nullable fields in v1:
 - dashboard: `top_keywords[].delta_1d`, `hot_sectors[].delta_1d`
 - keywords list: `next_cursor`, `items[].delta_1d`
-- keyword detail: `reason_block`, `score_summary.delta_1d`, all score component fields in `score_summary` except `score` and `confidence`, `related_news[].relevance_score`, `related_stocks[].sector`, `related_stocks[].link_confidence`
-- watchlist: `keywords[].score`, `keywords[].delta_1d`, `keywords[].severity`, `stocks[].severity`, `POST /watchlist` response `watchlist_item_id`
+- keyword detail: `reason_block`, `score_summary.delta_1d`, all `score_summary.dimension_*` fields, `related_news[].relevance_score`, `related_stocks[].sector`, `related_stocks[].link_confidence`
+- watchlist: `keywords[].score`, `keywords[].delta_1d`, `keywords[].is_alert_eligible`, `keywords[].severity`, `stocks[].severity`, `POST /watchlist` response `watchlist_item_id`
 - alerts: `next_cursor`, `items[].keyword_id`
 
 ## DATA-001 Assumptions Locked For BE-001
-- scoring dimensions and formula remain as documented in `docs/data/keyword-scoring-v0.md`
-- `score` and `confidence` remain numeric scalar values
-- `reason_tags`, `risk_flags`, and sector labels are delivered as string arrays until taxonomy tables are introduced
+- scoring snapshot uniqueness key is (`keyword_id`, `as_of_ts`)
+- scoring precision follows DATA contract (`score_total`/`score_delta_24h`/`dimension_*` = `numeric(5,2)`, `confidence` = `numeric(4,3)`)
+- `risk_flags` must remain within canonical literals declared in DATA docs
+- `reason_tags` and `risk_flags` stay as array fields in DB/API payloads
+- `is_alert_eligible` comes from server-side scoring/guardrail logic and is never computed on client
 
 ## Compatibility Rules
 - additive fields are allowed
 - existing field names and enum literals are frozen in `v1`
 - removing or renaming fields requires `v2`
+- alias semantics (`score`, `delta_1d`) are frozen for mobile compatibility in `v1`
