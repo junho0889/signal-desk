@@ -27,6 +27,16 @@ Score job publishes one snapshot per keyword per scoring run.
 | `risk_flags` | text[] | quality/noise/freshness warnings |
 | `is_alert_eligible` | boolean | true only when freshness/confidence gates pass |
 
+## Canonical `risk_flags` Allowed Values
+This is the authoritative allowed-value list for scoring output `risk_flags`.
+
+- `data_freshness_degraded`: critical source freshness threshold exceeded.
+- `event_coverage_partial`: event/disclosure coverage is partial for the window.
+- `mapping_unstable`: keyword-to-entity mapping quality is below threshold.
+- `thin_cohort`: active keyword cohort size is below the publish minimum.
+
+No additional literals are allowed in `risk_flags` unless this section and backend contract docs are updated together.
+
 ## Dimension Definitions
 All dimensions are normalized to `0-100` before weighting.
 
@@ -152,6 +162,7 @@ Set at scoring time; BE-001 can expose directly.
 
 ## Contract Notes For Backend
 - `reason_tags` and `risk_flags` should be stored as arrays backed by documented allowed values.
+- `risk_flags` values must be constrained to the canonical list in this document.
 - `score_total` and each `dimension_*` field should be clamped to `0-100` after penalties.
 - Keep one row per (`keyword_id`, `as_of_ts`) via unique constraint to guarantee idempotent score publishes.
 
@@ -160,3 +171,4 @@ Set at scoring time; BE-001 can expose directly.
 - Relative trend indices can distort cross-keyword comparisons in low-volume terms.
 - Market confirmation may lag for disclosures filed outside trading hours.
 - v1 candidate: sector-relative and regime-aware weighting by market volatility state.
+

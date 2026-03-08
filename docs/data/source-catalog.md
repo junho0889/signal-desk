@@ -68,10 +68,11 @@ These are stable targets for `BE-001` schema/API work.
 ## Contract Enums (for BE-001)
 - `event_type` enum: `news`, `trend`, `disclosure`, `market`.
 - `quality_flag` enum: `ok`, `deduped`, `low_source_diversity`, `mapping_low_confidence`, `stale_source`.
-- `risk_flag` enum baseline from data layer: `data_freshness_degraded`, `event_coverage_partial`, `mapping_unstable`, `thin_cohort`.
+- `risk_flag` enum baseline from data layer (must match scoring output canonical list): `data_freshness_degraded`, `event_coverage_partial`, `mapping_unstable`, `thin_cohort`.
 
 ## Explicit Non-Goals For v0 Data Layer
 - Real-time tick-level ingestion.
 - Model-based sentiment scoring.
 - Alternative data requiring paid enterprise licensing.
 - Portfolio- or account-level personalization.
+
