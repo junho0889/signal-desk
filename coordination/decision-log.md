@@ -64,3 +64,11 @@ one|stdout sink baseline
 - Decision: do not merge or advance release work until `APP-005` has both a worker handoff and explicit QA evidence on `main`
 - Reason: the language-toggle wave is now part of the supervised mobile release surface, so release decisions need both implementation evidence and a QA verdict in the repo
 
+### DEC-016
+- Decision: separate the next architecture wave into collector, storage, model, trust, design, and app-integration lanes
+- Reason: SignalDesk is moving from MVP scaffolding toward a real information platform, and these domains now need distinct ownership with clean contracts
+
+### DEC-017
+- Decision: use Raspberry Pi 4B 8GB as a collector-only node with local spool plus central transfer, while keeping canonical storage and ranking on the central host
+- Reason: collection needs 24/7 uptime and retry resilience, but the Pi should not become the primary database or heavy-compute node
+

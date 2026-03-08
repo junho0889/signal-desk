@@ -18,22 +18,27 @@
 - `signal-desk-orchestrator`: breaks work down, assigns ownership, protects contracts, tracks dependencies, and reviews worker outputs
 - `signal-desk-product`: maintains scope, PRD, priorities, and acceptance criteria
 - `signal-desk-data`: owns ingestion, normalization, entity mapping, and scoring logic
+- `signal-desk-collector`: owns Raspberry Pi collector topology, source adapters, spool queues, retry policy, and raw payload transfer
+- `signal-desk-storage`: owns raw, normalized, feature, trust, and lineage storage design plus retention and access rules
 - `signal-desk-backend`: owns API, database schema, auth, and notification triggers
+- `signal-desk-model`: owns ranking features, model roadmap, evaluation strategy, and score publishing rules
+- `signal-desk-trust`: owns source credibility, misinformation-risk heuristics, contradiction handling, and trust score policy
 - `signal-desk-mobile`: owns Flutter app, local state, API integration, and push UX
-- `signal-desk-design`: owns information hierarchy, screen flows, and visual system
+- `signal-desk-design`: owns information hierarchy, screen flows, chart patterns, and the MZ-friendly visual system
 - `signal-desk-ops`: owns deployment, secrets, monitoring, schedules, and release readiness
 - `signal-desk-qa`: owns verification plans, defect reporting, regression checks, and release readiness review
 
 ## Source Of Truth
 - Product intent: `docs/product/vision.md`
 - MVP scope: `docs/product/mvp-scope.md`
-- System design: `docs/architecture/system-overview.md`
+- System design: `docs/architecture/system-overview.md`, `docs/architecture/intelligence-platform-topology.md`
 - Data logic: `docs/data/source-catalog.md`, `docs/data/keyword-scoring-v0.md`
 - API contract: `docs/backend/api-contract.md`
-- DB model: `docs/backend/db-schema.md`
+- DB model: `docs/backend/db-schema.md`, `docs/backend/storage-expansion-outline.md`
 - DB security: `docs/backend/postgres-security.md`
-- UX rules: `docs/design/ui-principles.md`, `docs/design/screen-map.md`
-- Operations: `docs/ops/deploy-runbook.md`, `docs/ops/service-model.md`, `docs/ops/local-docker-stack.md`, `docs/ops/quality-gates.md`, `docs/ops/git-worktree-flow.md`, `docs/ops/qa-strategy.md`, `docs/ops/app-preview.md`, `docs/ops/automation-supervisor.md`
+- Model and trust: `docs/model/ranking-roadmap.md`, `docs/trust/trust-framework.md`
+- UX rules: `docs/design/ui-principles.md`, `docs/design/screen-map.md`, `docs/design/analytics-visual-system.md`
+- Operations: `docs/ops/deploy-runbook.md`, `docs/ops/service-model.md`, `docs/ops/local-docker-stack.md`, `docs/ops/quality-gates.md`, `docs/ops/git-worktree-flow.md`, `docs/ops/qa-strategy.md`, `docs/ops/app-preview.md`, `docs/ops/automation-supervisor.md`, `docs/ops/pi-collector-node.md`
 - Coordination protocol: `coordination/dispatch-protocol.md`, `coordination/session-prompts.md`, `coordination/checkpoint-policy.md`, `coordination/resume-template.md`
 - Setup and install history: `INSTALL-LOG.md`
 

@@ -404,5 +404,111 @@ tasks:
       - APP-005 handoff is reviewed for regressions and verification quality
       - QA records whether APP-005 runtime verification is adequate for release gating
       - release follow-up has explicit QA evidence for the APP-005 wave
+  - id: COL-001
+    title: Design Raspberry Pi collector topology, spool contract, and source adapter plan
+    owner: signal-desk-collector
+    status: pending
+    depends_on:
+      - DATA-001
+      - INFRA-001
+    files:
+      - docs/architecture/intelligence-platform-topology.md
+      - docs/ops/pi-collector-node.md
+      - coordination/dispatches/COL-001.md
+      - coordination/handoffs/COL-001.md
+      - coordination/resume/COL-001.md
+    acceptance:
+      - Raspberry Pi 4B 8GB collector scope is explicit
+      - local spool and central transfer contract is defined
+      - source adapter responsibilities, retry policy, and delivery acknowledgements are documented
+  - id: BE-004
+    title: Expand storage design for raw, normalized, trust, and model layers
+    owner: signal-desk-storage
+    status: pending
+    depends_on:
+      - COL-001
+      - BE-001
+      - SEC-001
+    files:
+      - docs/backend/db-schema.md
+      - docs/backend/storage-expansion-outline.md
+      - coordination/dispatches/BE-004.md
+      - coordination/handoffs/BE-004.md
+      - coordination/resume/BE-004.md
+    acceptance:
+      - schema covers raw ingestion, normalized entities, trust outputs, model runs, and published rankings
+      - retention and privilege boundaries are explicit
+      - lineage from raw payload to app-facing read model is documented
+  - id: MODEL-001
+    title: Define ranking model roadmap, feature contract, and evaluation plan
+    owner: signal-desk-model
+    status: pending
+    depends_on:
+      - COL-001
+      - BE-004
+      - DATA-001
+    files:
+      - docs/model/ranking-roadmap.md
+      - coordination/dispatches/MODEL-001.md
+      - coordination/handoffs/MODEL-001.md
+      - coordination/resume/MODEL-001.md
+    acceptance:
+      - ranking phases from explainable baseline to learned models are documented
+      - feature groups and score outputs are explicit enough for downstream lanes
+      - evaluation and regression metrics are documented
+  - id: TRUST-001
+    title: Define trust-scoring, contradiction, and misinformation-risk framework
+    owner: signal-desk-trust
+    status: pending
+    depends_on:
+      - COL-001
+      - BE-004
+    files:
+      - docs/trust/trust-framework.md
+      - coordination/dispatches/TRUST-001.md
+      - coordination/handoffs/TRUST-001.md
+      - coordination/resume/TRUST-001.md
+    acceptance:
+      - trust dimensions and outputs are explicit
+      - contradiction, stale-source, and low-confidence mapping behavior is documented
+      - downstream storage and app surfaces can consume the trust outputs
+  - id: DESIGN-002
+    title: Define premium analytics visual system, chart patterns, and MZ-friendly information hierarchy
+    owner: signal-desk-design
+    status: pending
+    depends_on:
+      - TRUST-001
+      - MODEL-001
+      - UX-001
+    files:
+      - docs/design/analytics-visual-system.md
+      - docs/design/screen-map.md
+      - coordination/dispatches/DESIGN-002.md
+      - coordination/handoffs/DESIGN-002.md
+      - coordination/resume/DESIGN-002.md
+    acceptance:
+      - chart and stat-card patterns are defined for mobile use
+      - design direction supports trust, freshness, ranking, and evidence in one glance
+      - updated screen-map guidance is concrete enough for implementation planning
+  - id: APP-006
+    title: Plan mobile integration for charts, trust surfaces, and next-phase analytics UI
+    owner: signal-desk-mobile
+    status: pending
+    depends_on:
+      - APP-005
+      - BE-004
+      - MODEL-001
+      - TRUST-001
+      - DESIGN-002
+    files:
+      - docs/mobile/next-phase-plan.md
+      - docs/mobile/implementation-notes.md
+      - coordination/dispatches/APP-006.md
+      - coordination/handoffs/APP-006.md
+      - coordination/resume/APP-006.md
+    acceptance:
+      - mobile integration boundaries for charts, trust, and multilingual analytics are documented
+      - required backend payload additions are listed without changing contracts prematurely
+      - implementation phases are sequenced for later execution
 
 
