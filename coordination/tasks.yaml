@@ -111,7 +111,7 @@ tasks:
   - id: DATA-001
     title: Define source catalog and scoring model v0
     owner: signal-desk-data
-    status: in_progress
+    status: done
     depends_on:
       - PROD-001
       - SEC-001
@@ -179,3 +179,4 @@ tasks:
       - Runtime topology is defined
       - Monitoring and failure handling are documented
       - Personal-use release path is documented
+
