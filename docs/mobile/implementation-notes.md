@@ -57,81 +57,13 @@ flutter run --dart-define=SIGNALDESK_USE_MOCK=false --dart-define=SIGNALDESK_API
 - APP-005: Korean and English toggle support for shell-level UI and core chrome
 - QA-002: regression review for the combined OPS-003 and APP-003 changes
 
-## APP-006 Planning Addendum (2026-03-08)
-APP-006 is planning-only. No feature code changes are included in this task.
+## APP-006 Freeze Output (Concise)
+APP-006 remains planning-only and now delivers a short APP-007 implementation freeze:
+- frozen package list
+- frozen shared component list
+- frozen screen-shell order for Home, Ranking, Detail, Watchlist, Alerts
+- short implementation order and hard guardrails
 
-### Objective
-Define how chart surfaces, trust/freshness UX, and multilingual analytics should integrate into the mobile app without changing frozen contracts early.
+Primary source: `docs/mobile/next-phase-plan.md`.
 
-### Stable Inputs (Ready For Implementation Design)
-- current `v1` fields: `timeseries[]`, `confidence`, `risk_flags`, `is_alert_eligible`, `generated_at`, `published_at`, `triggered_at`
-- existing app architecture: repository + loadable controller/view patterns from APP-003
-- list behavior baseline from APP-004 and language-mode baseline from APP-005 (once merged)
-
-### Open Inputs (Do Not Freeze Yet)
-- chart/card interaction specs from DESIGN-002
-- storage/read-model field publication from BE-004
-- explanation and contribution structures from MODEL-001
-- contradiction, coverage, and trust-summary output shape from TRUST-001
-
-### Planned Implementation Sequence (Post-Planning)
-1. align screen-level extension points to APP-004 and APP-005 baselines
-2. ship chart surfaces using current detail timeseries payloads
-3. standardize trust and freshness surfaces using current fields
-4. adopt additive payload fields only after upstream contracts are explicitly frozen
-5. run QA regression for scan speed, null-state rendering, and risk visibility
-
-### Contract Safety Rules For APP-006 Follow-Up
-- no rename/remove changes to `v1` fields or enum literals
-- additive payload candidates stay documented as `open` until backend/trust/model lanes freeze names
-- multilingual support localizes UI labels first; transport literals remain canonical until an approved localization contract exists
-
-## APP-007 Implementation Contract (Planning Output)
-This section is the execution contract for APP-007. Implement only this scope unless a new planning task updates it.
-
-### Required Package Edits
-- `app/mobile/pubspec.yaml`
-  - add `flex_color_scheme`
-  - add `fl_chart`
-  - add `flutter_localizations` (SDK)
-  - add `intl`
-- no other package additions in APP-007
-
-### Required File Targets
-- `app/mobile/lib/src/app.dart`
-  - replace ad hoc seed-color theme setup with tokenized Material 3 theme wiring
-  - connect localization delegates and locale selection to APP-005 language mode source
-- `app/mobile/lib/features/shared/signal_desk_shell.dart`
-  - apply premium shell spacing/action hierarchy rules and stable stale/retry surface slots
-- `app/mobile/lib/features/home/home_screen.dart`
-- `app/mobile/lib/features/ranking/ranking_screen.dart`
-- `app/mobile/lib/features/detail/keyword_detail_screen.dart`
-- `app/mobile/lib/features/watchlist/watchlist_screen.dart`
-- `app/mobile/lib/features/alerts/alerts_screen.dart`
-  - migrate these screens to the shared component contract without changing repository calls
-
-### Required Shared Component Layer
-Create and use a shared component package for APP-007 shell work:
-- `SignalDeskMetricRow`
-- `SignalDeskTrustStrip`
-- `SignalDeskFreshnessBadge`
-- `SignalDeskTrendChartCard`
-- `SignalDeskRiskCallout`
-- `SignalDeskSectionCard`
-- `SignalDeskStateSurface`
-
-### Hard Guardrails
-- do not change `app/mobile/lib/core/network/*`
-- do not change `app/mobile/lib/core/models/*` payload structures
-- do not change API endpoint contracts or enum literals
-- do not add design patterns not listed in this APP-007 contract
-- if a required field is missing from `v1`, render placeholder state instead of inventing data
-
-### APP-007 Verification Baseline
-- `cd app/mobile`
-- `flutter pub get`
-- `flutter analyze`
-- `flutter test`
-- runtime smoke in both language modes with current preview target:
-  - verify no clipping/overflow in Korean and English on Home, Ranking, Detail, Watchlist, Alerts
-  - verify trust/freshness cues remain visible in loading, success, stale, and error states
+APP-007 should execute this freeze directly and avoid additional planning expansion inside APP-006 docs.
