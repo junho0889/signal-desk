@@ -180,16 +180,10 @@ tasks:
       - Monitoring and failure handling are documented
       - Personal-use release path is documented
 
-
-
-
-
-
-
   - id: APP-002
     title: Implement mobile app shell and API wiring baseline
     owner: signal-desk-mobile
-    status: in_progress
+    status: done
     depends_on:
       - APP-001
       - BE-001
