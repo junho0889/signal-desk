@@ -199,7 +199,7 @@ tasks:
   - id: BE-002
     title: Implement backend v1 endpoints and persistence from frozen contracts
     owner: signal-desk-backend
-    status: todo
+    status: in_progress
     depends_on:
       - APP-002
     files:
