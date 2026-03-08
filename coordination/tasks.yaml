@@ -582,6 +582,25 @@ tasks:
       - central intake contract supports accepted, duplicate, rejected, and retryable failure outcomes
       - collector envelope and idempotency behavior are explicit
       - backend/storage coordination points are listed clearly
+  - id: BE-006
+    title: Freeze storage contract for features, model runs, labels, and published ranking lineage
+    owner: signal-desk-storage
+    status: in_progress
+    depends_on:
+      - BE-004
+      - MODEL-002
+      - TRUST-001
+      - BE-005
+    files:
+      - docs/backend/db-schema.md
+      - docs/backend/storage-expansion-outline.md
+      - coordination/dispatches/BE-006.md
+      - coordination/handoffs/BE-006.md
+      - coordination/resume/BE-006.md
+    acceptance:
+      - feature snapshots, trust outputs, model scores, labels, and publish evidence tables are explicit
+      - retention, versioning, and replay lineage from raw payload to app-facing ranking are frozen
+      - least-privilege boundaries for normalization, trust, model, and publish jobs are documented
   - id: OPS-005
     title: Define local collector Docker Compose group and Pi deployment path
     owner: signal-desk-ops
