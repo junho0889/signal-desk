@@ -8,36 +8,33 @@
 - last updated: 2026-03-08
 
 ## Current State
-- DESIGN-002 now has a strict, publisher-ready mobile visual freeze in design docs
-- implementation no longer needs to invent spacing, hierarchy, typography, or button placement rules for core surfaces
-- task remains in progress pending final MODEL/TRUST handoff reconciliation
+- DESIGN-002 docs are now narrowed to concise APP-build guidance only
+- scope is limited to ranking, detail, chart, and state surfaces
+- task remains in progress pending MODEL/TRUST handoff reconciliation
 
 ## Last Completed
-- rewrote `docs/design/analytics-visual-system.md` as a hard freeze contract with:
-  - non-negotiable alignment to `premium-mobile-brief.md` and `mobile-ui-quality-gate.md`
-  - fixed spacing, typography, truncation, numeric formatting, action placement, and state behavior
-  - C1-C6 chart and S1-S4 stat-card implementation constraints
-- rewrote `docs/design/screen-map.md` into screen-by-screen blueprints with fixed zone order, min heights, and action positioning
-- updated `coordination/handoffs/DESIGN-002.md` with freeze scope and verification evidence
+- trimmed `docs/design/analytics-visual-system.md` to implementation-ready essentials only
+- trimmed `docs/design/screen-map.md` to ranking/detail/evidence blueprints only
+- removed broad multi-screen guidance not needed for immediate APP build
+- updated `coordination/handoffs/DESIGN-002.md` with concise freeze summary and checks
 
 ## Next Exact Step
-- after `coordination/handoffs/MODEL-001.md` and `coordination/handoffs/TRUST-001.md` are available, run final additive field-name/copy reconciliation and update DESIGN-002 handoff if needed
+- once MODEL/TRUST handoffs are available, verify naming/copy alignment for trust and contradiction labels
 
 ## Open Blockers
-- missing model/trust handoffs prevent final reconciliation of future trust/model label copy
+- missing `coordination/handoffs/MODEL-001.md`
+- missing `coordination/handoffs/TRUST-001.md`
 
 ## Verification Status
 - `git diff --check` passed (CRLF warnings only)
-- targeted rule checks confirm explicit treatment for action placement, truncation, state surfaces, freshness, contradiction, and Korean/English safety
-- consistency checks against ranking roadmap and trust framework completed
+- scope check confirms screen-map now targets ranking/detail/evidence state patterns only
 
 ## Files In Progress
 - none
 
 ## Last Commit And Push
-- commit: `cc8487d` (`DESIGN-002 docs: freeze premium mobile visual implementation contract`)
-- push: `origin/codex/design-002` (pushed on 2026-03-08)
+- commit: pending current checkpoint
+- push: pending current checkpoint
 
 ## Notes For Next Session
-- treat current DESIGN-002 output as frozen baseline for APP-006 and APP-007
-- allow only additive adjustments after MODEL/TRUST handoff review
+- keep DESIGN-002 concise and APP-oriented unless orchestrator requests broader UX restatement
