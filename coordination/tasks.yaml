@@ -679,7 +679,7 @@ tasks:
   - id: COL-007
     title: Debug Raspberry Pi collector deployment and stabilize remote smoke workflow
     owner: signal-desk-collector
-    status: pending
+    status: in_progress
     depends_on:
       - COL-006
     files:

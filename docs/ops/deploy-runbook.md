@@ -101,3 +101,59 @@ Retention baseline:
 - if jobs cycle fails twice consecutively: pause release and investigate
 - if role privilege drift is detected: block deploy until corrected
 - if API error rate spikes: investigate DB connectivity and recent bootstrap or jobs logs first
+
+## Collector Deployment Debug (Pi 192.168.0.33)
+
+### Scope
+- This section is only for collector deployment smoke on Raspberry Pi `192.168.0.33`.
+- Keep this path isolated from the main app stack runtime above.
+
+### SSH Auth Preflight (Required)
+Run this exact command first:
+```powershell
+ssh -o BatchMode=yes -o ConnectTimeout=10 -p 22 admin@192.168.0.33 "echo SSH_OK"
+```
+
+If it returns:
+```text
+Permission denied (publickey,password)
+```
+then remote deployment cannot proceed.
+
+Root cause from COL-007 debug baseline:
+- host is reachable on TCP 22
+- remote server offers `publickey,password`
+- local machine has no usable SSH identity at default paths for non-interactive auth
+
+### Focused Fix For Deployment Path
+1. Provision key auth for `admin@192.168.0.33`:
+   - ensure a local private key exists (default expected by scripts): `C:\Users\admin\.ssh\id_ed25519`
+   - add its public key to the Pi user's `~/.ssh/authorized_keys` (one-time operator action)
+2. Re-run the same preflight command until it prints `SSH_OK`.
+
+### Remote Collector Smoke Command Surface
+Once SSH preflight passes, run:
+```powershell
+powershell -ExecutionPolicy Bypass -File infra/collector/pi-remote-smoke.ps1
+```
+
+This script executes:
+- remote `docker --version`
+- remote `docker compose version`
+- asset sync (`infra/collector`, `services/collector`)
+- remote `collector-db` boot
+- remote `collector-bootstrap`
+- remote `collector-runner`
+- remote `spool-evidence.sql` query
+
+### Manual Equivalent (If Script Is Not Used)
+```powershell
+ssh -o BatchMode=yes -o ConnectTimeout=10 -p 22 admin@192.168.0.33 "docker --version"
+ssh -o BatchMode=yes -o ConnectTimeout=10 -p 22 admin@192.168.0.33 "docker compose version"
+scp -P 22 -r infra/collector admin@192.168.0.33:~/signal-desk/infra/
+scp -P 22 -r services/collector admin@192.168.0.33:~/signal-desk/services/
+ssh -o BatchMode=yes -o ConnectTimeout=10 -p 22 admin@192.168.0.33 "docker compose -f ~/signal-desk/infra/collector/docker-compose.yml --env-file ~/signal-desk/infra/collector/.env.example up -d collector-db"
+ssh -o BatchMode=yes -o ConnectTimeout=10 -p 22 admin@192.168.0.33 "docker compose -f ~/signal-desk/infra/collector/docker-compose.yml --env-file ~/signal-desk/infra/collector/.env.example run --rm collector-bootstrap"
+ssh -o BatchMode=yes -o ConnectTimeout=10 -p 22 admin@192.168.0.33 "docker compose -f ~/signal-desk/infra/collector/docker-compose.yml --env-file ~/signal-desk/infra/collector/.env.example run --rm collector-runner"
+ssh -o BatchMode=yes -o ConnectTimeout=10 -p 22 admin@192.168.0.33 "cat ~/signal-desk/infra/collector/queries/spool-evidence.sql | docker compose -f ~/signal-desk/infra/collector/docker-compose.yml --env-file ~/signal-desk/infra/collector/.env.example exec -T collector-db psql -U collector -d signaldesk_collector -f -"
+```
