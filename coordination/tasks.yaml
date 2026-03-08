@@ -362,6 +362,7 @@ tasks:
     status: pending
     depends_on:
       - QA-003
+      - QA-004
     files:
       - coordination/tasks.yaml
       - coordination/dispatches/REL-002.md
@@ -387,5 +388,21 @@ tasks:
       - app shell exposes a user-visible Korean or English toggle
       - core navigation and key screen chrome render in Korean when Korean mode is enabled
       - verification records analyzer, tests, and at least one runtime smoke on the active preview target
+  - id: QA-004
+    title: Review APP-005 language toggle and release-gate evidence
+    owner: signal-desk-qa
+    status: pending
+    depends_on:
+      - APP-005
+      - QA-003
+    files:
+      - coordination/dispatches/QA-004.md
+      - coordination/handoffs/APP-005-QA.md
+      - coordination/handoffs/QA-004.md
+      - coordination/resume/QA-004.md
+    acceptance:
+      - APP-005 handoff is reviewed for regressions and verification quality
+      - QA records whether APP-005 runtime verification is adequate for release gating
+      - release follow-up has explicit QA evidence for the APP-005 wave
 
 

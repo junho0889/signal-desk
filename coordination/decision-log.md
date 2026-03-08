@@ -60,3 +60,7 @@ one|stdout sink baseline
 - Decision: run Korean language toggle work as `APP-005` in a fresh `codex/app-005` worktree instead of reusing the currently dirty `codex/app-004` worktree
 - Reason: the feature is a new mobile scope item, and a clean worktree keeps orchestration, handoff ownership, and verification boundaries clearer for the worker
 
+### DEC-015
+- Decision: do not merge or advance release work until `APP-005` has both a worker handoff and explicit QA evidence on `main`
+- Reason: the language-toggle wave is now part of the supervised mobile release surface, so release decisions need both implementation evidence and a QA verdict in the repo
+
