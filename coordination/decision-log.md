@@ -1,4 +1,4 @@
-﻿# Decision Log
+# Decision Log
 
 ## 2026-03-08
 
@@ -33,3 +33,7 @@
 ### DEC-008
 - Decision: require explicit QA review before project completion or release sign-off
 - Reason: defects and integration drift should be caught by a dedicated worker rather than assumed away
+
+### DEC-009
+- Decision: run the next task wave in the order `REL-001` -> (`OPS-003` and `APP-003`) -> `QA-002`
+- Reason: the repo has a complete v1 baseline through `OPS-002`, but release smoke must be recorded first and the known jobs-loop issue should be fixed before broader release confidence work

@@ -227,3 +227,69 @@ tasks:
       - Local deployment is reproducible with documented commands
       - Health checks, logs, and restart behavior are documented and validated
       - Backup and rollback procedures are verified for v1 runtime
+  - id: REL-001
+    title: Run integrated release smoke and record release-readiness baseline
+    owner: signal-desk-orchestrator
+    status: in_progress
+    depends_on:
+      - APP-002
+      - BE-002
+      - OPS-002
+    files:
+      - coordination/tasks.yaml
+      - coordination/dispatches/REL-001.md
+      - coordination/handoffs/REL-001.md
+      - coordination/resume/REL-001.md
+      - coordination/decision-log.md
+      - docs/ops/quality-gates.md
+    acceptance:
+      - Integrated smoke commands on `main` are recorded with outcome
+      - Release blockers, environment gaps, and follow-up tasks are documented
+      - Next implementation wave is activated with explicit dependencies
+  - id: OPS-003
+    title: Split recurring jobs runtime from migration and seed bootstrap
+    owner: signal-desk-ops
+    status: pending
+    depends_on:
+      - REL-001
+      - OPS-002
+    files:
+      - infra/local/
+      - docs/ops/deploy-runbook.md
+      - docs/ops/operations-checklist.md
+      - coordination/dispatches/OPS-003.md
+    acceptance:
+      - Local runtime separates one-time bootstrap from recurring jobs execution
+      - Compose and runbook flows document how bootstrap and recurring jobs are started
+      - Verification confirms recurring jobs no longer rerun migration and seed each interval
+  - id: APP-003
+    title: Harden mobile state, repository boundaries, and retry handling baseline
+    owner: signal-desk-mobile
+    status: pending
+    depends_on:
+      - REL-001
+      - APP-002
+      - BE-002
+    files:
+      - app/mobile/
+      - docs/mobile/implementation-notes.md
+      - coordination/dispatches/APP-003.md
+    acceptance:
+      - Screen logic is moved behind feature-appropriate repository or state abstractions
+      - Loading, error, and retry handling is consistent on core MVP screens
+      - Implementation notes document remaining runtime verification gaps and next hardening targets
+  - id: QA-002
+    title: Review regressions and release impact for OPS-003 and APP-003
+    owner: signal-desk-qa
+    status: pending
+    depends_on:
+      - OPS-003
+      - APP-003
+    files:
+      - coordination/dispatches/QA-002.md
+      - coordination/handoffs/QA-002.md
+      - docs/ops/quality-gates.md
+    acceptance:
+      - Runtime and mobile changes are reviewed against prior MVP baseline behavior
+      - Defects or environment blockers are documented with reproduction notes
+      - QA sign-off status is recorded for release-readiness follow-up
