@@ -5,6 +5,7 @@ import '../../core/network/api_exception.dart';
 import '../../core/repositories/signaldesk_repository.dart';
 import '../../core/routes/app_routes.dart';
 import '../../core/state/loadable_controller.dart';
+import '../shared/data_freshness_banner.dart';
 import '../shared/loadable_view.dart';
 import '../shared/signal_desk_shell.dart';
 
@@ -91,6 +92,11 @@ class _KeywordDetailScreenState extends State<KeywordDetailScreen> {
             child: ListView(
               padding: const EdgeInsets.all(16),
               children: <Widget>[
+                DataFreshnessBanner(
+                  generatedAt: data.generatedAt,
+                  staleAfter: FreshnessPolicy.defaultStaleAfter,
+                ),
+                const SizedBox(height: 12),
                 Text(data.keyword, style: Theme.of(context).textTheme.headlineSmall),
                 const SizedBox(height: 12),
                 Text('Score: ${data.scoreSummary.score.toStringAsFixed(2)}'),

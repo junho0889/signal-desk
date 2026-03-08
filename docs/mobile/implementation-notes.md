@@ -1,25 +1,46 @@
 # Mobile Implementation Notes
 
 ## Scope Delivered
-APP-003 hardens the executable Flutter baseline under `app/mobile/` with:
-- shared repository layer over the frozen BE-001 API client
-- reusable loading, error, empty, and retry state controller/view primitives
-- feature screens updated to use consistent refresh and retry behavior
-- watchlist mutation feedback that now reports request failures explicitly
+APP-004 extends the APP-003 baseline with:
+- cursor-based next-page loading on Ranking and Alerts using `next_cursor`
+- stale-data context on Home, Ranking, Detail, Watchlist, and Alerts based on `generated_at`
+- repository/controller updates to support page merge behavior while keeping screen code inside the existing abstraction boundaries
 
-## Structure
-- `app/mobile/lib/main.dart`: app entrypoint
-- `app/mobile/lib/src/app.dart`: `MaterialApp`, route registration, shared API client and repository instances
-- `app/mobile/lib/core/repositories/signaldesk_repository.dart`: repository layer wrapping the typed API client
-- `app/mobile/lib/core/state/loadable_controller.dart`: reusable async state controller for first load and refresh paths
-- `app/mobile/lib/features/shared/loadable_view.dart`: shared loading/error/empty/retry surface
-- `app/mobile/lib/features/*`: screen implementations updated to consume repository + controller flow
+## Key APP-004 Changes
+- `LoadableController` now supports `replaceData(...)` so list flows can append pages without bypassing the shared state primitive.
+- `SignalDeskRepository` now owns cursor-page merge logic:
+  - `mergeKeywordsPages(...)`
+  - `mergeAlertsPages(...)`
+- `SignalDeskApiClient` mock mode now respects cursor + filter query inputs for `GET /keywords` and `GET /alerts`.
+- `MockPayloads` now returns multi-page ranking and alerts data with realistic `next_cursor` behavior.
+- shared `DataFreshnessBanner` renders:
+  - snapshot age
+  - local generated timestamp
+  - stale warning when age exceeds the policy threshold
 
-## Runtime Behavior
-- Home, Ranking, Detail, Watchlist, and Alerts now share the same first-load error and retry pattern
-- filter changes on Ranking and Alerts trigger controller refresh instead of rebuilding ad hoc `FutureBuilder` trees
-- manual pull-to-refresh is available on list/detail surfaces with scrollable content
-- watchlist add failures now surface user-visible error feedback instead of silently failing
+## Freshness Rules
+- default stale threshold: 6 hours
+- ranking period overrides:
+  - `intraday`: 2 hours
+  - `weekly`: 24 hours
+  - `daily`: 6 hours (default)
+- screens with stale-data context:
+  - Home
+  - Ranking
+  - Keyword Detail
+  - Watchlist
+  - Alerts
+
+## Pagination Behavior
+- Ranking:
+  - initial page load still uses shared `LoadableController`
+  - `Load More` uses the current `next_cursor`, merges results, and updates controller data
+  - footer states: loading spinner, retry action, and end-of-results marker
+  - pull-to-refresh resets to page 1
+- Alerts:
+  - same cursor flow and footer states as Ranking
+  - severity filter changes reset to page 1
+  - guarded against stale async merges when filter changes mid-request
 
 ## Runtime Configuration
 - API base URL:
@@ -40,19 +61,24 @@ flutter run --dart-define=SIGNALDESK_USE_MOCK=false --dart-define=SIGNALDESK_API
 3. `flutter pub get`
 4. `flutter analyze`
 5. `flutter test`
-6. `flutter run`
+6. `flutter run --dart-define=SIGNALDESK_USE_MOCK=true`
 
-## Verification Status
-- code-level hardening completed in repo
-- Flutter runtime verification is still environment-dependent until Flutter SDK is available in this session
+## Verification Status (APP-004 Session)
+Commands attempted in `app/mobile`:
+- `flutter pub get`
+- `flutter analyze`
+- `flutter test`
+- `flutter run --dart-define=SIGNALDESK_USE_MOCK=true --debug`
+
+Outcome:
+- all commands blocked with `flutter : The term 'flutter' is not recognized ...`
+- SDK/toolchain unavailable in this worker environment, so compile/runtime verification remains pending
 
 ## Current Limitations
 - no persistent local cache or offline store yet
-- pagination and cursor-driven stale-data handling are not implemented yet
 - no authentication flow (out of scope for current personal MVP)
 - push notification deep-link handling is still deferred
 
 ## Next Hardening Targets
-- APP-004: pagination and stale-data strategy for production-like list behavior
 - APP-005: push notification deep-link handling implementation and tests
-- QA-002: regression review for the combined OPS-003 and APP-003 changes
+- QA-003: regression review for BE-003, APP-004, and OPS-004 integration

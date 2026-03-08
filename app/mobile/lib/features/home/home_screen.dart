@@ -4,6 +4,7 @@ import '../../core/models/api_models.dart';
 import '../../core/repositories/signaldesk_repository.dart';
 import '../../core/routes/app_routes.dart';
 import '../../core/state/loadable_controller.dart';
+import '../shared/data_freshness_banner.dart';
 import '../shared/loadable_view.dart';
 import '../shared/signal_desk_shell.dart';
 
@@ -50,17 +51,20 @@ class _HomeScreenState extends State<HomeScreen> {
           return RefreshIndicator(
             onRefresh: _controller.refresh,
             child: ListView(
-              padding: const EdgeInsets.all(16),
               children: <Widget>[
-                Text('Generated at: ${data.generatedAt.toIso8601String()}'),
-                const SizedBox(height: 16),
-                const Text(
-                  'Top Keywords',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                DataFreshnessBanner(generatedAt: data.generatedAt),
+                const SizedBox(height: 8),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16),
+                  child: Text(
+                    'Top Keywords',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
                 ),
                 const SizedBox(height: 8),
                 ...data.topKeywords.map((item) {
                   return Card(
+                    margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                     child: ListTile(
                       title: Text(item.keyword),
                       subtitle: Text(
@@ -80,9 +84,12 @@ class _HomeScreenState extends State<HomeScreen> {
                   );
                 }),
                 const SizedBox(height: 16),
-                const Text(
-                  'Sector Movers',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16),
+                  child: Text(
+                    'Sector Movers',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
                 ),
                 const SizedBox(height: 8),
                 ...data.hotSectors.map((sector) {
@@ -97,9 +104,12 @@ class _HomeScreenState extends State<HomeScreen> {
                   );
                 }),
                 const SizedBox(height: 16),
-                const Text(
-                  'Recent Alerts',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16),
+                  child: Text(
+                    'Recent Alerts',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
                 ),
                 const SizedBox(height: 8),
                 ...data.riskAlerts.map((alert) {

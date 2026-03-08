@@ -4,6 +4,7 @@ import '../../core/models/api_models.dart';
 import '../../core/repositories/signaldesk_repository.dart';
 import '../../core/routes/app_routes.dart';
 import '../../core/state/loadable_controller.dart';
+import '../shared/data_freshness_banner.dart';
 import '../shared/loadable_view.dart';
 import '../shared/signal_desk_shell.dart';
 
@@ -49,6 +50,8 @@ class _WatchlistScreenState extends State<WatchlistScreen> {
             child: ListView(
               padding: const EdgeInsets.all(16),
               children: <Widget>[
+                DataFreshnessBanner(generatedAt: data.generatedAt),
+                const SizedBox(height: 12),
                 const Text(
                   'Keywords',
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),

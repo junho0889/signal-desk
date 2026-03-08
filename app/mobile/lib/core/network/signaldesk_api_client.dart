@@ -33,6 +33,18 @@ class SignalDeskApiClient {
     int limit = 20,
     String? cursor,
   }) async {
+    if (useMockData) {
+      return KeywordsResponse.fromJson(
+        MockPayloads.keywords(
+          period: period,
+          market: market,
+          sector: sector,
+          limit: limit,
+          cursor: cursor,
+        ),
+      );
+    }
+
     final query = <String, String>{
       'period': period,
       'market': market,
@@ -41,11 +53,7 @@ class SignalDeskApiClient {
       if (cursor != null && cursor.isNotEmpty) 'cursor': cursor,
     };
 
-    final json = await _get(
-      path: '/v1/keywords',
-      queryParameters: query,
-      mock: MockPayloads.keywords,
-    );
+    final json = await _get(path: '/v1/keywords', queryParameters: query, mock: MockPayloads.keywords);
     return KeywordsResponse.fromJson(json);
   }
 
@@ -78,6 +86,16 @@ class SignalDeskApiClient {
     String? cursor,
     String? severity,
   }) async {
+    if (useMockData) {
+      return AlertsResponse.fromJson(
+        MockPayloads.alerts(
+          limit: limit,
+          cursor: cursor,
+          severity: severity,
+        ),
+      );
+    }
+
     final json = await _get(
       path: '/v1/alerts',
       queryParameters: <String, String>{

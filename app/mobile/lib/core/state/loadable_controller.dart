@@ -45,6 +45,13 @@ class LoadableController<T> extends ChangeNotifier {
     return load(force: true);
   }
 
+  void replaceData(T data) {
+    _data = data;
+    _error = null;
+    _hasAttemptedLoad = true;
+    _notifySafely();
+  }
+
   void _notifySafely() {
     if (!_isDisposed) {
       notifyListeners();

@@ -73,4 +73,50 @@ class SignalDeskRepository {
       targetId: keywordId,
     );
   }
+
+  KeywordsResponse mergeKeywordsPages({
+    required KeywordsResponse current,
+    required KeywordsResponse nextPage,
+  }) {
+    final mergedById = <String, KeywordListItem>{};
+    for (final item in current.items) {
+      mergedById[item.keywordId] = item;
+    }
+    for (final item in nextPage.items) {
+      mergedById[item.keywordId] = item;
+    }
+
+    final mergedGeneratedAt = current.generatedAt.isBefore(nextPage.generatedAt)
+        ? current.generatedAt
+        : nextPage.generatedAt;
+
+    return KeywordsResponse(
+      generatedAt: mergedGeneratedAt,
+      items: mergedById.values.toList(growable: false),
+      nextCursor: nextPage.nextCursor,
+    );
+  }
+
+  AlertsResponse mergeAlertsPages({
+    required AlertsResponse current,
+    required AlertsResponse nextPage,
+  }) {
+    final mergedById = <String, AlertItem>{};
+    for (final item in current.items) {
+      mergedById[item.alertId] = item;
+    }
+    for (final item in nextPage.items) {
+      mergedById[item.alertId] = item;
+    }
+
+    final mergedGeneratedAt = current.generatedAt.isBefore(nextPage.generatedAt)
+        ? current.generatedAt
+        : nextPage.generatedAt;
+
+    return AlertsResponse(
+      generatedAt: mergedGeneratedAt,
+      items: mergedById.values.toList(growable: false),
+      nextCursor: nextPage.nextCursor,
+    );
+  }
 }
