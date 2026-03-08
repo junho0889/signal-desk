@@ -475,7 +475,7 @@ tasks:
   - id: DESIGN-002
     title: Define premium analytics visual system, chart patterns, and MZ-friendly information hierarchy
     owner: signal-desk-design
-    status: pending
+    status: in_progress
     depends_on:
       - TRUST-001
       - MODEL-001

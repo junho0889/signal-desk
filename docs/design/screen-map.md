@@ -1,86 +1,162 @@
 # Screen Map
 
+## Purpose
+Define mobile-first screen zones and data mapping so implementation can apply the analytics visual system consistently.
+
+## Shared Mobile Zone Model
+- `Z0 Context Rail`: generated time, market/period scope, and global freshness hint
+- `Z1 Signal Header`: keyword or target identity with rank/movement summary
+- `Z2 Trust and Risk Strip`: trust ladder, freshness state, contradiction/risk chips
+- `Z3 Primary Analytics`: one chart or stat block that explains movement quickly
+- `Z4 Evidence Stack`: reason tags, evidence timeline, related entities
+- `Z5 Actions`: watchlist mutation and navigation actions
+
+Rule: all primary screens keep `Z1` through `Z3` above the first major scroll break.
+
 ## Home
 Purpose: fast first-pass triage after app open.
 
-Primary blocks and API mapping:
-- Top Keywords rail (`GET /dashboard` -> `top_keywords[]`): `keyword_id`, `keyword`, `score`, `delta_1d`, `confidence`, `is_alert_eligible`, `reason_tags`, `risk_flags`
-- Sector Movers (`GET /dashboard` -> `hot_sectors[]`): `sector`, `keyword_count`, `avg_score`, `delta_1d`
-- Alert Summary (`GET /dashboard` -> `risk_alerts[]`): `alert_id`, `target_type`, `target_id`, `severity`, `message`, `triggered_at`
-- Quick navigation: Ranking, Watchlist, Alerts entry points
+API mapping:
+- `GET /dashboard.generated_at` -> `Z0 Context Rail`
+- `GET /dashboard.top_keywords[]` -> top keyword cards (`Z1`/`Z2`/`Z3` compact)
+- `GET /dashboard.hot_sectors[]` -> sector movers module
+- `GET /dashboard.risk_alerts[]` -> alert summary queue
+
+Zone layout:
+- `Z0`: last update timestamp and freshness chip
+- `Z1`: top keyword label + score/delta cluster
+- `Z2`: confidence/trust micro-badge + risk chips
+- `Z3`: compact momentum micro-line (C1 fallback)
+- `Z4`: sector movers and alert summary list
+- `Z5`: navigation shortcuts to Ranking, Watchlist, Alerts
 
 Interaction:
-- tap keyword card -> Keyword Detail (`keyword_id` route)
-- tap alert summary row -> Alerts list or target detail
+- tap top keyword card -> Keyword Detail (`keyword_id` route)
+- tap alert row -> Alerts list or direct Keyword Detail when `keyword_id` exists
 
 ## Keyword Ranking
-Purpose: sortable/filterable ranking exploration.
+Purpose: sortable and filterable ranking exploration.
 
 API mapping:
-- List data (`GET /keywords`): `items[]` with `rank_position`, `score`, `delta_1d`, `confidence`, `is_alert_eligible`, `reason_tags`, `risk_flags`, `related_sectors`
-- Pagination (`GET /keywords`): `next_cursor`
-- Query controls: `period` (required), `market`, `sector`, `limit`, `cursor`
+- `GET /keywords.generated_at` -> `Z0`
+- `GET /keywords.items[]` -> ranking rows
+- `GET /keywords.next_cursor` -> infinite pagination footer
+- query controls: `period` (required), `market`, `sector`, `limit`, `cursor`
 
-UI structure:
-- sticky filter bar: `period`, `market`, `sector`
-- ranked list rows with fixed field order:
-  1) rank + keyword
-  2) score + delta
-  3) confidence + alert eligibility
-  4) reason tags + risk flags
+Zone layout:
+- `Z0`: sticky generated time + filter scope chip
+- sticky filter bar (period/market/sector)
+- row composition (fixed order):
+  1) `Z1`: `rank_position`, `keyword`
+  2) `Z2`: trust ladder micro-badge from `confidence` + `risk_flags`
+  3) `Z3`: movement mini card (`score`, `delta_1d`) + C1 micro-line
+  4) `Z4`: `reason_tags`, `related_sectors`, contradiction/risk chips
+  5) right edge freshness micro-label from list generation age
 
 Interaction:
-- tap list row -> Keyword Detail
-- filter change resets cursor and reloads from first page
+- tap row -> Keyword Detail
+- filter change resets cursor and reloads first page
+- long lists must preserve stable row height and field order
 
 ## Keyword Detail
 Purpose: explain why a keyword moved and whether follow-up is warranted.
 
 API mapping:
-- Header summary (`GET /keywords/{keyword_id}` -> `score_summary`): `score`, `delta_1d`, `confidence`, `is_alert_eligible`
-- Dimension breakdown (`score_summary`): `dimension_mentions`, `dimension_trends`, `dimension_market`, `dimension_events`, `dimension_persistence`
-- Explainability and risk: `reason_block`, top-level `risk_flags`
-- Trend chart (`timeseries[]`): `snapshot_at`, `score`, `confidence`
-- Evidence lists: `related_news[]`, `related_stocks[]`, `related_sectors[]`
+- `GET /keywords/{keyword_id}.generated_at` -> `Z0`
+- `score_summary` -> movement and trust cards (S1, S2)
+- `timeseries[]` -> C2 twin-line chart
+- `reason_block`, `risk_flags` -> contradiction/trust explanation
+- `related_stocks[]`, `related_sectors[]` -> C6 relationship pulse matrix
+- watchlist mutation -> `POST /watchlist`
+
+Zone layout:
+- `Z0`: generated time + freshness band
+- `Z1`: keyword title, rank context (if navigated from ranking), movement card S1
+- `Z2`: trust card S2 + freshness card S3 side-by-side
+- `Z3`: contradiction card S4 (conditional) + C2 twin-line chart
+- `Z4`: C3 dimension contribution bars, reason block, relationship matrix
+- `Z5`: add/remove watchlist action
 
 Interaction:
-- watchlist add/remove action (`POST /watchlist`) from header area
-- deep links from related stocks/news remain read-only in MVP
+- watchlist action remains visible near top and in sticky footer variant after deep scroll
+- contradiction card tap opens Evidence view with contradiction filter applied
+
+## Keyword Detail - Evidence View
+Purpose: deep review of evidence depth, freshness, and contradiction.
+
+API mapping:
+- `related_news[]` -> event timeline rows and source groups
+- `risk_flags` -> contradiction and stale-source warnings
+- `generated_at` + latest `published_at` -> freshness state
+- `related_stocks[]` + `related_sectors[]` -> context chips
+
+Zone layout:
+- `Z1`: evidence headline and freshness summary
+- `Z2`: trust/freshness/contradiction strip
+- `Z3`: C4 source mix ribbon
+- `Z4`: C5 event timeline ladder + grouped evidence list
+- `Z5`: deep links to external sources (read-only)
+
+Interaction:
+- default sort newest first
+- contradiction-flagged evidence stays pinned at top within source group
+- source links open external browser and return to same scroll position
 
 ## Watchlist
 Purpose: focused follow-up queue for tracked keywords and stocks.
 
 API mapping:
-- Watchlist payload (`GET /watchlist`): `keywords[]`, `stocks[]`
-- Keyword rows: `keyword`, `score`, `delta_1d`, `is_alert_eligible`, `risk_flags`, `severity`
-- Stock rows: `ticker`, `name`, `market`, `severity`
-- Mutation (`POST /watchlist`): add/remove by `target_type` + `target_id`
+- `GET /watchlist.generated_at` -> `Z0`
+- `GET /watchlist.keywords[]`, `stocks[]` -> row lists
+- `POST /watchlist` -> row mutation
 
-UI structure:
-- segmented tabs: Keywords / Stocks
-- per-row severity and risk emphasis
-- empty-state prompts that route back to Ranking/Detail
+Zone layout:
+- `Z0`: generated time and freshness chip
+- `Z1`: segmented tabs (Keywords / Stocks)
+- `Z2`: per-row trust/risk strip (`is_alert_eligible`, `risk_flags`, `severity`)
+- `Z3`: movement mini card for keyword rows
+- `Z4`: concise reason/risk label cluster and empty-state routes
+- `Z5`: add/remove actions (keyword detail and row-level gestures)
+
+Interaction:
+- keyword row tap -> Keyword Detail
+- stock row tap -> stock-linked keyword detail when available, else stock context placeholder
 
 ## Alerts
 Purpose: review triggered events and route quickly to context.
 
 API mapping:
-- Alerts feed (`GET /alerts`): `items[]`, `next_cursor`
-- fields: `severity`, `message`, `triggered_at`, `target_type`, `target_id`, `target_label`, optional `keyword_id`
-- controls: `severity`, `limit`, `cursor`
+- `GET /alerts.generated_at` -> `Z0`
+- `GET /alerts.items[]` -> alert feed
+- `GET /alerts.next_cursor` -> pagination
+- query control: `severity`
+
+Zone layout:
+- `Z0`: generated time + freshness state
+- `Z1`: severity filter chips
+- `Z2`: per-row severity and trust/risk indicator
+- `Z3`: alert message with target label and triggered time
+- `Z4`: contradiction marker when linked keyword currently has risk flags
+- `Z5`: route-to-detail affordance
 
 Interaction:
-- severity filter chips on top
-- tap alert row -> Keyword Detail (if keyword target or linked keyword exists)
+- alert row tap -> Keyword Detail when `keyword_id` exists
+- severity filter preserves scroll position when possible
 
-## Cross-Screen Navigation Rules
-- Home -> Detail: max 2 taps
-- Ranking -> Detail: 1 tap
-- Watchlist -> Detail: 1 tap for keyword rows
-- Alerts -> Detail: 1 tap when keyword context exists
+## Cross-Screen Rules
+- Home -> Detail within 2 taps
+- Ranking, Watchlist, Alerts -> Detail within 1 tap when keyword context exists
+- trust/freshness surfaces are always visible above fold on Ranking rows and Detail top fold
+- contradiction visibility cannot be hidden behind optional tabs when active
 
-## Out-of-Scope Screen Behavior (Release-1)
-- no order placement or broker account actions
-- no social or shared watchlist flows
-- no chat assistant panels
-- no client-side alert rule editing beyond backend-supported toggles
+## Mobile Density Rules
+- no horizontal scrolling for primary analytics blocks
+- top fold must show movement + trust + freshness together before evidence list
+- use fixed row template for list screens to reduce scan variance
+- each row supports truncation with stable baseline height rather than variable expansion by default
+
+## Out of Scope Screen Behavior (Release-1)
+- no portfolio analytics, broker actions, or order-entry UI
+- no social feeds, shared lists, or copy-trading UI
+- no conversational assistant panels
+- no client-side recalculation of ranking or trust model outputs
