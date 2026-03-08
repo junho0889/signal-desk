@@ -640,7 +640,7 @@ tasks:
   - id: COL-005
     title: Review collector design against implementation and close pre-deployment gaps
     owner: signal-desk-collector
-    status: pending
+    status: done
     depends_on:
       - COL-003
       - COL-004

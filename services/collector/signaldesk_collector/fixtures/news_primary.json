@@ -1,0 +1,22 @@
+[
+  {
+    "external_id": "fixture-news-001",
+    "published_at": "2026-03-08T00:30:00Z",
+    "source_name": "SignalDesk Fixture Wire",
+    "title": "Korean Semiconductor Theme Extends Weekly Momentum",
+    "url": "https://fixture.signaldesk.local/news/semiconductor-weekly-momentum",
+    "language": "en",
+    "market_scope": "KRX",
+    "raw_text_or_summary": "Fixture article for collector ingest smoke verification."
+  },
+  {
+    "external_id": "fixture-news-002",
+    "published_at": "2026-03-08T01:00:00Z",
+    "source_name": "SignalDesk Fixture Wire",
+    "title": "Battery Supply Chain Mentions Increase Across Morning Session",
+    "url": "https://fixture.signaldesk.local/news/battery-supply-chain-morning",
+    "language": "en",
+    "market_scope": "KRX",
+    "raw_text_or_summary": "Second fixture article for idempotent rerun checks."
+  }
+]

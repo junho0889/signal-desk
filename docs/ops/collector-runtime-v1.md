@@ -65,3 +65,47 @@ Define the first real collector runtime that can be developed on the current PC 
 - central idempotency expectations
 - raw ingest persistence fields
 - error classes that should trigger retry vs dead-letter
+
+## COL-003 Local Test Stack (Implemented)
+The collector dev stack now runs in `infra/collector/` and remains isolated from the main app stack.
+
+### Compose Services
+- `collector-db`: local PostgreSQL spool database
+- `collector-bootstrap`: one-shot schema migration
+- `collector-runner`: one-shot fixture ingest
+- `collector-shipper`: one-shot shipper simulation (offline mode by default)
+- optional `collector-monitor`: one-shot spool metrics view
+
+### Bootstrap Commands
+```powershell
+docker compose -f infra/collector/docker-compose.yml --env-file infra/collector/.env.example up -d collector-db
+docker compose -f infra/collector/docker-compose.yml --env-file infra/collector/.env.example run --rm collector-bootstrap
+```
+
+### Fixture Ingest Command
+```powershell
+docker compose -f infra/collector/docker-compose.yml --env-file infra/collector/.env.example run --rm collector-runner
+```
+
+### Query Evidence Commands
+```powershell
+Get-Content -Raw 'infra/collector/queries/spool-evidence.sql' | docker compose -f infra/collector/docker-compose.yml --env-file infra/collector/.env.example exec -T collector-db psql -U collector -d signaldesk_collector -f -
+Get-Content -Raw 'infra/collector/queries/spool-idempotency.sql' | docker compose -f infra/collector/docker-compose.yml --env-file infra/collector/.env.example exec -T collector-db psql -U collector -d signaldesk_collector -f -
+```
+
+### Restart And Idempotent Re-Run
+```powershell
+docker compose -f infra/collector/docker-compose.yml --env-file infra/collector/.env.example restart collector-db
+docker compose -f infra/collector/docker-compose.yml --env-file infra/collector/.env.example run --rm collector-runner
+```
+
+Expected evidence:
+- row count remains stable by `idempotency_key`
+- `ingest_count` increments on re-run
+- spool rows retain `status`, `ingest_status`, `quality_state`, `retry_count`, `reason_code`, and `last_intake_status`
+- shipper offline simulation records `last_intake_status=retryable_failure` and a non-empty `last_error_code`
+
+### Reset Flow
+```powershell
+powershell -ExecutionPolicy Bypass -File infra/collector/reset-test-db.ps1 -StartDb
+```
