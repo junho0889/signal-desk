@@ -8,33 +8,32 @@
 - last updated: 2026-03-08
 
 ## Current State
-- DESIGN-002 docs are now narrowed to concise APP-build guidance only
-- scope is limited to ranking, detail, chart, and state surfaces
-- task remains in progress pending MODEL/TRUST handoff reconciliation
+- requested design freeze is complete for ranking, detail, chart entry points, and loading/error/stale/trust states
+- docs are concise and implementation-ready for APP lanes
 
 ## Last Completed
-- trimmed `docs/design/analytics-visual-system.md` to implementation-ready essentials only
-- trimmed `docs/design/screen-map.md` to ranking/detail/evidence blueprints only
-- removed broad multi-screen guidance not needed for immediate APP build
-- updated `coordination/handoffs/DESIGN-002.md` with concise freeze summary and checks
+- narrowed `docs/design/analytics-visual-system.md` to visible-surface freeze rules only
+- narrowed `docs/design/screen-map.md` to ranking/detail + shared state blueprints only
+- updated handoff with compliance and consistency verification
 
 ## Next Exact Step
-- once MODEL/TRUST handoffs are available, verify naming/copy alignment for trust and contradiction labels
+- APP lanes can implement from this freeze set without adding new layout/action rules
+- optional later pass: additive trust/model label refinement when MODEL/TRUST handoffs land
 
 ## Open Blockers
-- missing `coordination/handoffs/MODEL-001.md`
-- missing `coordination/handoffs/TRUST-001.md`
+- none for requested freeze scope
 
 ## Verification Status
 - `git diff --check` passed (CRLF warnings only)
-- scope check confirms screen-map now targets ranking/detail/evidence state patterns only
+- compliance check against premium brief and mobile UI quality gate completed
+- model/trust consistency check completed for visible-surface fields
 
 ## Files In Progress
 - none
 
 ## Last Commit And Push
-- commit: `56ddf89` (`DESIGN-002 docs: narrow premium mobile spec to APP build scope`)
-- push: `origin/codex/design-002` (pushed on 2026-03-08)
+- commit: pending current checkpoint
+- push: pending current checkpoint
 
 ## Notes For Next Session
-- keep DESIGN-002 concise and APP-oriented unless orchestrator requests broader UX restatement
+- keep DESIGN-002 concise; expand only if orchestrator requests additional surfaces

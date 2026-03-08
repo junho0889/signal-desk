@@ -1,113 +1,89 @@
 # Screen Map
 
 ## Scope
-This update defines only APP-critical blueprints for:
+Frozen implementation map for visible mobile surfaces only:
 - Keyword Ranking
 - Keyword Detail
-- Keyword Detail Evidence View
-- shared state surfaces for those views
+- shared Loading/Error/Stale state behavior
 
-## Shared Blueprint Rules
+## Shared Rules
 - horizontal padding: `16dp`
 - section gap: `16dp`
 - card padding: `12dp`
 - min touch target: `44dp`
-- fixed zone order on these surfaces:
+- zone order (fixed):
   - `Z0` context rail
   - `Z1` header
-  - `Z2` trust/freshness strip
-  - `Z3` primary chart/metric
-  - `Z4` evidence stack
+  - `Z2` trust/freshness
+  - `Z3` chart entry
+  - `Z4` evidence summary
   - `Z5` actions
 
 ## Keyword Ranking
 
 API mapping:
 - `GET /keywords.generated_at` -> `Z0`
-- `GET /keywords.items[]` -> row list
+- `GET /keywords.items[]` -> row content
 - `GET /keywords.next_cursor` -> pagination
-- controls: `period`, `market`, `sector`, `cursor`
 
 Layout blueprint:
-- `Z0`: sticky context rail with generated time + scope
-- filter strip directly under `Z0`, sticky, min height `44dp`
-- collapsed row (min `104dp`) fixed order:
+- `Z0`: sticky generated-time + scope rail
+- sticky filter strip under `Z0`, min `44dp` height
+- row blueprint (collapsed, min `104dp`):
   1. rank + keyword (1-line clamp)
-  2. movement (`score`, `delta_1d`)
+  2. movement (`score`, `delta_1d`) + CE1 sparkline
   3. trust/freshness cue
   4. evidence cue (`reason_tags`, related sector)
-- row gap `8dp`
+- row gap: `8dp`
 
 Actions:
 - primary: full-row tap -> Keyword Detail
-- secondary: sticky filter controls
+- secondary: sticky `period/market/sector` filter controls
 
-Lock rules:
-- score/delta/trust positions never move by row
-- long strings truncate, never change row geometry
+Lock:
+- score/delta/trust slots cannot move by row
+- long strings truncate; row geometry stays fixed
 
 ## Keyword Detail
 
 API mapping:
 - `GET /keywords/{keyword_id}.generated_at` -> `Z0`
-- `score_summary` -> S1/S2/S3/C3
-- `timeseries[]` -> C2
-- `reason_block`, `risk_flags` -> `Z2`/`Z4`
-- `related_stocks[]`, `related_sectors[]` -> C6
+- `score_summary` -> movement + trust/freshness + contribution entry
+- `timeseries[]` -> CE2 trend chart
+- `reason_block`, `risk_flags` -> trust/evidence cues
 - `POST /watchlist` -> `Z5`
 
 Layout blueprint:
 - `Z0`: context rail with freshness age
-- `Z1`: keyword header + S1 movement card
-- `Z2`: S2 trust and S3 freshness cards in two columns
-- `Z3`: conditional S4 contradiction + C2 chart
-- `Z4`: C3 contribution + reason block + C6 links
-- `Z5`: watchlist action slot
+- `Z1`: keyword header + movement card
+- `Z2`: trust/freshness cards (two-column)
+- `Z3`: contradiction card (if active) + CE2 trend chart
+- `Z4`: CE3 contribution entry + reason summary
+- `Z5`: watchlist primary action slot
 
 Actions:
-- primary: trailing `Add/Remove Watchlist` button (min `44dp` height, `120dp` width)
+- primary: trailing `Add/Remove Watchlist` button (`44dp` h min, `120dp` w min)
 - same action persists as sticky bottom action after first major scroll break
-- secondary: contradiction jump + related entity taps
+- secondary: contradiction jump action
 
-Lock rules:
-- top fold must include S1, S2/S3, and C2 before deep evidence content
-- contradiction card appears between trust/freshness and chart when active
+Lock:
+- top fold must include movement, trust/freshness, and CE2 before deep evidence
+- contradiction card appears between trust/freshness and CE2 when active
 
-## Keyword Detail Evidence View
-
-API mapping:
-- `related_news[]` -> C5 timeline + evidence rows
-- `risk_flags` -> contradiction markers
-- `generated_at` + `published_at` -> freshness context
-
-Layout blueprint:
-- `Z1`: evidence header and freshness summary
-- `Z2`: trust/freshness/contradiction strip
-- `Z3`: C4 source mix ribbon
-- `Z4`: C5 timeline + grouped evidence rows
-- `Z5`: row trailing source-open controls
-
-Actions:
-- primary: open source link from row trailing action
-- secondary: contradiction filter toggle
-
-Lock rules:
-- newest-first evidence order
-- contradiction-marked rows pinned to top within each source group
-
-## Shared State Surfaces (Ranking + Detail + Evidence)
+## Shared State Behavior (Ranking + Detail)
 
 ### Loading
-- skeleton structure mirrors final geometry exactly
-
-### Empty
-- one explanation sentence
-- one next-step action
+- skeletons mirror final structure exactly
 
 ### Error
 - error summary + retry in same card
 - retry min `44dp` height
 
 ### Stale
-- stale age shown in `Z0`
-- interpretation note shown in `Z2`
+- stale age in `Z0`
+- interpretation note in `Z2`
+
+## Trust Visibility Rules
+- trust state always visible in ranking rows and detail top fold
+- contradiction cannot be hidden behind secondary tabs
+- trust and contradiction use icon/label in addition to color

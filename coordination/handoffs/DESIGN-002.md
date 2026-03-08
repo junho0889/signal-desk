@@ -3,42 +3,40 @@
 - owner: signal-desk-design
 - status: in_progress
 
-## What Changed In This Session
-- reduced DESIGN-002 output to APP-critical scope only
-- rewrote `docs/design/analytics-visual-system.md` as a concise implementation spec for:
-  - ranking surface
-  - detail surface
-  - chart blocks (ranking/detail/evidence)
-  - shared loading/empty/error/stale states
-- rewrote `docs/design/screen-map.md` to only include:
-  - Keyword Ranking
-  - Keyword Detail
-  - Keyword Detail Evidence View
-  - shared state blueprints
+## Completion Scope (Requested)
+Design freeze is complete for visible mobile surfaces only:
+- Ranking
+- Keyword Detail
+- Chart entry points
+- Loading / Error / Stale / Trust states
 
-## Freeze Scope For APP Build
-- fixed spacing/shape/typography/numeric rules needed for implementation
-- fixed ranking row order and geometry (`104dp` collapsed rows)
+## What Changed
+- tightened `docs/design/analytics-visual-system.md` to concise APP build rules for ranking/detail/chart-entry/state surfaces only
+- tightened `docs/design/screen-map.md` to ranking/detail/state blueprint only
+- removed non-essential surface guidance from this freeze pass
+
+## Freeze Outputs APP Can Implement Directly
+- fixed spacing/shape/type/format tokens
+- fixed ranking row order and geometry (`104dp` collapsed)
 - fixed detail top-fold order and watchlist action placement
-- fixed chart contracts (C1-C5) and readability expectations
-- fixed state surface behavior for loading/empty/error/stale
+- frozen chart entry points (`CE1`, `CE2`, `CE3`) and minimum readability requirements
+- frozen loading/error/stale behavior and trust visibility rules
 
 ## Verification
 - commands:
   - `git -C E:\source\signal-desk-worktrees\design-002 diff --check`
-  - `Select-String -Path docs/design/screen-map.md -Pattern "Home|Watchlist|Alerts" -CaseSensitive:$false`
-  - `Select-String -Path docs/design/analytics-visual-system.md,docs/design/screen-map.md -Pattern "Ranking|Detail|State|Chart|trust|freshness|contradiction" -CaseSensitive:$false`
+  - `Select-String -Path docs/design/analytics-visual-system.md,docs/design/screen-map.md -Pattern "Ranking|Detail|Loading|Error|Stale|Trust|Chart|contradiction" -CaseSensitive:$false`
+  - `Select-String -Path E:\source\signal-desk\coordination\premium-mobile-brief.md,E:\source\signal-desk\coordination\mobile-ui-quality-gate.md,docs/design/analytics-visual-system.md,docs/design/screen-map.md -Pattern "spacing scale|primary action|row layout|legend|overflow|Korean|loading|error|stale|trust|chart" -CaseSensitive:$false`
+  - `Select-String -Path docs/model/ranking-roadmap.md,docs/trust/trust-framework.md,docs/design/analytics-visual-system.md -Pattern "contribution|dimension|trust|contradiction|stale|confidence" -CaseSensitive:$false`
 - result:
   - `git diff --check` passed (CRLF warnings only)
-  - no Home/Alerts guidance remains in screen map; only detail-linked watchlist action references remain
-  - ranking/detail/chart/state coverage remains explicit and implementation-ready
+  - visible-surface scope coverage is explicit in both design docs
+  - premium brief and quality gate constraints are represented in frozen rules
+  - model/trust concepts used by visible surfaces remain mapped
 
 ## Blockers
-- `coordination/handoffs/MODEL-001.md` and `coordination/handoffs/TRUST-001.md` are still missing
-
-## Next Step
-- reconcile trust/model naming only when MODEL/TRUST handoffs arrive
-- hand this concise freeze set to APP planning/implementation lanes
+- none for APP implementation of requested visible-surface freeze
+- MODEL/TRUST handoffs remain future additive refinement input only
 
 ## Files Touched
 - `docs/design/analytics-visual-system.md`
