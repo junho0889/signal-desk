@@ -278,3 +278,50 @@ Example:
   }
 }
 ```
+
+## Explainable Publish Assumptions (BE-007)
+This section defines stable assumptions for internal publish behavior and additive public-field evolution without breaking v1 mobile clients.
+
+### Internal Processing Boundary
+- normalization, trust, feature, and ranking outputs are internal artifacts
+- only published snapshots are API-serving artifacts
+- alert evaluation must consume published snapshots only
+
+### Additive Public API Guidance
+Existing required v1 fields remain unchanged.
+Any publish-related additions must be optional and nullable in `v1`.
+
+Allowed additive top-level object (when introduced):
+- `publish_meta` (`object`, nullable)
+
+`publish_meta` candidate fields (all nullable in `v1`):
+- `publish_run_id` (`string`)
+- `window_start` (`string`, RFC3339 UTC)
+- `window_end` (`string`, RFC3339 UTC)
+- `feature_version` (`string`)
+- `trust_version` (`string`)
+- `ranking_version` (`string`)
+- `publish_status` (`complete|degraded`)
+
+Compatibility guardrails:
+- no existing field rename/removal under `v1`
+- no required-field promotion for newly added publish metadata
+- no enum change to existing frozen literals
+
+### Publish Idempotency And Reprocessing Semantics
+Publish idempotency key assumptions:
+- `window_start`
+- `window_end`
+- `market_scope`
+- `feature_version`
+- `trust_version`
+- `ranking_version`
+
+Reprocessing behavior:
+- publish retry with identical idempotency key is idempotent (returns existing publish artifact identity or no-op)
+- publish recovery must work from existing ranking artifacts and evidence links
+- publish recovery must not require raw reingest for normal retry paths
+
+### Freshness And Fallback Serving
+- if current window publish fails, API continues serving last successful publish snapshot
+- degraded freshness should be surfaced through existing risk/freshness signaling rather than contract-breaking payload changes

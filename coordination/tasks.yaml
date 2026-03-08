@@ -640,7 +640,7 @@ tasks:
   - id: BE-007
     title: Define model-processing job pipeline and additive API publish contract
     owner: signal-desk-backend
-    status: pending
+    status: done
     depends_on:
       - MODEL-002
       - BE-006

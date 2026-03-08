@@ -26,6 +26,64 @@ Phase 1 (target baseline for MVP runtime):
 - alert rule evaluation: server-side after each scoring publish
 - daily health summary: at least once per day including freshness and failure counts
 
+## Central Processing Job Order (BE-007 Freeze)
+The central processing lane must execute in this order for each processing window:
+1. normalization
+2. trust
+3. feature snapshot build
+4. ranking
+5. publish
+6. alert evaluation
+
+Order guarantees:
+- each stage consumes only committed outputs from the immediately previous stage
+- publish is the boundary between internal artifacts and API-visible snapshots
+- alert evaluation consumes published artifacts only, never in-flight ranking rows
+
+## Stage Failure Behavior
+- normalization failure:
+  - stop downstream stages for that window
+  - keep raw ingest data for later replay
+- trust failure:
+  - stop feature/ranking/publish for that window unless the run is explicitly marked degraded by policy
+- feature failure:
+  - stop ranking/publish/alert evaluation for that window
+- ranking failure:
+  - do not publish partial ranking
+  - keep prior successful publish active for API serving
+- publish failure:
+  - do not advance "latest published" pointer
+  - allow publish retry without re-running raw ingest or normalization
+- alert-evaluation failure:
+  - does not invalidate completed publish
+  - retry alert evaluation against the same published snapshot
+
+## Publish Idempotency And Reprocessing
+Publish idempotency key assumptions:
+- `window_start`
+- `window_end`
+- `market_scope`
+- `feature_version`
+- `trust_version`
+- `ranking_version`
+
+Idempotency rules:
+- retrying publish with the same key must not create duplicate API-visible snapshots
+- if a publish artifact already exists for the same key, rerun returns existing artifact identity or no-op
+
+Reprocessing rules (no raw reingest required):
+- publish-only replay:
+  - rebuild API read model and evidence links from existing ranking artifact
+- ranking-plus-publish replay:
+  - rerun ranking from existing feature/trust artifacts, then republish
+- full upstream replay:
+  - reserved for cases where normalization/trust/feature artifacts are missing or invalid
+
+## API Publish Read-Model Assumptions
+- API serves only the latest successful published snapshot per scope
+- half-finished internal artifacts must never be exposed as required public API fields
+- if latest window publish fails, API continues serving last successful snapshot and reports freshness degradation through existing risk signaling
+
 ## Reliability Targets (MVP)
 - API availability during review windows: best effort on single host
 - data freshness target: latest snapshot <= 30 minutes old
