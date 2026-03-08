@@ -125,7 +125,7 @@ tasks:
   - id: BE-001
     title: Freeze API and database contracts
     owner: signal-desk-backend
-    status: todo
+    status: in_progress
     depends_on:
       - DATA-001
       - SEC-001
@@ -179,4 +179,5 @@ tasks:
       - Runtime topology is defined
       - Monitoring and failure handling are documented
       - Personal-use release path is documented
+
 
