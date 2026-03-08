@@ -72,3 +72,7 @@ one|stdout sink baseline
 - Decision: use Raspberry Pi 4B 8GB as a collector-only node with local spool plus central transfer, while keeping canonical storage and ranking on the central host
 - Reason: collection needs 24/7 uptime and retry resilience, but the Pi should not become the primary database or heavy-compute node
 
+### DEC-018
+- Decision: treat `APP-005` and `QA-004` branch outputs as supervision input only until their evidence is accepted on `main`, and keep `APP-006` parked until its upstream handoffs exist
+- Reason: branch-resident artifacts do not satisfy the release gate by themselves, and starting `APP-006` early creates avoidable overlap in the mobile lane
+

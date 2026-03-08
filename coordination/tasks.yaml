@@ -375,7 +375,7 @@ tasks:
   - id: APP-005
     title: Add Korean language toggle mode to the mobile app shell
     owner: signal-desk-mobile
-    status: pending
+    status: in_progress
     depends_on:
       - APP-004
     files:
@@ -391,7 +391,7 @@ tasks:
   - id: QA-004
     title: Review APP-005 language toggle and release-gate evidence
     owner: signal-desk-qa
-    status: pending
+    status: in_progress
     depends_on:
       - APP-005
       - QA-003
