@@ -108,18 +108,22 @@ APP-004 behavior preservation notes:
 
 ## Verification Status (APP-005 Session)
 Commands attempted in `app/mobile`:
+- `E:\source\signal-desk\flutter\bin\flutter.bat --version`
+- `E:\source\signal-desk\flutter\bin\flutter.bat devices`
 - `E:\source\signal-desk\flutter\bin\flutter.bat pub get`
 - `E:\source\signal-desk\flutter\bin\flutter.bat analyze`
 - `E:\source\signal-desk\flutter\bin\flutter.bat test`
-- `E:\source\signal-desk\flutter\bin\flutter.bat run -d chrome --dart-define=SIGNALDESK_USE_MOCK=true`
 - `E:\source\signal-desk\flutter\bin\flutter.bat run -d chrome --dart-define=SIGNALDESK_USE_MOCK=true --no-resident`
+- `E:\source\signal-desk\flutter\bin\flutter.bat run -d windows --dart-define=SIGNALDESK_USE_MOCK=true --no-resident`
 
 Outcome:
+- Flutter SDK detected: `Flutter 3.41.4` / `Dart 3.11.1`
+- devices detected: `windows`, `chrome`, `edge`
 - `pub get`: success
 - `analyze`: success (`No issues found!`)
-- `test`: failed (`Test directory "test" not found.`)
-- `run -d chrome ...` (resident mode): timed out in worker terminal after 184s
-- `run -d chrome ... --no-resident`: launch smoke succeeded and exited
+- `test`: success (`app shell language toggle switches home chrome`, `All tests passed!`)
+- `run -d chrome ... --no-resident`: launch smoke succeeded (`Waiting for connection from debug service on Chrome...`, `Application finished.`)
+- `run -d windows ... --no-resident`: expected failure in this repo because Windows desktop project is not configured
 
 ## Current Limitations
 - no persistent local cache or offline store yet
