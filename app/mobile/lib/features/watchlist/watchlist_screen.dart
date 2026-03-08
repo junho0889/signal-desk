@@ -43,11 +43,32 @@ class _WatchlistScreenState extends State<WatchlistScreen> {
       child: LoadableView<WatchlistResponse>(
         controller: _controller,
         emptyMessage: 'No watchlist items are being tracked yet.',
-        isEmpty: (data) => data.keywords.isEmpty && data.stocks.isEmpty,
         builder: (context, data) {
+          final isEmpty = data.keywords.isEmpty && data.stocks.isEmpty;
+          if (isEmpty) {
+            return RefreshIndicator(
+              onRefresh: _controller.refresh,
+              child: ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.all(16),
+                children: <Widget>[
+                  DataFreshnessBanner(generatedAt: data.generatedAt),
+                  const SizedBox(height: 12),
+                  const Card(
+                    child: Padding(
+                      padding: EdgeInsets.all(16),
+                      child: Text('No watchlist items are being tracked yet.'),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }
+
           return RefreshIndicator(
             onRefresh: _controller.refresh,
             child: ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
               padding: const EdgeInsets.all(16),
               children: <Widget>[
                 DataFreshnessBanner(generatedAt: data.generatedAt),

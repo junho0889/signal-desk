@@ -18,6 +18,14 @@ APP-004 extends the APP-003 baseline with:
   - local generated timestamp
   - stale warning when age exceeds the policy threshold
 
+## APP-004 Audit Follow-Up
+- fixed mock cursor fidelity to avoid repeated-page loops:
+  - mock cursors now encode page offsets (`kw:<offset>`, `al:<offset>`)
+  - legacy cursors (`kw_page_2`, `al_page_2`) are still accepted for compatibility
+- tightened empty-state behavior on Home, Ranking, Watchlist, and Alerts:
+  - stale-data banner remains visible even when list payloads are empty
+  - pull-to-refresh uses `AlwaysScrollableScrollPhysics` so refresh works with short/empty content
+
 ## Freshness Rules
 - default stale threshold: 6 hours
 - ranking period overrides:
@@ -69,9 +77,12 @@ Commands attempted in `app/mobile`:
 - `flutter analyze`
 - `flutter test`
 - `flutter run --dart-define=SIGNALDESK_USE_MOCK=true --debug`
+- `Get-ChildItem app/mobile/lib/features -Recurse -Filter *.dart | Select-String -Pattern 'AlwaysScrollableScrollPhysics|No .*data is available|No watchlist items are being tracked yet'`
+- `Get-ChildItem app/mobile/lib/core/network -Recurse -Filter *.dart | Select-String -Pattern '_parseOffsetCursor|_nextOffsetCursor|kw_page_2|al_page_2|next_cursor'`
 
 Outcome:
 - all commands blocked with `flutter : The term 'flutter' is not recognized ...`
+- static checks confirm empty-state/refresh wiring and mock cursor parsing helpers are present
 - SDK/toolchain unavailable in this worker environment, so compile/runtime verification remains pending
 
 ## Current Limitations

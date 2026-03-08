@@ -173,11 +173,33 @@ class _AlertsScreenState extends State<AlertsScreen> {
             child: LoadableView<AlertsResponse>(
               controller: _controller,
               emptyMessage: 'No recent triggers match this severity filter.',
-              isEmpty: (data) => data.items.isEmpty,
               builder: (context, data) {
+                if (data.items.isEmpty) {
+                  return RefreshIndicator(
+                    onRefresh: _refreshFirstPage,
+                    child: ListView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      children: <Widget>[
+                        DataFreshnessBanner(generatedAt: data.generatedAt),
+                        const Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+                          child: Card(
+                            child: Padding(
+                              padding: EdgeInsets.all(16),
+                              child: Text('No recent triggers match this severity filter.'),
+                            ),
+                          ),
+                        ),
+                        _buildPaginationFooter(data),
+                      ],
+                    ),
+                  );
+                }
+
                 return RefreshIndicator(
                   onRefresh: _refreshFirstPage,
                   child: ListView.builder(
+                    physics: const AlwaysScrollableScrollPhysics(),
                     itemCount: data.items.length + 2,
                     itemBuilder: (context, index) {
                       if (index == 0) {

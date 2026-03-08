@@ -174,11 +174,36 @@ class _RankingScreenState extends State<RankingScreen> {
             child: LoadableView<KeywordsResponse>(
               controller: _controller,
               emptyMessage: 'No ranking data is available for this filter.',
-              isEmpty: (data) => data.items.isEmpty,
               builder: (context, data) {
+                if (data.items.isEmpty) {
+                  return RefreshIndicator(
+                    onRefresh: _refreshFirstPage,
+                    child: ListView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      children: <Widget>[
+                        DataFreshnessBanner(
+                          generatedAt: data.generatedAt,
+                          staleAfter: FreshnessPolicy.forPeriod(_period),
+                        ),
+                        const Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+                          child: Card(
+                            child: Padding(
+                              padding: EdgeInsets.all(16),
+                              child: Text('No ranking data is available for this filter.'),
+                            ),
+                          ),
+                        ),
+                        _buildPaginationFooter(data),
+                      ],
+                    ),
+                  );
+                }
+
                 return RefreshIndicator(
                   onRefresh: _refreshFirstPage,
                   child: ListView.builder(
+                    physics: const AlwaysScrollableScrollPhysics(),
                     itemCount: data.items.length + 2,
                     itemBuilder: (context, index) {
                       if (index == 0) {

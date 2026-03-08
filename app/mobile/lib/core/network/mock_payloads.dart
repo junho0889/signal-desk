@@ -5,6 +5,34 @@ class MockPayloads {
     return DateTime.now().toUtc().subtract(offset).toIso8601String();
   }
 
+  static int _parseOffsetCursor(String? cursor, String prefix) {
+    if (cursor == null || cursor.isEmpty) {
+      return 0;
+    }
+    final normalized = cursor.trim();
+    final marker = '$prefix:';
+    if (!normalized.startsWith(marker)) {
+      return 0;
+    }
+    final raw = normalized.substring(marker.length);
+    final parsed = int.tryParse(raw);
+    if (parsed == null || parsed < 0) {
+      return 0;
+    }
+    return parsed;
+  }
+
+  static String? _nextOffsetCursor({
+    required String prefix,
+    required int offset,
+    required int total,
+  }) {
+    if (offset >= total) {
+      return null;
+    }
+    return '$prefix:$offset';
+  }
+
   static Map<String, dynamic> dashboard() => {
         'generated_at': _isoWithOffset(const Duration(minutes: 30)),
         'top_keywords': [
@@ -166,12 +194,18 @@ class MockPayloads {
 
     final requestedLimit = limit <= 0 ? 20 : limit;
     final pageSize = requestedLimit < 3 ? requestedLimit : 3;
-    final start = cursor == 'kw_page_2' ? pageSize : 0;
+    final legacyStart = cursor == 'kw_page_2' ? pageSize : null;
+    final parsedStart = legacyStart ?? _parseOffsetCursor(cursor, 'kw');
+    final start = parsedStart > marketItems.length ? marketItems.length : parsedStart;
     final end = (start + pageSize) > marketItems.length
         ? marketItems.length
         : start + pageSize;
     final pageItems = marketItems.sublist(start, end);
-    final nextCursor = end < marketItems.length ? 'kw_page_2' : null;
+    final nextCursor = _nextOffsetCursor(
+      prefix: 'kw',
+      offset: end,
+      total: marketItems.length,
+    );
 
     return {
       'generated_at': period == 'intraday'
@@ -317,10 +351,16 @@ class MockPayloads {
 
     final requestedLimit = limit <= 0 ? 20 : limit;
     final pageSize = requestedLimit < 2 ? requestedLimit : 2;
-    final start = cursor == 'al_page_2' ? pageSize : 0;
+    final legacyStart = cursor == 'al_page_2' ? pageSize : null;
+    final parsedStart = legacyStart ?? _parseOffsetCursor(cursor, 'al');
+    final start = parsedStart > filtered.length ? filtered.length : parsedStart;
     final end = (start + pageSize) > filtered.length ? filtered.length : start + pageSize;
     final pageItems = filtered.sublist(start, end);
-    final nextCursor = end < filtered.length ? 'al_page_2' : null;
+    final nextCursor = _nextOffsetCursor(
+      prefix: 'al',
+      offset: end,
+      total: filtered.length,
+    );
 
     return {
       'generated_at': _isoWithOffset(const Duration(hours: 2, minutes: 15)),

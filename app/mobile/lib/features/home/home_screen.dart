@@ -43,14 +43,37 @@ class _HomeScreenState extends State<HomeScreen> {
       child: LoadableView<DashboardResponse>(
         controller: _controller,
         emptyMessage: 'No dashboard data is available yet.',
-        isEmpty: (data) =>
-            data.topKeywords.isEmpty &&
-            data.hotSectors.isEmpty &&
-            data.riskAlerts.isEmpty,
         builder: (context, data) {
+          final isEmpty =
+              data.topKeywords.isEmpty &&
+              data.hotSectors.isEmpty &&
+              data.riskAlerts.isEmpty;
+
+          if (isEmpty) {
+            return RefreshIndicator(
+              onRefresh: _controller.refresh,
+              child: ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                children: <Widget>[
+                  DataFreshnessBanner(generatedAt: data.generatedAt),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+                    child: Card(
+                      child: Padding(
+                        padding: EdgeInsets.all(16),
+                        child: Text('No dashboard data is available yet.'),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }
+
           return RefreshIndicator(
             onRefresh: _controller.refresh,
             child: ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
               children: <Widget>[
                 DataFreshnessBanner(generatedAt: data.generatedAt),
                 const SizedBox(height: 8),
