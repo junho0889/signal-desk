@@ -214,7 +214,7 @@ tasks:
   - id: OPS-002
     title: Operationalize app and backend runtime for repeatable local deployment
     owner: signal-desk-ops
-    status: in_progress
+    status: done
     depends_on:
       - BE-002
       - OPS-001
