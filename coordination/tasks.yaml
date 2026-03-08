@@ -604,7 +604,7 @@ tasks:
   - id: COL-003
     title: Implement collector dev stack, spool smoke test, and local test database verification
     owner: signal-desk-collector
-    status: pending
+    status: done
     depends_on:
       - COL-002
       - BE-005
