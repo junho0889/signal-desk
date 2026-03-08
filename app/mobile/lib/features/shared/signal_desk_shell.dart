@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../../core/routes/app_routes.dart';
+import '../../src/app_scope.dart';
+import '../../src/signal_desk_localizations.dart';
+import 'premium_tokens.dart';
 
 class SignalDeskShell extends StatelessWidget {
   const SignalDeskShell({
@@ -8,11 +11,15 @@ class SignalDeskShell extends StatelessWidget {
     required this.title,
     required this.currentRoute,
     required this.child,
+    this.contextRail,
+    this.primaryAction,
   });
 
   final String title;
   final String currentRoute;
   final Widget child;
+  final Widget? contextRail;
+  final Widget? primaryAction;
 
   int _indexForRoute(String route) {
     switch (route) {
@@ -39,18 +46,68 @@ class SignalDeskShell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = SignalDeskLocalizations.of(context);
+    final appScope = SignalDeskAppScope.of(context);
+
     return Scaffold(
-      appBar: AppBar(title: Text(title)),
-      body: SafeArea(child: child),
+      appBar: AppBar(
+        title: Text(title),
+        actions: <Widget>[
+          TextButton(
+            onPressed: appScope.toggleLocale,
+            child: Text(appScope.isKorean ? 'EN' : 'KO'),
+          ),
+          const SizedBox(width: SignalDeskSpacing.s8),
+        ],
+      ),
+      body: SafeArea(
+        child: Column(
+          children: <Widget>[
+            if (contextRail != null) contextRail!,
+            Expanded(child: child),
+            if (primaryAction != null)
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.fromLTRB(
+                  SignalDeskSpacing.s16,
+                  SignalDeskSpacing.s8,
+                  SignalDeskSpacing.s16,
+                  SignalDeskSpacing.s12,
+                ),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surface,
+                  border: Border(
+                    top: BorderSide(
+                      color: Theme.of(context).colorScheme.outlineVariant,
+                    ),
+                  ),
+                ),
+                child: primaryAction!,
+              ),
+          ],
+        ),
+      ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _indexForRoute(currentRoute),
         type: BottomNavigationBarType.fixed,
         onTap: (index) => _onNavTap(context, index),
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(icon: Icon(Icons.home_outlined), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.format_list_numbered), label: 'Ranking'),
-          BottomNavigationBarItem(icon: Icon(Icons.bookmark_border), label: 'Watchlist'),
-          BottomNavigationBarItem(icon: Icon(Icons.notifications_none), label: 'Alerts'),
+        items: <BottomNavigationBarItem>[
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.home_outlined),
+            label: l10n.homeTitle,
+          ),
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.format_list_numbered),
+            label: l10n.rankingTitle,
+          ),
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.bookmark_border),
+            label: l10n.watchlistTitle,
+          ),
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.notifications_none),
+            label: l10n.alertsTitle,
+          ),
         ],
       ),
     );

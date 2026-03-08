@@ -4,7 +4,11 @@ import '../../core/models/api_models.dart';
 import '../../core/repositories/signaldesk_repository.dart';
 import '../../core/routes/app_routes.dart';
 import '../../core/state/loadable_controller.dart';
+import '../../src/signal_desk_localizations.dart';
 import '../shared/loadable_view.dart';
+import '../shared/premium_tokens.dart';
+import '../shared/signal_desk_context_rail.dart';
+import '../shared/signal_desk_metric_row.dart';
 import '../shared/signal_desk_shell.dart';
 
 class RankingScreen extends StatefulWidget {
@@ -19,6 +23,8 @@ class RankingScreen extends StatefulWidget {
 class _RankingScreenState extends State<RankingScreen> {
   late final LoadableController<KeywordsResponse> _controller;
   String _period = 'daily';
+
+  static const _periods = <String>['intraday', 'daily', 'weekly'];
 
   @override
   void initState() {
@@ -37,75 +43,89 @@ class _RankingScreenState extends State<RankingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = SignalDeskLocalizations.of(context);
+
     return SignalDeskShell(
-      title: 'Keyword Ranking',
+      title: l10n.rankingTitle,
       currentRoute: AppRoutes.ranking,
+      contextRail: _controller.data == null
+          ? null
+          : SignalDeskContextRail(
+              generatedAt: _controller.data!.generatedAt,
+              scopeLabel: _period,
+            ),
       child: Column(
         children: <Widget>[
           Padding(
-            padding: const EdgeInsets.all(12),
-            child: Row(
-              children: <Widget>[
-                const Text('Period:'),
-                const SizedBox(width: 12),
-                DropdownButton<String>(
-                  value: _period,
-                  items: const <String>['intraday', 'daily', 'weekly']
-                      .map(
-                        (value) => DropdownMenuItem<String>(
-                          value: value,
-                          child: Text(value),
-                        ),
-                      )
-                      .toList(growable: false),
-                  onChanged: (value) {
-                    if (value == null || value == _period) {
-                      return;
-                    }
-                    setState(() {
-                      _period = value;
-                    });
-                    _controller.refresh();
-                  },
-                ),
-              ],
+            padding: const EdgeInsets.fromLTRB(
+              SignalDeskSpacing.s16,
+              SignalDeskSpacing.s8,
+              SignalDeskSpacing.s16,
+              SignalDeskSpacing.s8,
+            ),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Wrap(
+                spacing: SignalDeskSpacing.s8,
+                children: _periods
+                    .map(
+                      (value) => ChoiceChip(
+                        label: Text(value),
+                        selected: _period == value,
+                        onSelected: (_) {
+                          if (_period == value) {
+                            return;
+                          }
+                          setState(() {
+                            _period = value;
+                          });
+                          _controller.refresh();
+                        },
+                      ),
+                    )
+                    .toList(growable: false),
+              ),
             ),
           ),
           Expanded(
             child: LoadableView<KeywordsResponse>(
               controller: _controller,
+              generatedAt: (data) => data.generatedAt,
               emptyMessage: 'No ranking data is available for this filter.',
               isEmpty: (data) => data.items.isEmpty,
               builder: (context, data) {
                 return RefreshIndicator(
                   onRefresh: _controller.refresh,
-                  child: ListView.builder(
-                    itemCount: data.items.length,
-                    itemBuilder: (context, index) {
-                      final item = data.items[index];
-                      return Card(
-                        margin: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 4,
-                        ),
-                        child: ListTile(
-                          title: Text('#${item.rankPosition} ${item.keyword}'),
-                          subtitle: Text(
-                            'Score ${item.score.toStringAsFixed(2)} | '
-                            'Delta ${item.delta1d?.toStringAsFixed(2) ?? '-'}\n'
-                            'Confidence ${item.confidence.toStringAsFixed(3)} | '
-                            'Alert ${item.isAlertEligible ? 'yes' : 'no'}\n'
-                            'Reasons ${item.reasonTags.isEmpty ? '-' : item.reasonTags.join(', ')}\n'
-                            'Risk ${item.riskFlags.isEmpty ? '-' : item.riskFlags.join(', ')}',
+                  child: ListView(
+                    padding: const EdgeInsets.fromLTRB(
+                      SignalDeskSpacing.s16,
+                      0,
+                      SignalDeskSpacing.s16,
+                      SignalDeskSpacing.s24,
+                    ),
+                    children: data.items
+                        .map(
+                          (item) => SignalDeskMetricRow(
+                            rank: item.rankPosition,
+                            title: item.keyword,
+                            score: item.score,
+                            delta1d: item.delta1d,
+                            confidence: item.confidence,
+                            generatedAt: data.generatedAt,
+                            isAlertEligible: item.isAlertEligible,
+                            riskFlags: item.riskFlags,
+                            supportingText: item.reasonTags.isEmpty
+                                ? (item.relatedSectors.isEmpty
+                                    ? '-'
+                                    : item.relatedSectors.join(', '))
+                                : item.reasonTags.join(', '),
+                            onTap: () => Navigator.of(context).pushNamed(
+                              AppRoutes.detail,
+                              arguments: item.keywordId,
+                            ),
                           ),
-                          isFourLine: true,
-                          onTap: () => Navigator.of(context).pushNamed(
-                            AppRoutes.detail,
-                            arguments: item.keywordId,
-                          ),
-                        ),
-                      );
-                    },
+                        )
+                        .toList(growable: false),
                   ),
                 );
               },

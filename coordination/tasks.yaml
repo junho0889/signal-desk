@@ -551,7 +551,7 @@ tasks:
   - id: APP-007
     title: Implement premium mobile publishing system, ranking layout, and chart shell baseline
     owner: signal-desk-mobile
-    status: pending
+    status: in_progress
     depends_on:
       - APP-005
       - DESIGN-002
@@ -690,5 +690,3 @@ tasks:
       - model pipeline is reviewed for explainability, reproducibility, and failure isolation
       - research backlog items are separated from release-blocking contract gaps
       - QA verdict states whether the pipeline definition is safe enough to start implementation
-
-

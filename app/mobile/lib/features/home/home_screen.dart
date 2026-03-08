@@ -4,7 +4,13 @@ import '../../core/models/api_models.dart';
 import '../../core/repositories/signaldesk_repository.dart';
 import '../../core/routes/app_routes.dart';
 import '../../core/state/loadable_controller.dart';
+import '../../src/signal_desk_localizations.dart';
 import '../shared/loadable_view.dart';
+import '../shared/premium_tokens.dart';
+import '../shared/signal_desk_context_rail.dart';
+import '../shared/signal_desk_formatters.dart';
+import '../shared/signal_desk_metric_row.dart';
+import '../shared/signal_desk_section_card.dart';
 import '../shared/signal_desk_shell.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -36,11 +42,17 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = SignalDeskLocalizations.of(context);
+
     return SignalDeskShell(
-      title: 'SignalDesk Home',
+      title: l10n.homeTitle,
       currentRoute: AppRoutes.home,
+      contextRail: _controller.data == null
+          ? null
+          : SignalDeskContextRail(generatedAt: _controller.data!.generatedAt),
       child: LoadableView<DashboardResponse>(
         controller: _controller,
+        generatedAt: (data) => data.generatedAt,
         emptyMessage: 'No dashboard data is available yet.',
         isEmpty: (data) =>
             data.topKeywords.isEmpty &&
@@ -50,68 +62,86 @@ class _HomeScreenState extends State<HomeScreen> {
           return RefreshIndicator(
             onRefresh: _controller.refresh,
             child: ListView(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.fromLTRB(
+                SignalDeskSpacing.s16,
+                SignalDeskSpacing.s16,
+                SignalDeskSpacing.s16,
+                SignalDeskSpacing.s24,
+              ),
               children: <Widget>[
-                Text('Generated at: ${data.generatedAt.toIso8601String()}'),
-                const SizedBox(height: 16),
-                const Text(
-                  'Top Keywords',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                SignalDeskSectionCard(
+                  title: l10n.topKeywords,
+                  child: Column(
+                    children: data.topKeywords
+                        .asMap()
+                        .entries
+                        .map(
+                          (entry) => SignalDeskMetricRow(
+                            rank: entry.key + 1,
+                            title: entry.value.keyword,
+                            score: entry.value.score,
+                            delta1d: entry.value.delta1d,
+                            confidence: entry.value.confidence,
+                            generatedAt: data.generatedAt,
+                            isAlertEligible: entry.value.isAlertEligible,
+                            riskFlags: entry.value.riskFlags,
+                            supportingText: entry.value.reasonTags.isEmpty
+                                ? '-'
+                                : entry.value.reasonTags.join(', '),
+                            onTap: () => Navigator.of(context).pushNamed(
+                              AppRoutes.detail,
+                              arguments: entry.value.keywordId,
+                            ),
+                          ),
+                        )
+                        .toList(growable: false),
+                  ),
                 ),
-                const SizedBox(height: 8),
-                ...data.topKeywords.map((item) {
-                  return Card(
-                    child: ListTile(
-                      title: Text(item.keyword),
-                      subtitle: Text(
-                        'Score ${item.score.toStringAsFixed(2)} | '
-                        'Delta ${item.delta1d?.toStringAsFixed(2) ?? '-'} | '
-                        'Confidence ${item.confidence.toStringAsFixed(3)}\n'
-                        'Alert ${item.isAlertEligible ? 'yes' : 'no'} | '
-                        'Reasons ${item.reasonTags.isEmpty ? '-' : item.reasonTags.join(', ')}\n'
-                        'Risk ${item.riskFlags.isEmpty ? '-' : item.riskFlags.join(', ')}',
-                      ),
-                      isThreeLine: true,
-                      onTap: () => Navigator.of(context).pushNamed(
-                        AppRoutes.detail,
-                        arguments: item.keywordId,
-                      ),
-                    ),
-                  );
-                }),
-                const SizedBox(height: 16),
-                const Text(
-                  'Sector Movers',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                SignalDeskSectionCard(
+                  title: l10n.sectorMovers,
+                  child: Column(
+                    children: data.hotSectors
+                        .map(
+                          (sector) => ListTile(
+                            contentPadding: EdgeInsets.zero,
+                            title: Text(sector.sector),
+                            subtitle: Text(
+                              '${sector.keywordCount} keywords · ${l10n.scoreLabel} ${SignalDeskFormatters.score(sector.avgScore)}',
+                            ),
+                            trailing: Text(
+                              SignalDeskFormatters.delta(sector.delta1d),
+                              style: TextStyle(
+                                color: (sector.delta1d ?? 0) >= 0
+                                    ? SignalDeskPalette.momentumUp
+                                    : SignalDeskPalette.momentumDown,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                        )
+                        .toList(growable: false),
+                  ),
                 ),
-                const SizedBox(height: 8),
-                ...data.hotSectors.map((sector) {
-                  return ListTile(
-                    dense: true,
-                    title: Text(sector.sector),
-                    subtitle: Text(
-                      'Keywords ${sector.keywordCount} | '
-                      'Avg score ${sector.avgScore.toStringAsFixed(2)}',
-                    ),
-                    trailing: Text(sector.delta1d?.toStringAsFixed(2) ?? '-'),
-                  );
-                }),
-                const SizedBox(height: 16),
-                const Text(
-                  'Recent Alerts',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                SignalDeskSectionCard(
+                  title: l10n.recentAlerts,
+                  child: Column(
+                    children: data.riskAlerts
+                        .map(
+                          (alert) => ListTile(
+                            contentPadding: EdgeInsets.zero,
+                            title: Text(
+                              alert.message,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            subtitle: Text(
+                              '${SignalDeskFormatters.severity(alert.severity)} · ${SignalDeskFormatters.relativeAge(context, alert.triggeredAt)}',
+                            ),
+                          ),
+                        )
+                        .toList(growable: false),
+                  ),
                 ),
-                const SizedBox(height: 8),
-                ...data.riskAlerts.map((alert) {
-                  return ListTile(
-                    dense: true,
-                    title: Text(alert.message),
-                    subtitle: Text(
-                      '${alert.severity.toUpperCase()} | '
-                      '${alert.triggeredAt.toIso8601String()}',
-                    ),
-                  );
-                }),
               ],
             ),
           );

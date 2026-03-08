@@ -50,7 +50,10 @@ class MockPayloads {
       };
 
   static Map<String, dynamic> keywords() => {
-        'generated_at': DateTime.now().toUtc().toIso8601String(),
+        'generated_at': DateTime.now()
+            .toUtc()
+            .subtract(const Duration(hours: 30))
+            .toIso8601String(),
         'next_cursor': null,
         'items': [
           {
@@ -98,12 +101,50 @@ class MockPayloads {
         'reason_block': 'Mentions and market confirmation increased together in the last cycle.',
         'timeseries': [
           {
-            'snapshot_at': DateTime.now().toUtc().subtract(const Duration(hours: 1)).toIso8601String(),
-            'score': 79.2,
+            'snapshot_at': DateTime.now()
+                .toUtc()
+                .subtract(const Duration(hours: 6))
+                .toIso8601String(),
+            'score': 72.1,
+            'confidence': 0.71,
+          },
+          {
+            'snapshot_at': DateTime.now()
+                .toUtc()
+                .subtract(const Duration(hours: 5))
+                .toIso8601String(),
+            'score': 74.3,
+            'confidence': 0.73,
+          },
+          {
+            'snapshot_at': DateTime.now()
+                .toUtc()
+                .subtract(const Duration(hours: 4))
+                .toIso8601String(),
+            'score': 76.9,
+            'confidence': 0.76,
+          },
+          {
+            'snapshot_at': DateTime.now()
+                .toUtc()
+                .subtract(const Duration(hours: 3))
+                .toIso8601String(),
+            'score': 78.7,
             'confidence': 0.78,
           },
           {
-            'snapshot_at': DateTime.now().toUtc().toIso8601String(),
+            'snapshot_at': DateTime.now()
+                .toUtc()
+                .subtract(const Duration(hours: 2))
+                .toIso8601String(),
+            'score': 79.2,
+            'confidence': 0.79,
+          },
+          {
+            'snapshot_at': DateTime.now()
+                .toUtc()
+                .subtract(const Duration(hours: 1))
+                .toIso8601String(),
             'score': 82.4,
             'confidence': 0.81,
           },
@@ -159,7 +200,10 @@ class MockPayloads {
       };
 
   static Map<String, dynamic> alerts() => {
-        'generated_at': DateTime.now().toUtc().toIso8601String(),
+        'generated_at': DateTime.now()
+            .toUtc()
+            .subtract(const Duration(hours: 2))
+            .toIso8601String(),
         'next_cursor': null,
         'items': [
           {

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../../core/network/api_exception.dart';
 import '../../core/state/loadable_controller.dart';
+import 'signal_desk_formatters.dart';
+import 'signal_desk_state_surface.dart';
 
 class LoadableView<T> extends StatelessWidget {
   const LoadableView({
@@ -9,17 +11,17 @@ class LoadableView<T> extends StatelessWidget {
     required this.controller,
     required this.builder,
     this.isEmpty,
-    this.loadingMessage = 'Loading data...',
     this.emptyMessage = 'Nothing to show yet.',
     this.errorMessageBuilder,
+    this.generatedAt,
   });
 
   final LoadableController<T> controller;
   final Widget Function(BuildContext context, T data) builder;
   final bool Function(T data)? isEmpty;
-  final String loadingMessage;
   final String emptyMessage;
   final String Function(Object error)? errorMessageBuilder;
+  final DateTime? Function(T data)? generatedAt;
 
   @override
   Widget build(BuildContext context) {
@@ -29,22 +31,16 @@ class LoadableView<T> extends StatelessWidget {
         final data = controller.data;
         if (data == null) {
           if (controller.isLoading || !controller.hasAttemptedLoad) {
-            return _StateCard(
-              icon: Icons.hourglass_bottom_outlined,
-              title: 'Loading',
-              message: loadingMessage,
-            );
+            return SignalDeskStateSurface.loading(context);
           }
           if (controller.error != null) {
-            return _StateCard(
-              icon: Icons.cloud_off_outlined,
-              title: 'Could not load',
+            return SignalDeskStateSurface.error(
+              context,
               message: _messageForError(controller.error!),
-              actionLabel: 'Retry',
-              onAction: controller.refresh,
+              onRetry: controller.refresh,
             );
           }
-          return _StateCard(
+          return SignalDeskStateSurface(
             icon: Icons.inbox_outlined,
             title: 'No data',
             message: emptyMessage,
@@ -54,9 +50,9 @@ class LoadableView<T> extends StatelessWidget {
         }
 
         if (isEmpty?.call(data) ?? false) {
-          return _StateCard(
+          return SignalDeskStateSurface(
             icon: Icons.inbox_outlined,
-            title: 'Nothing yet',
+            title: 'No data',
             message: emptyMessage,
             actionLabel: 'Refresh',
             onAction: controller.refresh,
@@ -64,19 +60,37 @@ class LoadableView<T> extends StatelessWidget {
         }
 
         final content = builder(context, data);
-        if (!controller.isLoading) {
-          return content;
+        final staleAt = generatedAt?.call(data);
+        final showStale = staleAt != null &&
+            DateTime.now().toUtc().difference(staleAt.toUtc()) >
+                const Duration(hours: 24);
+
+        final visibleContent = controller.isLoading
+            ? Stack(
+                children: <Widget>[
+                  Positioned.fill(child: content),
+                  const Positioned(
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    child: LinearProgressIndicator(),
+                  ),
+                ],
+              )
+            : content;
+
+        if (!showStale) {
+          return visibleContent;
         }
 
-        return Stack(
+        return Column(
           children: <Widget>[
-            Positioned.fill(child: content),
-            const Positioned(
-              top: 0,
-              left: 0,
-              right: 0,
-              child: LinearProgressIndicator(),
+            SignalDeskStateSurface.stale(
+              context,
+              message:
+                  'Data is ${SignalDeskFormatters.relativeAge(context, staleAt)} old. Interpret with caution.',
             ),
+            Expanded(child: visibleContent),
           ],
         );
       },
@@ -91,59 +105,5 @@ class LoadableView<T> extends StatelessWidget {
       return error.message;
     }
     return error.toString();
-  }
-}
-
-class _StateCard extends StatelessWidget {
-  const _StateCard({
-    required this.icon,
-    required this.title,
-    required this.message,
-    this.actionLabel,
-    this.onAction,
-  });
-
-  final IconData icon;
-  final String title;
-  final String message;
-  final String? actionLabel;
-  final Future<void> Function()? onAction;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 420),
-          child: Card(
-            child: Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: <Widget>[
-                  Icon(icon, size: 32),
-                  const SizedBox(height: 12),
-                  Text(title, style: Theme.of(context).textTheme.titleMedium),
-                  const SizedBox(height: 8),
-                  Text(
-                    message,
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  ),
-                  if (actionLabel != null && onAction != null) ...<Widget>[
-                    const SizedBox(height: 16),
-                    FilledButton(
-                      onPressed: () => onAction!(),
-                      child: Text(actionLabel!),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
   }
 }

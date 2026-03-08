@@ -1,4 +1,6 @@
+import 'package:flex_color_scheme/flex_color_scheme.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 import '../core/network/signaldesk_api_client.dart';
 import '../core/repositories/signaldesk_repository.dart';
@@ -8,8 +10,10 @@ import '../features/detail/keyword_detail_screen.dart';
 import '../features/home/home_screen.dart';
 import '../features/ranking/ranking_screen.dart';
 import '../features/watchlist/watchlist_screen.dart';
+import 'app_scope.dart';
+import 'signal_desk_localizations.dart';
 
-class SignalDeskApp extends StatelessWidget {
+class SignalDeskApp extends StatefulWidget {
   const SignalDeskApp({super.key});
 
   static final SignalDeskApiClient apiClient = SignalDeskApiClient(
@@ -28,19 +32,55 @@ class SignalDeskApp extends StatelessWidget {
   );
 
   @override
+  State<SignalDeskApp> createState() => _SignalDeskAppState();
+}
+
+class _SignalDeskAppState extends State<SignalDeskApp> {
+  Locale _locale = const Locale('en');
+
+  void _toggleLocale() {
+    setState(() {
+      _locale = _locale.languageCode == 'ko'
+          ? const Locale('en')
+          : const Locale('ko');
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final theme = FlexThemeData.light(
+      scheme: FlexScheme.blue,
+      useMaterial3: true,
+      fontFamilyFallback: const <String>[
+        'Pretendard Variable',
+        'Noto Sans KR',
+        'Roboto',
+      ],
+      subThemesData: const FlexSubThemesData(
+        defaultRadius: 14,
+        inputDecoratorRadius: 10,
+      ),
+      visualDensity: FlexColorScheme.comfortablePlatformDensity,
+    );
+
     return MaterialApp(
       title: 'SignalDesk',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF1A4E8A)),
-        useMaterial3: true,
-      ),
+      debugShowCheckedModeBanner: false,
+      locale: _locale,
+      supportedLocales: SignalDeskLocalizations.supportedLocales,
+      localizationsDelegates: const <LocalizationsDelegate<dynamic>>[
+        SignalDeskLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      theme: theme,
       initialRoute: AppRoutes.home,
       routes: <String, WidgetBuilder>{
-        AppRoutes.home: (_) => HomeScreen(repository: repository),
-        AppRoutes.ranking: (_) => RankingScreen(repository: repository),
-        AppRoutes.watchlist: (_) => WatchlistScreen(repository: repository),
-        AppRoutes.alerts: (_) => AlertsScreen(repository: repository),
+        AppRoutes.home: (_) => HomeScreen(repository: SignalDeskApp.repository),
+        AppRoutes.ranking: (_) => RankingScreen(repository: SignalDeskApp.repository),
+        AppRoutes.watchlist: (_) => WatchlistScreen(repository: SignalDeskApp.repository),
+        AppRoutes.alerts: (_) => AlertsScreen(repository: SignalDeskApp.repository),
       },
       onGenerateRoute: (settings) {
         if (settings.name == AppRoutes.detail) {
@@ -49,12 +89,19 @@ class SignalDeskApp extends StatelessWidget {
               : 'kw_ai';
           return MaterialPageRoute<void>(
             builder: (_) => KeywordDetailScreen(
-              repository: repository,
+              repository: SignalDeskApp.repository,
               keywordId: keywordId,
             ),
           );
         }
         return null;
+      },
+      builder: (context, child) {
+        return SignalDeskAppScope(
+          locale: _locale,
+          toggleLocale: _toggleLocale,
+          child: child ?? const SizedBox.shrink(),
+        );
       },
     );
   }
