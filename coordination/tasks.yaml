@@ -676,7 +676,7 @@ tasks:
   - id: BE-009
     title: Define central intake validation, quarantine, and metadata-acceptance behavior
     owner: signal-desk-backend
-    status: pending
+    status: done
     depends_on:
       - BE-005
       - BE-008

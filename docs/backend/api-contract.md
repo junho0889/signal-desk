@@ -278,3 +278,84 @@ Example:
   }
 }
 ```
+
+## Internal Collector Intake API
+Collector spool shipping targets central host `192.168.0.200` through an internal endpoint.
+This is not part of the mobile-facing `/v1` public API surface.
+
+### `POST /internal/v1/collector/raw-ingest-batches`
+Accept collector raw-ingest batches with item-level validation outcomes.
+
+Request fields:
+- `batch_id` (`string`, non-null)
+- `collector_node_id` (`string`, non-null)
+- `sent_at` (`string`, non-null, RFC3339 UTC)
+- `items` (`array`, non-null, non-empty)
+
+Required `items[]` fields:
+- `spool_item_id` (`string`, non-null)
+- `source_id` (`string`, non-null)
+- `source_category` (`string`, non-null)
+- `collected_at` (`string`, non-null)
+- `publisher_name` (`string`, non-null)
+- `publisher_domain` (`string`, non-null)
+- `canonical_url` (`string`, non-null)
+- `payload_hash` (`string`, non-null)
+- `payload_version` (`string`, non-null)
+- `language` (`string`, non-null)
+- `market_scope` (`string`, non-null)
+- `title` (`string`, non-null)
+- `raw_payload_json` (`object`, non-null)
+- `retry_count` (`integer`, non-null)
+
+Response fields:
+- `request_id` (`string`, nullable)
+- `batch_id` (`string`, non-null)
+- `batch_status` (`accepted|partially_accepted|rejected|retryable_failure`, non-null)
+- `summary` (`object`, non-null):
+  - `received_count`
+  - `accepted_count`
+  - `accepted_degraded_count`
+  - `duplicate_count`
+  - `quarantined_count`
+  - `rejected_count`
+  - `retryable_failure_count`
+- `items` (`array`, non-null)
+
+`items[]` result fields:
+- `spool_item_id` (`string`, non-null)
+- `payload_hash` (`string`, non-null)
+- `status` (`accepted|accepted_degraded|duplicate|quarantined|rejected|retryable_failure`, non-null)
+- `quality_state` (`accepted|accepted_degraded|duplicate|stale_source|metadata_incomplete|mapping_low_confidence|quarantined|dead_letter`, nullable)
+- `reason_code` (`string`, non-null)
+- `retryable` (`boolean`, non-null)
+- `message` (`string`, nullable)
+- `ingest_ref` (`string`, nullable)
+
+Validation behavior:
+- `accepted`: valid and persisted
+- `accepted_degraded`: persisted with metadata downgrade
+- `duplicate`: idempotent replay of existing item
+- `quarantined`: persisted in quarantine state for audit/replay, excluded from normal publish path
+- `rejected`: non-retryable structural/required-metadata failure
+- `retryable_failure`: transient backend failure prior to durable persistence
+
+Idempotency assumptions:
+- item key: `collector_node_id + source_id + payload_hash + payload_version`
+- batch replay key: `collector_node_id + batch_id`
+- duplicate submission must not create duplicate canonical raw records
+
+Retryability rules:
+- retryable:
+  - transport/network timeout
+  - HTTP `429`, `500`, `502`, `503`, `504`
+  - per-item `retryable_failure`
+- non-retryable as-is:
+  - per-item `rejected`
+  - HTTP `400` schema/validation errors
+  - HTTP `401`/`403` until credential/config fix
+  - HTTP `413` until batch split/size fix
+
+Auditability requirements:
+- every non-`accepted` item must include explicit non-generic `reason_code`
+- collector can test behavior from item-level outcomes without inferring from top-level status
