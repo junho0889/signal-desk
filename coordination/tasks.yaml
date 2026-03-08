@@ -424,7 +424,7 @@ tasks:
   - id: BE-004
     title: Expand storage design for raw, normalized, trust, and model layers
     owner: signal-desk-storage
-    status: pending
+    status: in_progress
     depends_on:
       - COL-001
       - BE-001
