@@ -31,10 +31,11 @@
 - None.
 
 ## Last Commit And Push
-- commit: pending current checkpoint
-- push: pending current checkpoint
+- commit: `d34eebc` (`DATA-001 docs: close QA blockers on risk flags and review evidence`)
+- push: `git push` to `origin/worker/data-001` (success)
 
 ## Notes For Next Session
 - Keep DATA-001 scope limited to `docs/data/*` plus task handoff/resume files unless orchestrator reassigns.
 - Do not add new `risk_flags` literals without updating both data docs and backend contract docs together.
+
 
