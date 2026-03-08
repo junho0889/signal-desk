@@ -6,7 +6,7 @@ Define the next-phase split between always-on collection, central storage, trust
 ## Target Topology
 1. `collector-node` on Raspberry Pi 4B 8GB
 - runs source adapters continuously
-- writes raw payloads to a local spool directory first
+- writes raw payloads to a local spool PostgreSQL store first
 - retries and forwards accepted payloads to central storage or a central intake service
 
 2. `central-storage` on the main host
@@ -27,6 +27,7 @@ Define the next-phase split between always-on collection, central storage, trust
 ## Raspberry Pi Collector Node
 - hardware target: Raspberry Pi 4B 8GB
 - role: collector only, not the main ranking or API host
+- runtime target later: Ubuntu on Raspberry Pi with Docker Compose
 - expected duties:
   - source polling and webhook intake
   - local spool persistence for transient network failure
@@ -49,7 +50,14 @@ Define the next-phase split between always-on collection, central storage, trust
   - payload hash
   - retry count
   - transport status
+- central target host baseline: `192.168.0.200`
 - central intake acknowledges receipt before the collector can prune local spool items
+
+## Runtime Decision For V1
+- do not use RabbitMQ in collector v1
+- use local PostgreSQL spool storage with explicit delivery state instead
+- develop the collector stack first on the main PC using a separate Docker Compose group
+- package the same runtime later for Ubuntu on Raspberry Pi
 
 ## Design Implication
 - the app must be able to surface:

@@ -510,5 +510,55 @@ tasks:
       - mobile integration boundaries for charts, trust, and multilingual analytics are documented
       - required backend payload additions are listed without changing contracts prematurely
       - implementation phases are sequenced for later execution
+  - id: COL-002
+    title: Define collector v1 runtime and spool database for PC-first Docker Compose development
+    owner: signal-desk-collector
+    status: pending
+    depends_on:
+      - COL-001
+    files:
+      - docs/ops/collector-runtime-v1.md
+      - docs/ops/pi-collector-node.md
+      - coordination/dispatches/COL-002.md
+      - coordination/handoffs/COL-002.md
+      - coordination/resume/COL-002.md
+    acceptance:
+      - collector v1 runtime explicitly uses local PostgreSQL spool and no RabbitMQ
+      - current-PC Docker Compose development path is documented
+      - 30-day retention and offline main-host assumptions are explicit
+  - id: BE-005
+    title: Define central collector intake API and backend raw-ingest contract
+    owner: signal-desk-backend
+    status: pending
+    depends_on:
+      - COL-002
+      - BE-004
+    files:
+      - docs/backend/collector-intake-contract.md
+      - docs/backend/api-contract.md
+      - coordination/dispatches/BE-005.md
+      - coordination/handoffs/BE-005.md
+      - coordination/resume/BE-005.md
+    acceptance:
+      - central intake contract supports accepted, duplicate, rejected, and retryable failure outcomes
+      - collector envelope and idempotency behavior are explicit
+      - backend/storage coordination points are listed clearly
+  - id: OPS-005
+    title: Define local collector Docker Compose group and Pi deployment path
+    owner: signal-desk-ops
+    status: pending
+    depends_on:
+      - COL-002
+      - BE-005
+    files:
+      - docs/ops/deploy-runbook.md
+      - docs/ops/local-docker-stack.md
+      - coordination/dispatches/OPS-005.md
+      - coordination/handoffs/OPS-005.md
+      - coordination/resume/OPS-005.md
+    acceptance:
+      - collector compose group is documented separately from the main app stack
+      - current-PC development runtime and later Ubuntu-on-Pi promotion path are explicit
+      - central host `192.168.0.200` assumptions are documented
 
 

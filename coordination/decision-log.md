@@ -76,6 +76,18 @@ one|stdout sink baseline
 - Decision: lock user-facing worker names in `coordination/thread-registry.md` and reuse those exact labels in orchestration updates
 - Reason: the user is coordinating multiple long-lived threads manually, so inconsistent naming creates avoidable confusion
 
+### DEC-019
+- Decision: do not use RabbitMQ in collector v1; use a local PostgreSQL spool with explicit delivery state instead
+- Reason: the immediate requirement is durable offline buffering, replayability, and clear delivery auditing while the main server can be offline for long periods
+
+### DEC-020
+- Decision: build the collector stack first on the current PC as a separate Docker Compose group, then package the same runtime later for Ubuntu on Raspberry Pi 4B 8GB
+- Reason: this shortens feedback loops during development while keeping the eventual deployment target unchanged
+
+### DEC-021
+- Decision: assume central host IP `192.168.0.200` and support collector-side retention for up to 30 days
+- Reason: the main server is not guaranteed to run continuously, so collector buffering and delayed shipping must be part of the baseline architecture
+
 ### DEC-018
 - Decision: treat `APP-005` and `QA-004` branch outputs as supervision input only until their evidence is accepted on `main`, and keep `APP-006` parked until its upstream handoffs exist
 - Reason: branch-resident artifacts do not satisfy the release gate by themselves, and starting `APP-006` early creates avoidable overlap in the mobile lane

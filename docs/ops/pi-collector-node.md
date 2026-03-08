@@ -19,11 +19,12 @@ Provide a dedicated always-on collection node using Raspberry Pi 4B 8GB, separat
 - do not run the primary PostgreSQL instance on the Pi
 - do not run heavy ranking/model workloads on the Pi
 - do not make the Pi the only copy of raw collected payloads
+- do not introduce RabbitMQ in collector v1
 
 ## Collector Runtime Responsibilities
 - per-source scheduler
 - source adapter execution
-- raw payload spool writes
+- raw payload spool writes into local PostgreSQL
 - delivery retry queue
 - heartbeat and queue depth logs
 
@@ -31,6 +32,16 @@ Provide a dedicated always-on collection node using Raspberry Pi 4B 8GB, separat
 - direct central intake API
 - file or object upload into a shared intake location
 - deferred resend when central network is unavailable
+
+## Central Host Baseline
+- main server target IP: `192.168.0.200`
+- collector should tolerate the central host being offline for long workday windows
+- local spool retention baseline: up to 30 days before pruning or operator intervention
+
+## Development First
+- first runtime target is the current PC using a separate Docker Compose project group
+- later deployment target is Ubuntu on Raspberry Pi with the same container boundaries
+- keep the runtime packaging close enough that the PC compose stack can be promoted to Pi with environment and path changes only
 
 ## Operational Signals
 - spool directory size
