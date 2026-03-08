@@ -1,6 +1,8 @@
 # Deploy Runbook
 
-## Initial Target
+## Main App Runtime
+
+### Initial Target
 - Mobile: personal Android APK distribution
 - API: Docker service (`api`) on private internal network
 - Jobs bootstrap: one-time Docker service (`jobs-bootstrap`) for migration, seed, and first alert evaluation
@@ -8,18 +10,18 @@
 - DB: PostgreSQL Docker service (`postgres`) with persistent volume
 - Orchestration: Docker Compose on one host
 
-## Current Stack State
+### Current Stack State
 - compose file (`infra/local/docker-compose.yml`) defines `postgres`, `jobs-bootstrap`, `api`, `jobs`
 - PostgreSQL bootstrap init scripts are mounted from `infra/local/postgres-init`
 - API and jobs images are built from repo source (`services/api`, `services/jobs`)
 - recurring jobs no longer reuse the `run-once` bootstrap path
 
-## Prerequisites
+### Prerequisites
 - Docker Desktop (or Docker Engine + Compose plugin)
 - local env file from `infra/local/.env.example`
 - non-placeholder credentials for `postgres`, `signaldesk_migrator`, `signaldesk_app`, `signaldesk_readonly`
 
-## Startup Sequence (Deterministic)
+### Startup Sequence (Deterministic)
 1. create env file:
    - `Copy-Item infra/local/.env.example infra/local/.env`
    - replace all placeholder passwords
@@ -37,6 +39,122 @@
    - `docker compose -f infra/local/docker-compose.yml --env-file infra/local/.env logs jobs-bootstrap --tail=120`
    - `docker compose -f infra/local/docker-compose.yml --env-file infra/local/.env logs api --tail=120`
    - `docker compose -f infra/local/docker-compose.yml --env-file infra/local/.env logs jobs --tail=120`
+
+## Collector Runtime On This PC
+
+### Purpose
+Collector v1 runs as a separate Compose project on this PC so queueing, delivery retry, and offline-central-host scenarios can be tested independently from the main app runtime.
+
+### Planned Collector Compose Group
+- planned compose file path: `infra/collector/docker-compose.yml`
+- planned env file path: `infra/collector/.env`
+- planned project name: `signaldesk-collector`
+- planned services:
+  - `collector-db`
+  - `collector-runner`
+  - `collector-shipper`
+  - optional `collector-monitor`
+
+### Central Host Assumptions
+- central host baseline IP remains `192.168.0.200`
+- collector delivery traffic should target the central intake contract on that host, not the main app stack Docker network
+- collector runtime must expect the central host to be unavailable for long workday windows and continue spooling locally
+- no Windows system settings changes are required or assumed for local collector development
+
+### Collector Startup Sequence (Planned)
+1. create collector env file:
+   - `Copy-Item infra/collector/.env.example infra/collector/.env`
+   - set collector-local credentials and `SIGNALDESK_CENTRAL_BASE_URL` for `192.168.0.200`
+2. validate collector compose config:
+   - `docker compose -p signaldesk-collector -f infra/collector/docker-compose.yml --env-file infra/collector/.env config`
+3. start spool database first:
+   - `docker compose -p signaldesk-collector -f infra/collector/docker-compose.yml --env-file infra/collector/.env up -d collector-db`
+4. start collector runtime:
+   - `docker compose -p signaldesk-collector -f infra/collector/docker-compose.yml --env-file infra/collector/.env up -d collector-runner collector-shipper`
+5. optional telemetry:
+   - `docker compose -p signaldesk-collector -f infra/collector/docker-compose.yml --env-file infra/collector/.env up -d collector-monitor`
+
+### Collector Verification Flow (Planned)
+- config validation:
+  - `docker compose -p signaldesk-collector -f infra/collector/docker-compose.yml --env-file infra/collector/.env config`
+- service status:
+  - `docker compose -p signaldesk-collector -f infra/collector/docker-compose.yml --env-file infra/collector/.env ps`
+- startup logs:
+  - `docker compose -p signaldesk-collector -f infra/collector/docker-compose.yml --env-file infra/collector/.env logs collector-db --tail=120`
+  - `docker compose -p signaldesk-collector -f infra/collector/docker-compose.yml --env-file infra/collector/.env logs collector-runner --tail=120`
+  - `docker compose -p signaldesk-collector -f infra/collector/docker-compose.yml --env-file infra/collector/.env logs collector-shipper --tail=120`
+- expected checks:
+  - `collector-db` becomes healthy
+  - `collector-runner` logs show source cycles writing to the local spool
+  - `collector-shipper` logs show delivery attempts to `192.168.0.200`
+  - central-host outages increase queue depth without dropping spool rows
+  - restarting `collector-runner` or `collector-shipper` preserves backlog and retry state
+
+### Collector Restart And Retention Rules
+- stop collector stack only:
+  - `docker compose -p signaldesk-collector -f infra/collector/docker-compose.yml --env-file infra/collector/.env down`
+- destructive collector reset:
+  - `docker compose -p signaldesk-collector -f infra/collector/docker-compose.yml --env-file infra/collector/.env down -v`
+- restart runtime services only:
+  - `docker compose -p signaldesk-collector -f infra/collector/docker-compose.yml --env-file infra/collector/.env restart collector-runner collector-shipper`
+- retention baseline:
+  - keep undelivered and dead-letter spool rows for up to 30 days
+  - keep accepted and duplicate rows only until central acknowledgement and replay requirements are satisfied
+- restart behavior:
+  - `collector-db`, `collector-runner`, and `collector-shipper` should use `unless-stopped`
+  - restart must not wipe spool state or reset retry counters
+
+### Separation From Main App Stack
+- do not add collector services to `infra/local/docker-compose.yml`
+- do not share the main app PostgreSQL volume or env file with the collector stack
+- do not rely on Docker cross-project DNS between the main app stack and collector stack
+- if the collector needs to talk to central intake locally, use the explicit host/IP contract rather than a Compose service alias
+
+## Promotion Path To Ubuntu On Raspberry Pi 4B 8GB
+
+### Promotion Goal
+Move the same collector container boundary from this PC to Ubuntu on Raspberry Pi 4B 8GB with only environment, host path, and image-platform adjustments.
+
+### What Must Stay The Same
+- the Compose project remains separate from the main app stack
+- service boundaries remain:
+  - `collector-db`
+  - `collector-runner`
+  - `collector-shipper`
+  - optional `collector-monitor`
+- spool-state retention and replay rules remain the same
+- central host target remains `192.168.0.200` unless the private-network baseline changes deliberately
+
+### What Changes On Ubuntu Pi
+- use Ubuntu on Raspberry Pi as the host OS
+- prefer SSD-backed storage for the collector database volume
+- replace Windows-oriented path handling with Linux paths in env or bind mounts
+- use ARM-compatible images or multi-arch builds for collector services
+- run Docker Engine plus Compose plugin on the Pi instead of Docker Desktop
+
+### Pi Deployment Sequence (Planned)
+1. install Docker Engine and Compose plugin on Ubuntu running on Raspberry Pi 4B 8GB
+2. provision the collector env file on the Pi with the same logical keys used on this PC
+3. confirm the Pi can reach `192.168.0.200` on the required central intake port
+4. start `collector-db`
+5. start `collector-runner` and `collector-shipper`
+6. confirm local spool persistence survives a container restart and a host reboot
+7. confirm delivery resumes automatically when the central host returns
+
+### Pi Operational Notes
+- prefer wired Ethernet
+- prefer UPS-backed power when possible
+- keep spool data on persistent storage, not ephemeral container layers
+- monitor:
+  - queue depth
+  - oldest pending age
+  - last successful ship timestamp
+  - local disk usage for spool storage
+
+### Open Freeze Points
+- exact central intake HTTP path, auth, and batch semantics still depend on backend follow-up
+- exact collector runner cadence and source list still depend on collector-lane follow-up
+- update the runbook again after `COL-002` and `BE-005` handoffs exist
 
 ## Bring-Down / Cleanup
 - stop stack:
