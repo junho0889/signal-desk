@@ -31,8 +31,8 @@
 - none
 
 ## Last Commit And Push
-- commit:
-- push:
+- commit: `de39757` (`MODEL-001 docs: define ranking roadmap contracts and evaluation gates`)
+- push: `origin/codex/model-001`
 
 ## Notes For Next Session
 - if follow-up changes are needed after `BE-004` handoff, keep all new fields additive and preserve BE-001 alias semantics (`score`, `delta_1d`)
