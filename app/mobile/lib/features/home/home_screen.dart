@@ -71,35 +71,46 @@ class _HomeScreenState extends State<HomeScreen> {
               children: <Widget>[
                 SignalDeskSectionCard(
                   title: l10n.homeOverviewTitle,
-                  child: Row(
-                    children: <Widget>[
-                      Expanded(
-                        child: _overviewMetric(
-                          context,
-                          label: l10n.topKeywords,
-                          value: '${data.topKeywords.length}',
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
-                      ),
-                      const SizedBox(width: SignalDeskSpacing.s8),
-                      Expanded(
-                        child: _overviewMetric(
-                          context,
-                          label: l10n.sectorMovers,
-                          value: '${data.hotSectors.length}',
-                          color: SignalDeskPalette.momentumUp,
-                        ),
-                      ),
-                      const SizedBox(width: SignalDeskSpacing.s8),
-                      Expanded(
-                        child: _overviewMetric(
-                          context,
-                          label: l10n.recentAlerts,
-                          value: '${data.riskAlerts.length}',
-                          color: SignalDeskPalette.risk,
-                        ),
-                      ),
-                    ],
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      final wideLayout = constraints.maxWidth >= 420;
+                      final tileWidth = wideLayout
+                          ? (constraints.maxWidth - SignalDeskSpacing.s16) / 3
+                          : (constraints.maxWidth - SignalDeskSpacing.s8) / 2;
+                      return Wrap(
+                        spacing: SignalDeskSpacing.s8,
+                        runSpacing: SignalDeskSpacing.s8,
+                        children: <Widget>[
+                          SizedBox(
+                            width: tileWidth,
+                            child: _overviewMetric(
+                              context,
+                              label: l10n.topKeywords,
+                              value: '${data.topKeywords.length}',
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                          ),
+                          SizedBox(
+                            width: tileWidth,
+                            child: _overviewMetric(
+                              context,
+                              label: l10n.sectorMovers,
+                              value: '${data.hotSectors.length}',
+                              color: SignalDeskPalette.momentumUp,
+                            ),
+                          ),
+                          SizedBox(
+                            width: tileWidth,
+                            child: _overviewMetric(
+                              context,
+                              label: l10n.recentAlerts,
+                              value: '${data.riskAlerts.length}',
+                              color: SignalDeskPalette.risk,
+                            ),
+                          ),
+                        ],
+                      );
+                    },
                   ),
                 ),
                 SignalDeskSectionCard(

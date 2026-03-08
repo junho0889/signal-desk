@@ -12,6 +12,7 @@ class SignalDeskStateSurface extends StatelessWidget {
     this.actionLabel,
     this.onAction,
     this.compact = false,
+    this.accentColor,
   });
 
   final IconData icon;
@@ -20,6 +21,7 @@ class SignalDeskStateSurface extends StatelessWidget {
   final String? actionLabel;
   final Future<void> Function()? onAction;
   final bool compact;
+  final Color? accentColor;
 
   factory SignalDeskStateSurface.loading(BuildContext context) {
     final l10n = SignalDeskLocalizations.of(context);
@@ -27,6 +29,7 @@ class SignalDeskStateSurface extends StatelessWidget {
       icon: Icons.hourglass_bottom_outlined,
       title: l10n.loadingTitle,
       message: l10n.loadingMessage,
+      accentColor: SignalDeskPalette.accent,
     );
   }
 
@@ -39,6 +42,7 @@ class SignalDeskStateSurface extends StatelessWidget {
       message: message ?? l10n.emptyStateMessage,
       actionLabel: l10n.refreshLabel,
       onAction: null,
+      accentColor: Theme.of(context).colorScheme.primary,
     );
   }
 
@@ -54,6 +58,7 @@ class SignalDeskStateSurface extends StatelessWidget {
       message: message,
       actionLabel: l10n.retryLabel,
       onAction: onRetry,
+      accentColor: SignalDeskPalette.risk,
     );
   }
 
@@ -65,11 +70,13 @@ class SignalDeskStateSurface extends StatelessWidget {
       title: l10n.staleLabel,
       message: message,
       compact: true,
+      accentColor: SignalDeskPalette.trustMid,
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final tone = accentColor ?? Theme.of(context).colorScheme.primary;
     return Padding(
       padding: const EdgeInsets.symmetric(
         horizontal: SignalDeskSpacing.s16,
@@ -93,14 +100,15 @@ class SignalDeskStateSurface extends StatelessWidget {
                 width: compact ? 28 : 40,
                 height: compact ? 28 : 40,
                 decoration: BoxDecoration(
-                  color: Theme.of(context)
-                      .colorScheme
-                      .primary
-                      .withValues(alpha: 0.1),
+                  color: tone.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(999),
                 ),
                 alignment: Alignment.center,
-                child: Icon(icon, size: compact ? 16 : 20),
+                child: Icon(
+                  icon,
+                  size: compact ? 16 : 20,
+                  color: tone,
+                ),
               ),
               const SizedBox(width: SignalDeskSpacing.s12),
               Expanded(
@@ -110,7 +118,12 @@ class SignalDeskStateSurface extends StatelessWidget {
                   children: <Widget>[
                     Text(title, style: Theme.of(context).textTheme.titleMedium),
                     const SizedBox(height: SignalDeskSpacing.s4),
-                    Text(message, style: Theme.of(context).textTheme.bodySmall),
+                    Text(
+                      message,
+                      maxLines: compact ? 2 : 4,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
                     if (actionLabel != null && onAction != null) ...<Widget>[
                       const SizedBox(height: SignalDeskSpacing.s12),
                       FilledButton(

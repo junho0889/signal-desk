@@ -76,6 +76,14 @@ class SignalDeskShell extends StatelessWidget {
               onPressed: appScope.toggleLocale,
               icon: const Icon(Icons.language, size: 18),
               label: Text(appScope.isKorean ? 'EN' : 'KO'),
+              style: FilledButton.styleFrom(
+                visualDensity: VisualDensity.compact,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: SignalDeskSpacing.s8,
+                  vertical: SignalDeskSpacing.s8,
+                ),
+                minimumSize: const Size(0, 36),
+              ),
             ),
           ),
         ],
@@ -129,6 +137,7 @@ class SignalDeskShell extends StatelessWidget {
       bottomNavigationBar: NavigationBar(
         selectedIndex: _indexForRoute(currentRoute),
         onDestinationSelected: (index) => _onNavTap(context, index),
+        height: 70,
         destinations: <Widget>[
           NavigationDestination(
             icon: const Icon(Icons.home_outlined),

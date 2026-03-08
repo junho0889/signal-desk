@@ -105,29 +105,62 @@ class _RankingScreenState extends State<RankingScreen> {
                       SignalDeskSpacing.s16,
                       SignalDeskSpacing.s24,
                     ),
-                    children: data.items
-                        .map(
-                          (item) => SignalDeskMetricRow(
-                            rank: item.rankPosition,
-                            title: item.keyword,
-                            score: item.score,
-                            delta1d: item.delta1d,
-                            confidence: item.confidence,
-                            generatedAt: data.generatedAt,
-                            isAlertEligible: item.isAlertEligible,
-                            riskFlags: item.riskFlags,
-                            supportingText: item.reasonTags.isEmpty
-                                ? (item.relatedSectors.isEmpty
-                                    ? '-'
-                                    : item.relatedSectors.join(', '))
-                                : item.reasonTags.join(', '),
-                            onTap: () => Navigator.of(context).pushNamed(
-                              AppRoutes.detail,
-                              arguments: item.keywordId,
-                            ),
+                    children: <Widget>[
+                      Container(
+                        margin:
+                            const EdgeInsets.only(bottom: SignalDeskSpacing.s8),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: SignalDeskSpacing.s12,
+                          vertical: SignalDeskSpacing.s8,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.surfaceContainer,
+                          borderRadius: BorderRadius.circular(
+                            SignalDeskShape.radiusSecondary,
                           ),
-                        )
-                        .toList(growable: false),
+                          border: Border.all(
+                            color: Theme.of(context).colorScheme.outlineVariant,
+                          ),
+                        ),
+                        child: Row(
+                          children: <Widget>[
+                            Text(
+                              l10n.periodLabel(_period),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .labelLarge
+                                  ?.copyWith(fontWeight: FontWeight.w700),
+                            ),
+                            const Spacer(),
+                            Text(
+                              '${l10n.keywordsLabel}: ${data.items.length}',
+                              style: Theme.of(context).textTheme.titleMedium,
+                            ),
+                          ],
+                        ),
+                      ),
+                      ...data.items.map(
+                        (item) => SignalDeskMetricRow(
+                          rank: item.rankPosition,
+                          title: item.keyword,
+                          score: item.score,
+                          delta1d: item.delta1d,
+                          confidence: item.confidence,
+                          generatedAt: data.generatedAt,
+                          isAlertEligible: item.isAlertEligible,
+                          riskFlags: item.riskFlags,
+                          supportingText: item.reasonTags.isEmpty
+                              ? (item.relatedSectors.isEmpty
+                                  ? '-'
+                                  : item.relatedSectors.join(', '))
+                              : item.reasonTags.join(', '),
+                          onTap: () => Navigator.of(context).pushNamed(
+                            AppRoutes.detail,
+                            arguments: item.keywordId,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 );
               },

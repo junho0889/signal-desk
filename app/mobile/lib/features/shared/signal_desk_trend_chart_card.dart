@@ -43,13 +43,23 @@ class SignalDeskTrendChartCard extends StatelessWidget {
 
     final minY = points.reduce((a, b) => a < b ? a : b);
     final maxY = points.reduce((a, b) => a > b ? a : b);
+    final spread = (maxY - minY).abs();
+    final rangePadding = spread == 0
+        ? (maxY.abs() < 1 ? 1.0 : maxY.abs() * 0.06)
+        : spread * 0.12;
+    final chartMinY = minY - rangePadding;
+    final chartMaxY = maxY + rangePadding;
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Container(
       height: height,
       padding: const EdgeInsets.all(SignalDeskSpacing.s8),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+        color: colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: colorScheme.outlineVariant.withValues(alpha: 0.7),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -68,13 +78,21 @@ class SignalDeskTrendChartCard extends StatelessWidget {
               LineChartData(
                 minX: 0,
                 maxX: (points.length - 1).toDouble(),
-                minY: minY,
-                maxY: maxY,
-                gridData: FlGridData(show: !compact),
+                minY: chartMinY,
+                maxY: chartMaxY,
+                gridData: FlGridData(
+                  show: !compact,
+                  drawVerticalLine: false,
+                  horizontalInterval: spread == 0 ? 1 : spread / 3,
+                  getDrawingHorizontalLine: (_) => FlLine(
+                    color: colorScheme.outlineVariant.withValues(alpha: 0.4),
+                    strokeWidth: 1,
+                  ),
+                ),
                 borderData: FlBorderData(
-                  show: true,
+                  show: !compact,
                   border: Border.all(
-                    color: Theme.of(context).colorScheme.outlineVariant,
+                    color: colorScheme.outlineVariant,
                   ),
                 ),
                 titlesData: FlTitlesData(
@@ -97,9 +115,20 @@ class SignalDeskTrendChartCard extends StatelessWidget {
                   LineChartBarData(
                     spots: spots,
                     isCurved: true,
-                    color: Theme.of(context).colorScheme.primary,
+                    color: colorScheme.primary,
                     barWidth: 2,
-                    dotData: FlDotData(show: !compact),
+                    dotData: FlDotData(show: !compact && points.length <= 12),
+                    belowBarData: BarAreaData(
+                      show: !compact,
+                      gradient: LinearGradient(
+                        colors: <Color>[
+                          colorScheme.primary.withValues(alpha: 0.22),
+                          colorScheme.primary.withValues(alpha: 0.02),
+                        ],
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                      ),
+                    ),
                   ),
                 ],
               ),

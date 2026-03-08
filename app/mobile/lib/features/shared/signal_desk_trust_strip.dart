@@ -33,21 +33,33 @@ class SignalDeskTrustStrip extends StatelessWidget {
           context,
           '${l10n.confidenceLabel} ${SignalDeskFormatters.confidence(confidence)}',
           trustColor,
+          icon: Icons.verified_outlined,
         ),
         _buildChip(
           context,
           isAlertEligible ? l10n.alertReadyLabel : l10n.alertHoldLabel,
           isAlertEligible ? Colors.indigo : Colors.grey,
+          icon: Icons.notifications_active_outlined,
         ),
         if (riskFlags.isNotEmpty)
           ...riskFlags.take(2).map(
-                (risk) => _buildChip(context, risk, SignalDeskPalette.risk),
+                (risk) => _buildChip(
+                  context,
+                  risk,
+                  SignalDeskPalette.risk,
+                  icon: Icons.warning_amber_rounded,
+                ),
               ),
       ],
     );
   }
 
-  Widget _buildChip(BuildContext context, String label, Color color) {
+  Widget _buildChip(
+    BuildContext context,
+    String label,
+    Color color, {
+    IconData? icon,
+  }) {
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: SignalDeskSpacing.s8,
@@ -58,14 +70,27 @@ class SignalDeskTrustStrip extends StatelessWidget {
         color: color.withValues(alpha: 0.1),
         border: Border.all(color: color.withValues(alpha: 0.35)),
       ),
-      child: Text(
-        label,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          if (icon != null) ...<Widget>[
+            Icon(
+              icon,
+              size: 12,
               color: color,
-              fontWeight: FontWeight.w600,
             ),
+            const SizedBox(width: SignalDeskSpacing.s4),
+          ],
+          Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  color: color,
+                  fontWeight: FontWeight.w600,
+                ),
+          ),
+        ],
       ),
     );
   }
