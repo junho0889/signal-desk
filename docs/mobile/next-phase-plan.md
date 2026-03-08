@@ -109,6 +109,81 @@ These are request candidates for backend/storage/model/trust design. Names are p
 - gate 4 (open): MODEL-001 explanation outputs and TRUST-001 warning outputs mapped to mobile payloads
 - gate 5 (implementation start): QA confirms no regression risk to current MVP read flows
 
+## Premium Brief Translation For APP-007
+This section converts the premium mobile brief and UI quality gate into executable mobile guidance without changing frozen contracts.
+
+### APP-007 Package Contract (Exact)
+APP-007 implementation should use only the following package changes:
+- add `flex_color_scheme` for Material 3 theme shaping and tokenized color roles
+- add `fl_chart` for trend and movement chart rendering
+- add `flutter_localizations` (SDK) for bilingual shell localization wiring
+- add `intl` for localized numeric/date formatting
+- keep existing network and repository stack unchanged (`http` + current client/repository files)
+- do not introduce additional state-management or UI-framework packages in APP-007
+
+### APP-007 Component Contract (Exact)
+APP-007 should implement a shared analytics UI layer with these component responsibilities:
+- `SignalDeskMetricRow`: fixed reading order for rank/name/movement/score/trust/freshness
+- `SignalDeskTrustStrip`: confidence + alert eligibility + risk-chip group with stable placement
+- `SignalDeskFreshnessBadge`: timestamp age treatment with calm stale-state emphasis
+- `SignalDeskTrendChartCard`: compact line chart container with title, interval label, and null-data state
+- `SignalDeskRiskCallout`: contradiction or risk emphasis block that cannot be visually suppressed
+- `SignalDeskSectionCard`: reusable section shell for chart/evidence/trust blocks with stable padding and heading behavior
+- `SignalDeskStateSurface`: loading/empty/error/stale wrappers aligned to quality-gate state rules
+
+### APP-007 Screen-Shell Contract (Exact)
+APP-007 should implement one shell pattern and apply it consistently across primary surfaces:
+- preserve `SignalDeskShell` as the route-level scaffold; extend it for stable app-bar hierarchy and action placement
+- enforce spacing scale `4, 8, 12, 16, 24, 32` at shell and section boundaries
+- keep one dominant primary action per screen, with secondary actions visually demoted
+- keep list-row geometry fixed across Ranking and Watchlist to prevent scan-order drift
+- keep chart blocks above secondary evidence lists on detail surfaces
+- keep stale/retry states as first-class shell-level surfaces, not ad hoc inlined text
+
+### APP-007 Screen Delivery Scope (No Improvisation)
+APP-007 should implement exactly this visual/system layer scope:
+1. app shell and theme
+- apply tokenized theme setup with `flex_color_scheme`
+- wire localization delegates and locale selection from APP-005 language mode
+
+2. shared components
+- implement the component set listed in `APP-007 Component Contract (Exact)`
+- migrate screen-specific duplicated metric/trust formatting into shared components
+
+3. screen-shell upgrades using only current `v1` data
+- Home: premium card structure for top keywords, sectors, and alert summary with trust/freshness slots
+- Ranking: fixed-order row shell with trust/freshness cues and chart placeholder slot
+- Detail: top narrative section + trend chart card + trust/risk zone + evidence section cards
+- Watchlist: row shell parity with ranking metric order and severity/trust emphasis
+- Alerts: severity-first row shell with freshness and trust warning slots
+
+4. localization and formatting
+- apply Korean/English copy keys for all chrome labels introduced by APP-007
+- localize numeric/date rendering through one formatting helper path backed by `intl`
+- enforce truncation/overflow rules for keyword names and evidence snippets in both locales
+
+5. quality gate implementation baseline
+- implement loading/empty/error/stale states using shared state surfaces on all primary screens
+- ensure trust/freshness cues remain visible in collapsed list states
+
+### APP-007 Explicit Non-Scope
+- no repository/API contract refactor
+- no backend endpoint or schema changes
+- no new transport literals or enum changes
+- no source-mix/evidence-timeline rendering that depends on unfrozen payload shapes
+- no design improvisation outside the package/component/shell contract above
+
+### APP-007 Readiness And Acceptance Checklist
+APP-007 is ready to start only when:
+- APP-005 language toggle baseline is merged
+- APP-004 stale-data and pagination behavior is available to preserve in upgraded shells
+- mobile worker acknowledges that BE-004/TRUST-001/MODEL-001 fields remain optional and unfrozen
+
+APP-007 is done when:
+- package contract, component contract, and screen-shell contract are implemented exactly as scoped
+- all primary screens pass mobile UI quality-gate checks for trust/freshness readability and locale-safe layout
+- current `v1` contract compatibility is preserved with additive-only assumptions documented
+
 ## Non-Goals For This Planning Note
 - final production visual polish
 - personalization and account features

@@ -85,3 +85,53 @@ Define how chart surfaces, trust/freshness UX, and multilingual analytics should
 - no rename/remove changes to `v1` fields or enum literals
 - additive payload candidates stay documented as `open` until backend/trust/model lanes freeze names
 - multilingual support localizes UI labels first; transport literals remain canonical until an approved localization contract exists
+
+## APP-007 Implementation Contract (Planning Output)
+This section is the execution contract for APP-007. Implement only this scope unless a new planning task updates it.
+
+### Required Package Edits
+- `app/mobile/pubspec.yaml`
+  - add `flex_color_scheme`
+  - add `fl_chart`
+  - add `flutter_localizations` (SDK)
+  - add `intl`
+- no other package additions in APP-007
+
+### Required File Targets
+- `app/mobile/lib/src/app.dart`
+  - replace ad hoc seed-color theme setup with tokenized Material 3 theme wiring
+  - connect localization delegates and locale selection to APP-005 language mode source
+- `app/mobile/lib/features/shared/signal_desk_shell.dart`
+  - apply premium shell spacing/action hierarchy rules and stable stale/retry surface slots
+- `app/mobile/lib/features/home/home_screen.dart`
+- `app/mobile/lib/features/ranking/ranking_screen.dart`
+- `app/mobile/lib/features/detail/keyword_detail_screen.dart`
+- `app/mobile/lib/features/watchlist/watchlist_screen.dart`
+- `app/mobile/lib/features/alerts/alerts_screen.dart`
+  - migrate these screens to the shared component contract without changing repository calls
+
+### Required Shared Component Layer
+Create and use a shared component package for APP-007 shell work:
+- `SignalDeskMetricRow`
+- `SignalDeskTrustStrip`
+- `SignalDeskFreshnessBadge`
+- `SignalDeskTrendChartCard`
+- `SignalDeskRiskCallout`
+- `SignalDeskSectionCard`
+- `SignalDeskStateSurface`
+
+### Hard Guardrails
+- do not change `app/mobile/lib/core/network/*`
+- do not change `app/mobile/lib/core/models/*` payload structures
+- do not change API endpoint contracts or enum literals
+- do not add design patterns not listed in this APP-007 contract
+- if a required field is missing from `v1`, render placeholder state instead of inventing data
+
+### APP-007 Verification Baseline
+- `cd app/mobile`
+- `flutter pub get`
+- `flutter analyze`
+- `flutter test`
+- runtime smoke in both language modes with current preview target:
+  - verify no clipping/overflow in Korean and English on Home, Ranking, Detail, Watchlist, Alerts
+  - verify trust/freshness cues remain visible in loading, success, stale, and error states
