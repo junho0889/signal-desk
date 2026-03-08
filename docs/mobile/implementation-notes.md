@@ -1,27 +1,25 @@
-# Mobile Implementation Notes (APP-002)
+# Mobile Implementation Notes
 
 ## Scope Delivered
-APP-002 establishes an executable Flutter baseline under `app/mobile/` with:
-- route shell for Home, Ranking, Detail, Watchlist, Alerts
-- typed BE-001 API client wiring
-- contract-shaped mock payload fallback for local boot without backend dependency
+APP-003 hardens the executable Flutter baseline under `app/mobile/` with:
+- shared repository layer over the frozen BE-001 API client
+- reusable loading, error, empty, and retry state controller/view primitives
+- feature screens updated to use consistent refresh and retry behavior
+- watchlist mutation feedback that now reports request failures explicitly
 
 ## Structure
 - `app/mobile/lib/main.dart`: app entrypoint
-- `app/mobile/lib/src/app.dart`: MaterialApp, route registration, shared API client instance
-- `app/mobile/lib/core/routes/app_routes.dart`: route constants
-- `app/mobile/lib/core/network/signaldesk_api_client.dart`: BE-001 endpoint client
-- `app/mobile/lib/core/network/api_exception.dart`: normalized API exception model
-- `app/mobile/lib/core/network/mock_payloads.dart`: contract-shaped mock responses
-- `app/mobile/lib/core/models/api_models.dart`: typed DTO mapping for BE-001 payloads
-- `app/mobile/lib/features/*`: screen stubs and baseline data loading flows
+- `app/mobile/lib/src/app.dart`: `MaterialApp`, route registration, shared API client and repository instances
+- `app/mobile/lib/core/repositories/signaldesk_repository.dart`: repository layer wrapping the typed API client
+- `app/mobile/lib/core/state/loadable_controller.dart`: reusable async state controller for first load and refresh paths
+- `app/mobile/lib/features/shared/loadable_view.dart`: shared loading/error/empty/retry surface
+- `app/mobile/lib/features/*`: screen implementations updated to consume repository + controller flow
 
-## Endpoint Wiring
-- Home -> `GET /v1/dashboard`
-- Ranking -> `GET /v1/keywords`
-- Detail -> `GET /v1/keywords/{keyword_id}`
-- Watchlist -> `GET /v1/watchlist`, `POST /v1/watchlist`
-- Alerts -> `GET /v1/alerts`
+## Runtime Behavior
+- Home, Ranking, Detail, Watchlist, and Alerts now share the same first-load error and retry pattern
+- filter changes on Ranking and Alerts trigger controller refresh instead of rebuilding ad hoc `FutureBuilder` trees
+- manual pull-to-refresh is available on list/detail surfaces with scrollable content
+- watchlist add failures now surface user-visible error feedback instead of silently failing
 
 ## Runtime Configuration
 - API base URL:
@@ -40,15 +38,21 @@ flutter run --dart-define=SIGNALDESK_USE_MOCK=false --dart-define=SIGNALDESK_API
 1. Install Flutter SDK + Android toolchain.
 2. `cd app/mobile`
 3. `flutter pub get`
-4. `flutter run`
+4. `flutter analyze`
+5. `flutter test`
+6. `flutter run`
+
+## Verification Status
+- code-level hardening completed in repo
+- Flutter runtime verification is still environment-dependent until Flutter SDK is available in this session
 
 ## Current Limitations
-- no persistent local cache/offline store yet
+- no persistent local cache or offline store yet
+- pagination and cursor-driven stale-data handling are not implemented yet
 - no authentication flow (out of scope for current personal MVP)
-- watchlist mutation success path only; optimistic/error reconciliation is minimal
-- visual polish and interaction refinements are intentionally deferred
+- push notification deep-link handling is still deferred
 
 ## Next Hardening Targets
-- APP-003: feature-level state management and repository abstraction hardening
-- APP-004: pagination, retry, and stale-data UI strategy for production-like behavior
+- APP-004: pagination and stale-data strategy for production-like list behavior
 - APP-005: push notification deep-link handling implementation and tests
+- QA-002: regression review for the combined OPS-003 and APP-003 changes

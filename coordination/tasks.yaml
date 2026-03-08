@@ -265,7 +265,7 @@ tasks:
   - id: APP-003
     title: Harden mobile state, repository boundaries, and retry handling baseline
     owner: signal-desk-mobile
-    status: pending
+    status: done
     depends_on:
       - REL-001
       - APP-002
@@ -293,5 +293,9 @@ tasks:
       - Runtime and mobile changes are reviewed against prior MVP baseline behavior
       - Defects or environment blockers are documented with reproduction notes
       - QA sign-off status is recorded for release-readiness follow-up
+
+
+
+
 
 
