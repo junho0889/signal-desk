@@ -1,4 +1,4 @@
-﻿# Quality Gates
+# Quality Gates
 
 ## Worker Requirements
 - every task must list required verification before work starts
@@ -9,9 +9,16 @@
 ## Minimum Verification Types
 - docs-only work: consistency review against dependent docs
 - backend code: lint, unit tests, integration tests where feasible
-- mobile code: analyzer, widget tests, manual smoke flow where feasible
+- mobile code: `flutter pub get`, `flutter analyze`, `flutter test`, and preview smoke where feasible
 - infra changes: configuration review and service startup check where feasible
 - QA review: defect-focused recheck on integrated or reviewable work
+
+## Flutter Preview Gate
+- use `scripts/orchestrator/mobile-preview.ps1` or equivalent explicit commands when verifying mobile preview sessions
+- record whether the check was run in `mock` or `live` mode
+- `live` mode verification must confirm API health before claiming preview success
+- if preview smoke is blocked, record the exact blocker class: missing Flutter SDK, missing emulator or device, missing target platform scaffold in the mobile worktree, or unreachable live API
+- blocked preview is acceptable only when the handoff and resume note show the exact command and blocker outcome
 
 ## Debugging Rules
 - reproduce before changing behavior when possible
