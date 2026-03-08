@@ -32,8 +32,8 @@
 - none
 
 ## Last Commit And Push
-- commit: pending current checkpoint
-- push: pending current checkpoint
+- commit: `4946f0e` (`DESIGN-002 docs: finalize visible-surface mobile freeze for app build`)
+- push: `origin/codex/design-002` (pushed on 2026-03-08)
 
 ## Notes For Next Session
 - keep DESIGN-002 concise; expand only if orchestrator requests additional surfaces
