@@ -54,5 +54,34 @@ flutter run --dart-define=SIGNALDESK_USE_MOCK=false --dart-define=SIGNALDESK_API
 
 ## Next Hardening Targets
 - APP-004: pagination and stale-data strategy for production-like list behavior
-- APP-005: push notification deep-link handling implementation and tests
+- APP-005: Korean and English toggle support for shell-level UI and core chrome
 - QA-002: regression review for the combined OPS-003 and APP-003 changes
+
+## APP-006 Planning Addendum (2026-03-08)
+APP-006 is planning-only. No feature code changes are included in this task.
+
+### Objective
+Define how chart surfaces, trust/freshness UX, and multilingual analytics should integrate into the mobile app without changing frozen contracts early.
+
+### Stable Inputs (Ready For Implementation Design)
+- current `v1` fields: `timeseries[]`, `confidence`, `risk_flags`, `is_alert_eligible`, `generated_at`, `published_at`, `triggered_at`
+- existing app architecture: repository + loadable controller/view patterns from APP-003
+- list behavior baseline from APP-004 and language-mode baseline from APP-005 (once merged)
+
+### Open Inputs (Do Not Freeze Yet)
+- chart/card interaction specs from DESIGN-002
+- storage/read-model field publication from BE-004
+- explanation and contribution structures from MODEL-001
+- contradiction, coverage, and trust-summary output shape from TRUST-001
+
+### Planned Implementation Sequence (Post-Planning)
+1. align screen-level extension points to APP-004 and APP-005 baselines
+2. ship chart surfaces using current detail timeseries payloads
+3. standardize trust and freshness surfaces using current fields
+4. adopt additive payload fields only after upstream contracts are explicitly frozen
+5. run QA regression for scan speed, null-state rendering, and risk visibility
+
+### Contract Safety Rules For APP-006 Follow-Up
+- no rename/remove changes to `v1` fields or enum literals
+- additive payload candidates stay documented as `open` until backend/trust/model lanes freeze names
+- multilingual support localizes UI labels first; transport literals remain canonical until an approved localization contract exists

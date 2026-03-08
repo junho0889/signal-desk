@@ -493,7 +493,7 @@ tasks:
   - id: APP-006
     title: Plan mobile integration for charts, trust surfaces, and next-phase analytics UI
     owner: signal-desk-mobile
-    status: pending
+    status: in_progress
     depends_on:
       - APP-005
       - BE-004
