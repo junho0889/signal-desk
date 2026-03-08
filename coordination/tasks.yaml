@@ -658,7 +658,7 @@ tasks:
   - id: BE-008
     title: Freeze raw-ingest metadata schema, source registry contract, and quality-state persistence
     owner: signal-desk-storage
-    status: in_progress
+    status: done
     depends_on:
       - BE-004
       - BE-005
