@@ -623,7 +623,7 @@ tasks:
   - id: COL-004
     title: Freeze metadata-first collector quality rules and source adapter evidence requirements
     owner: signal-desk-collector
-    status: pending
+    status: done
     depends_on:
       - COL-003
       - BE-008
