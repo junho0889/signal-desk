@@ -459,7 +459,7 @@ tasks:
   - id: TRUST-001
     title: Define trust-scoring, contradiction, and misinformation-risk framework
     owner: signal-desk-trust
-    status: pending
+    status: done
     depends_on:
       - COL-001
       - BE-004
