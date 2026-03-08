@@ -13,18 +13,24 @@ Lock the user-facing thread names so orchestration messages always refer to the 
 
 - `BE-storage`
   - role: `signal-desk-storage`
-  - primary task lane: `BE-004`
-  - worktree: `E:\source\signal-desk-worktrees\storage-001`
+  - primary task lanes: `BE-004`, `BE-006`
+  - worktrees:
+    - `E:\source\signal-desk-worktrees\storage-001`
+    - `E:\source\signal-desk-worktrees\storage-002`
 
 - `MODEL`
   - role: `signal-desk-model`
-  - primary task lane: `MODEL-001`
-  - worktree: `E:\source\signal-desk-worktrees\model-001`
+  - primary task lanes: `MODEL-001`, `MODEL-002`
+  - worktrees:
+    - `E:\source\signal-desk-worktrees\model-001`
+    - `E:\source\signal-desk-worktrees\model-002`
 
 - `TRUST`
   - role: `signal-desk-trust`
-  - primary task lane: `TRUST-001`
-  - worktree: `E:\source\signal-desk-worktrees\trust-001`
+  - primary task lanes: `TRUST-001`, `TRUST-002`
+  - worktrees:
+    - `E:\source\signal-desk-worktrees\trust-001`
+    - `E:\source\signal-desk-worktrees\trust-002`
 
 - `DESIGN`
   - role: `signal-desk-design`
@@ -45,7 +51,7 @@ Lock the user-facing thread names so orchestration messages always refer to the 
 
 - `QA thread`
   - role: `signal-desk-qa`
-  - primary task lanes: `QA-003`, `QA-004`, `QA-005`
+  - primary task lanes: `QA-003`, `QA-004`, `QA-005`, `QA-006`
   - worktree: `E:\source\signal-desk-worktrees\qa-station`
 
 - `Ops thread`
@@ -57,10 +63,11 @@ Lock the user-facing thread names so orchestration messages always refer to the 
 
 - `Backend thread`
   - role: `signal-desk-backend`
-  - primary task lanes: `BE-003`, `BE-005`
+  - primary task lanes: `BE-003`, `BE-005`, `BE-007`
   - worktrees:
     - `E:\source\signal-desk-worktrees\be-003`
     - `E:\source\signal-desk-worktrees\be-005`
+    - `E:\source\signal-desk-worktrees\be-007`
 
 - `Orchestrator thread`
   - role: `signal-desk-orchestrator`

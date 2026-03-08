@@ -100,3 +100,11 @@ one|stdout sink baseline
 - Decision: run premium mobile polish as an ordered design wave of `DESIGN-002` -> `APP-006` -> `APP-007` -> `QA-005`
 - Reason: design rules, publishing constraints, implementation, and UI review must be frozen in sequence so the ranking surfaces stay consistent and explainable
 
+### DEC-024
+- Decision: make the first production model system explainable-first and split it into an online publish pipeline plus a separate offline research lane
+- Reason: SignalDesk needs reproducible ranking, trust-aware alerts, and UI-ready explanations before it needs deep learning; coupling production ranking directly to experimental models would make failures harder to debug and trust
+
+### DEC-025
+- Decision: treat model output as a publish bundle of feature snapshots, ranking scores, explanation artifacts, evaluation snapshots, and immutable publish runs instead of a single opaque score row
+- Reason: the app, QA, and future model training all need lineage and per-run evidence, not just one final number
+

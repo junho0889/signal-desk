@@ -456,6 +456,25 @@ tasks:
       - ranking phases from explainable baseline to learned models are documented
       - feature groups and score outputs are explicit enough for downstream lanes
       - evaluation and regression metrics are documented
+  - id: MODEL-002
+    title: Define explainable model system v1, online inference pipeline, and offline research boundary
+    owner: signal-desk-model
+    status: pending
+    depends_on:
+      - MODEL-001
+      - BE-004
+      - TRUST-001
+      - COL-002
+    files:
+      - docs/model/model-system-v1.md
+      - docs/model/ranking-roadmap.md
+      - coordination/dispatches/MODEL-002.md
+      - coordination/handoffs/MODEL-002.md
+      - coordination/resume/MODEL-002.md
+    acceptance:
+      - online path from normalized events and trust outputs to feature snapshots, ranking runs, and publish runs is explicit
+      - explainable shipping model, calibration strategy, and offline research boundary are documented clearly
+      - downstream lanes can identify required artifacts, thresholds, and feedback loops without guessing
   - id: TRUST-001
     title: Define trust-scoring, contradiction, and misinformation-risk framework
     owner: signal-desk-trust
@@ -472,6 +491,23 @@ tasks:
       - trust dimensions and outputs are explicit
       - contradiction, stale-source, and low-confidence mapping behavior is documented
       - downstream storage and app surfaces can consume the trust outputs
+  - id: TRUST-002
+    title: Freeze trust-to-model feature contract and manual review escalation policy
+    owner: signal-desk-trust
+    status: pending
+    depends_on:
+      - TRUST-001
+      - MODEL-002
+      - BE-006
+    files:
+      - docs/trust/trust-framework.md
+      - coordination/dispatches/TRUST-002.md
+      - coordination/handoffs/TRUST-002.md
+      - coordination/resume/TRUST-002.md
+    acceptance:
+      - trust outputs are frozen as model-input fields and app-facing warning thresholds
+      - contradiction and misinformation-review escalation is explicit
+      - trust review feedback can flow into future model labels and evaluation
   - id: DESIGN-002
     title: Define premium analytics visual system, chart patterns, and MZ-friendly information hierarchy
     owner: signal-desk-design
@@ -582,6 +618,43 @@ tasks:
       - central intake contract supports accepted, duplicate, rejected, and retryable failure outcomes
       - collector envelope and idempotency behavior are explicit
       - backend/storage coordination points are listed clearly
+  - id: BE-006
+    title: Freeze storage contract for features, model runs, labels, and published ranking lineage
+    owner: signal-desk-storage
+    status: pending
+    depends_on:
+      - BE-004
+      - MODEL-002
+      - TRUST-001
+      - BE-005
+    files:
+      - docs/backend/db-schema.md
+      - docs/backend/storage-expansion-outline.md
+      - coordination/dispatches/BE-006.md
+      - coordination/handoffs/BE-006.md
+      - coordination/resume/BE-006.md
+    acceptance:
+      - feature snapshots, trust outputs, model scores, labels, and publish evidence tables are explicit
+      - retention, versioning, and replay lineage from raw payload to app-facing ranking are frozen
+      - least-privilege boundaries for normalization, trust, model, and publish jobs are documented
+  - id: BE-007
+    title: Define model-processing job pipeline and additive API publish contract
+    owner: signal-desk-backend
+    status: pending
+    depends_on:
+      - MODEL-002
+      - BE-006
+      - TRUST-002
+    files:
+      - docs/backend/api-contract.md
+      - docs/ops/service-model.md
+      - coordination/dispatches/BE-007.md
+      - coordination/handoffs/BE-007.md
+      - coordination/resume/BE-007.md
+    acceptance:
+      - normalization, trust, feature, ranking, publish, and alert-evaluation job order is explicit
+      - additive API-facing fields and publish-read-model assumptions are documented without breaking v1 clients
+      - retry, idempotency, and reprocessing behavior for ranking publishes is clear
   - id: OPS-005
     title: Define local collector Docker Compose group and Pi deployment path
     owner: signal-desk-ops
@@ -599,5 +672,23 @@ tasks:
       - collector compose group is documented separately from the main app stack
       - current-PC development runtime and later Ubuntu-on-Pi promotion path are explicit
       - central host `192.168.0.200` assumptions are documented
+  - id: QA-006
+    title: Review explainable model pipeline, publish contract, and evaluation safety gates
+    owner: signal-desk-qa
+    status: pending
+    depends_on:
+      - MODEL-002
+      - BE-006
+      - TRUST-002
+      - BE-007
+    files:
+      - coordination/dispatches/QA-006.md
+      - coordination/handoffs/QA-006.md
+      - coordination/resume/QA-006.md
+      - docs/ops/quality-gates.md
+    acceptance:
+      - model pipeline is reviewed for explainability, reproducibility, and failure isolation
+      - research backlog items are separated from release-blocking contract gaps
+      - QA verdict states whether the pipeline definition is safe enough to start implementation
 
 
