@@ -33,8 +33,8 @@
 - none
 
 ## Last Commit And Push
-- commit: pending current checkpoint
-- push: pending current checkpoint
+- commit: `56ddf89` (`DESIGN-002 docs: narrow premium mobile spec to APP build scope`)
+- push: `origin/codex/design-002` (pushed on 2026-03-08)
 
 ## Notes For Next Session
 - keep DESIGN-002 concise and APP-oriented unless orchestrator requests broader UX restatement
