@@ -513,7 +513,7 @@ tasks:
   - id: COL-002
     title: Define collector v1 runtime and spool database for PC-first Docker Compose development
     owner: signal-desk-collector
-    status: pending
+    status: done
     depends_on:
       - COL-001
     files:
