@@ -73,6 +73,10 @@ one|stdout sink baseline
 - Reason: collection needs 24/7 uptime and retry resilience, but the Pi should not become the primary database or heavy-compute node
 
 ### DEC-018
+- Decision: lock user-facing worker names in `coordination/thread-registry.md` and reuse those exact labels in orchestration updates
+- Reason: the user is coordinating multiple long-lived threads manually, so inconsistent naming creates avoidable confusion
+
+### DEC-018
 - Decision: treat `APP-005` and `QA-004` branch outputs as supervision input only until their evidence is accepted on `main`, and keep `APP-006` parked until its upstream handoffs exist
 - Reason: branch-resident artifacts do not satisfy the release gate by themselves, and starting `APP-006` early creates avoidable overlap in the mobile lane
 
