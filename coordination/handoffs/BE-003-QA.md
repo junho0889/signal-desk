@@ -1,7 +1,7 @@
 ## Task
 - id: BE-003
 - owner: signal-desk-qa
-- status: pass-with-notes
+- status: pass
 
 ## QA Scope Reviewed
 - branch refs:
@@ -19,13 +19,15 @@
   - `docs/backend/implementation-notes.md`
 
 ## Findings
-1. Low-risk integration note: the internal delivery contract uses route names `keyword_detail|alerts`, while the current mobile app routes are `AppRoutes.detail = '/detail'` and `AppRoutes.alerts = '/alerts'`.
-- this is not a current runtime regression because no mobile consumer exists yet
-- APP-005 should either define an explicit mapping layer or align the route naming before push deep-link work starts
+1. No release-blocking regression was identified in the BE-003-owned code or docs.
+- `python -m compileall services\jobs\signaldesk_jobs` passed
+- `$env:SIGNALDESK_NOTIFICATION_SINK='stdout'; python -m services.jobs.signaldesk_jobs.main evaluate-alerts` inserted two alerts and emitted two delivery payloads in the documented stdout sink shape
+- inline delivery-builder checks confirmed keyword and stock alerts route to keyword detail when `keyword_id` is present
 
-2. Notification payload generation passed practical QA rechecks.
-- `evaluate-alerts` still inserted alert rows and emitted two stdout delivery payloads in the documented shape
-- stock-linked alerts correctly routed to keyword detail when `keyword_id` was present
+2. Non-blocking integration note: the internal delivery contract still uses route names `keyword_detail|alerts`, while the current mobile route constants are `/detail|/alerts`.
+- evidence: `docs/backend/api-contract.md:249,267` vs `app/mobile/lib/core/routes/app_routes.dart:4,6`
+- the backend worker has now documented this explicitly in `coordination/handoffs/BE-003-route-followup.md`
+- this does not break current behavior because no mobile consumer exists yet, but APP-005 should define the mapping explicitly before push deep-link work starts
 
 ## Blocked Checks
 - none
@@ -37,10 +39,12 @@
 - `python -m compileall services\jobs\signaldesk_jobs`
 - `$env:SIGNALDESK_NOTIFICATION_SINK='stdout'; python -m services.jobs.signaldesk_jobs.main evaluate-alerts`
 - inline Python check for `build_notification_deliveries(...)` with stock-linked and keyword alerts
-- `Select-String -Path coordination\decision-log.md,docs\backend\api-contract.md,docs\mobile\implementation-notes.md -Pattern 'keyword_detail|/detail|deep-link|push'`
+- `Select-String -Path E:\source\signal-desk\docs\backend\api-contract.md -Pattern 'route.name|keyword_detail|alerts'`
+- `Select-String -Path E:\source\signal-desk-worktrees\app-004\app\mobile\lib\core\routes\app_routes.dart -Pattern '/detail|/alerts'`
+- `Get-Content E:\source\signal-desk-worktrees\be-003\coordination\handoffs\BE-003-route-followup.md`
 
 ## Verdict
-- `pass-with-notes`
+- `pass`
 
 ## Next Step
 - orchestrator can accept BE-003 for this wave

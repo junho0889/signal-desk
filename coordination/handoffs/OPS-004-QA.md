@@ -1,13 +1,15 @@
 ## Task
 - id: OPS-004
 - owner: signal-desk-qa
-- status: pass-with-notes
+- status: pass
 
 ## QA Scope Reviewed
-- branch ref: `codex/ops-004` at `19df562`
+- branch ref: `codex/ops-004` at `a7c0704`
 - commits reviewed:
   - `8cd4191` OPS-004 feat: add mobile preview helper workflow
-  - `19df562` OPS-004 chore: record checkpoint metadata
+  - `09c600d` OPS-004 feat: improve mobile preview preflight
+  - `6c493b5` OPS-004 docs: tighten preview verification runbook
+  - `a7c0704` OPS-004 chore: refresh resume checkpoint
 - worker artifacts:
   - `coordination/handoffs/OPS-004.md`
   - `coordination/resume/OPS-004.md`
@@ -17,13 +19,13 @@
   - `docs/ops/quality-gates.md`
 
 ## Findings
-1. The preview helper and docs report the expected blocker cleanly in this environment.
-- `powershell -ExecutionPolicy Bypass -File .\scripts\orchestrator\mobile-preview.ps1 -Command doctor ...` failed fast with the documented missing-Flutter message
-- the docs and quality-gate text now consistently describe `mock|live` mode, helper usage, and blocker taxonomy
+1. No current mismatch was found between the helper behavior and the latest ops docs.
+- the updated runbook now explicitly states that, in the current repo snapshot, `doctor` should report `platform-scaffold` immediately and both `verify` and `run` remain blocked until the active mobile worktree includes the required platform scaffold
+- command evidence: `powershell -ExecutionPolicy Bypass -File .\scripts\orchestrator\mobile-preview.ps1 -Command verify -Mode mock -Target android -AppPath E:\source\signal-desk-worktrees\app-004\app\mobile` reported both `platform-scaffold` and `flutter` blockers, which matches `docs/ops/app-preview.md`
 
-2. Preview smoke is still blocked by repo state, not an ops regression.
-- the current mobile tree only contains `lib/`, so `run` remains blocked until a mobile-owned worktree carries the required target platform scaffold
-- OPS-004 documents this explicitly and does not try to generate platform folders from the ops workflow
+2. OPS-004 acceptance criteria are satisfied for the current environment.
+- `doctor` now reports the full blocker set in one pass instead of stopping at the first failure
+- docs and quality gates consistently document `mock|live`, `ExecutionPolicy Bypass`, exact stage recording, and blocker-category reporting
 
 ## Blocked Checks
 - no Flutter SDK available in the QA environment
@@ -33,12 +35,16 @@
 - `Get-Content E:\source\signal-desk-worktrees\ops-004\coordination\handoffs\OPS-004.md`
 - `Get-Content E:\source\signal-desk-worktrees\ops-004\coordination\resume\OPS-004.md`
 - `powershell -ExecutionPolicy Bypass -File .\scripts\orchestrator\mobile-preview.ps1 -Command doctor -Mode mock -AppPath E:\source\signal-desk-worktrees\app-004\app\mobile`
+- `powershell -ExecutionPolicy Bypass -File .\scripts\orchestrator\mobile-preview.ps1 -Command verify -Mode mock -Target android -AppPath E:\source\signal-desk-worktrees\app-004\app\mobile`
 - `Get-ChildItem .\app\mobile -Directory | Select-Object Name`
+- `Select-String -Path scripts\orchestrator\mobile-preview.ps1 -Pattern 'platform-scaffold|Assert-NoBlockers|switch \(\$Command\)|Get-PreflightReport'`
+- `Select-String -Path .\docs\ops\app-preview.md -Pattern 'doctor|verify|run|platform scaffold|Current Repo Blocker To Expect'`
+- `Select-String -Path .\docs\ops\quality-gates.md -Pattern 'mobile-preview.ps1|ExecutionPolicy Bypass|record each stage separately|blocker categories'`
 - `Select-String -Path .\docs\ops\app-preview.md,.\docs\ops\quality-gates.md,.\docs\mobile\implementation-notes.md -Pattern 'SIGNALDESK_USE_MOCK|SIGNALDESK_API_BASE_URL|mobile-preview.ps1|Flutter SDK|platform scaffold'`
-- `git diff --check 7b2bd14..8cd4191`
+- `git diff --check 7b2bd14..HEAD`
 
 ## Verdict
-- `pass-with-notes`
+- `pass`
 
 ## Next Step
-- rerun `mobile-preview.ps1` in `verify` and `run` modes from a Flutter-capable session after the active mobile worktree contains the needed platform folders
+- have a Flutter-capable session run the documented `doctor` -> `verify` -> `run` sequence after the active mobile worktree contains the required platform scaffold
