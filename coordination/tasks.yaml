@@ -488,6 +488,7 @@ tasks:
       - coordination/resume/DESIGN-002.md
     acceptance:
       - chart and stat-card patterns are defined for mobile use
+      - button placement, typography, spacing, localization, and state rules are explicit enough for publisher execution
       - design direction supports trust, freshness, ranking, and evidence in one glance
       - updated screen-map guidance is concrete enough for implementation planning
   - id: APP-006
@@ -508,8 +509,46 @@ tasks:
       - coordination/resume/APP-006.md
     acceptance:
       - mobile integration boundaries for charts, trust, and multilingual analytics are documented
+      - publisher-facing component freeze, package guidance, and no-amateur UI constraints are explicit
       - required backend payload additions are listed without changing contracts prematurely
       - implementation phases are sequenced for later execution
+  - id: APP-007
+    title: Implement premium mobile publishing system, ranking layout, and chart shell baseline
+    owner: signal-desk-mobile
+    status: pending
+    depends_on:
+      - APP-005
+      - DESIGN-002
+      - APP-006
+      - BE-004
+      - MODEL-001
+      - TRUST-001
+    files:
+      - app/mobile/
+      - docs/mobile/implementation-notes.md
+      - coordination/dispatches/APP-007.md
+      - coordination/handoffs/APP-007.md
+      - coordination/resume/APP-007.md
+    acceptance:
+      - design tokens, spacing, typography, and primary action placement are implemented consistently on the target screens
+      - ranking and detail shells surface trust, freshness, evidence, and chart areas without ad hoc alignment or unstable card structure
+      - verification records analyzer, tests, and runtime smoke with explicit UI evidence
+  - id: QA-005
+    title: Review premium mobile UI quality, ranking clarity, and localization polish
+    owner: signal-desk-qa
+    status: pending
+    depends_on:
+      - APP-007
+      - DESIGN-002
+    files:
+      - coordination/dispatches/QA-005.md
+      - coordination/handoffs/QA-005.md
+      - coordination/resume/QA-005.md
+      - docs/ops/quality-gates.md
+    acceptance:
+      - primary surfaces are reviewed for layout stability, action clarity, accessibility, and localization overflow
+      - ranking and chart surfaces are checked for clarity, evidence hierarchy, and anti-confusion behavior
+      - QA verdict clearly separates polish issues from release-blocking UX defects
   - id: COL-002
     title: Define collector v1 runtime and spool database for PC-first Docker Compose development
     owner: signal-desk-collector

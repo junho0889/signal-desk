@@ -33,8 +33,10 @@ Lock the user-facing thread names so orchestration messages always refer to the 
 
 - `APP`
   - role: `signal-desk-mobile`
-  - primary task lane: `APP-006`
-  - worktree: `E:\source\signal-desk-worktrees\app-006`
+  - primary task lanes: `APP-006`, `APP-007`
+  - worktrees:
+    - `E:\source\signal-desk-worktrees\app-006`
+    - `E:\source\signal-desk-worktrees\app-007`
 
 - `Mobile thread`
   - role: `signal-desk-mobile`
@@ -43,7 +45,7 @@ Lock the user-facing thread names so orchestration messages always refer to the 
 
 - `QA thread`
   - role: `signal-desk-qa`
-  - primary task lanes: `QA-003`, `QA-004`
+  - primary task lanes: `QA-003`, `QA-004`, `QA-005`
   - worktree: `E:\source\signal-desk-worktrees\qa-station`
 
 - `Ops thread`

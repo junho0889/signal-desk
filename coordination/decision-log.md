@@ -92,3 +92,11 @@ one|stdout sink baseline
 - Decision: treat `APP-005` and `QA-004` branch outputs as supervision input only until their evidence is accepted on `main`, and keep `APP-006` parked until its upstream handoffs exist
 - Reason: branch-resident artifacts do not satisfy the release gate by themselves, and starting `APP-006` early creates avoidable overlap in the mobile lane
 
+### DEC-022
+- Decision: use Flutter Material 3 with SignalDesk-owned design tokens and component rules as the primary mobile UI foundation, with `fl_chart` for chart rendering and `flex_color_scheme` for theme shaping, rather than treating a third-party UI kit as the app shell
+- Reason: the product needs a deliberate, stable visual system for ranking, trust, evidence, and multilingual surfaces, and mixing generic kit patterns would make the app look inconsistent and amateur
+
+### DEC-023
+- Decision: run premium mobile polish as an ordered design wave of `DESIGN-002` -> `APP-006` -> `APP-007` -> `QA-005`
+- Reason: design rules, publishing constraints, implementation, and UI review must be frozen in sequence so the ranking surfaces stay consistent and explainable
+
