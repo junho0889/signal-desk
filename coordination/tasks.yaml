@@ -601,6 +601,42 @@ tasks:
       - collector v1 runtime explicitly uses local PostgreSQL spool and no RabbitMQ
       - current-PC Docker Compose development path is documented
       - 30-day retention and offline main-host assumptions are explicit
+  - id: COL-003
+    title: Implement collector dev stack, spool smoke test, and local test database verification
+    owner: signal-desk-collector
+    status: pending
+    depends_on:
+      - COL-002
+      - BE-005
+      - OPS-005
+    files:
+      - infra/collector/
+      - services/collector/
+      - docs/ops/collector-runtime-v1.md
+      - coordination/dispatches/COL-003.md
+      - coordination/handoffs/COL-003.md
+      - coordination/resume/COL-003.md
+    acceptance:
+      - separate collector Docker Compose group can start locally with a test database
+      - at least one fixture-backed source adapter writes spool rows and metadata into the local collector test database
+      - verification records restart, ingest, and query evidence with exact commands
+  - id: COL-004
+    title: Freeze metadata-first collector quality rules and source adapter evidence requirements
+    owner: signal-desk-collector
+    status: pending
+    depends_on:
+      - COL-003
+      - BE-008
+    files:
+      - docs/data/source-catalog.md
+      - docs/data/collector-metadata-quality-v1.md
+      - coordination/dispatches/COL-004.md
+      - coordination/handoffs/COL-004.md
+      - coordination/resume/COL-004.md
+    acceptance:
+      - source adapters have explicit required metadata, idempotency, and quality-filter rules
+      - collector can reject or downgrade weak payloads without AI inference
+      - downstream lanes can rely on metadata fields and quality states consistently
   - id: BE-005
     title: Define central collector intake API and backend raw-ingest contract
     owner: signal-desk-backend
@@ -618,6 +654,43 @@ tasks:
       - central intake contract supports accepted, duplicate, rejected, and retryable failure outcomes
       - collector envelope and idempotency behavior are explicit
       - backend/storage coordination points are listed clearly
+  - id: BE-008
+    title: Freeze raw-ingest metadata schema, source registry contract, and quality-state persistence
+    owner: signal-desk-storage
+    status: pending
+    depends_on:
+      - BE-004
+      - BE-005
+      - COL-002
+    files:
+      - docs/backend/db-schema.md
+      - docs/backend/storage-expansion-outline.md
+      - docs/data/collector-metadata-quality-v1.md
+      - coordination/dispatches/BE-008.md
+      - coordination/handoffs/BE-008.md
+      - coordination/resume/BE-008.md
+    acceptance:
+      - raw-ingest tables define required metadata, source registry references, and quality-state fields
+      - weak, duplicate, stale, and dead-letter cases are persistable and replayable
+      - collector and backend lanes can test against the same metadata contract
+  - id: BE-009
+    title: Define central intake validation, quarantine, and metadata-acceptance behavior
+    owner: signal-desk-backend
+    status: pending
+    depends_on:
+      - BE-005
+      - BE-008
+      - COL-004
+    files:
+      - docs/backend/collector-intake-contract.md
+      - docs/backend/api-contract.md
+      - coordination/dispatches/BE-009.md
+      - coordination/handoffs/BE-009.md
+      - coordination/resume/BE-009.md
+    acceptance:
+      - central intake documents accept, reject, quarantine, and downgrade behavior for metadata-poor payloads
+      - batch validation and item-level failure reporting are explicit
+      - backend validation aligns with collector quality states and replay rules
   - id: BE-006
     title: Freeze storage contract for features, model runs, labels, and published ranking lineage
     owner: signal-desk-storage
@@ -672,6 +745,25 @@ tasks:
       - collector compose group is documented separately from the main app stack
       - current-PC development runtime and later Ubuntu-on-Pi promotion path are explicit
       - central host `192.168.0.200` assumptions are documented
+  - id: OPS-006
+    title: Define collector local test-db workflow, fixture execution, and developer runbook
+    owner: signal-desk-ops
+    status: pending
+    depends_on:
+      - COL-003
+      - BE-008
+      - BE-009
+    files:
+      - docs/ops/deploy-runbook.md
+      - docs/ops/local-docker-stack.md
+      - docs/ops/quality-gates.md
+      - coordination/dispatches/OPS-006.md
+      - coordination/handoffs/OPS-006.md
+      - coordination/resume/OPS-006.md
+    acceptance:
+      - developer can bring up the collector stack, create or reset the local collector test database, and run fixture ingest without guessing
+      - query commands for spool evidence and metadata inspection are documented
+      - local smoke path remains separate from the main app stack and Windows system changes
   - id: QA-006
     title: Review explainable model pipeline, publish contract, and evaluation safety gates
     owner: signal-desk-qa
@@ -690,5 +782,24 @@ tasks:
       - model pipeline is reviewed for explainability, reproducibility, and failure isolation
       - research backlog items are separated from release-blocking contract gaps
       - QA verdict states whether the pipeline definition is safe enough to start implementation
+  - id: QA-007
+    title: Review collector ingest quality, local test-db evidence, and metadata completeness
+    owner: signal-desk-qa
+    status: pending
+    depends_on:
+      - COL-003
+      - COL-004
+      - BE-008
+      - BE-009
+      - OPS-006
+    files:
+      - coordination/dispatches/QA-007.md
+      - coordination/handoffs/QA-007.md
+      - coordination/resume/QA-007.md
+      - docs/ops/quality-gates.md
+    acceptance:
+      - QA verifies fixture ingestion reaches the local collector test database with expected metadata
+      - QA checks that weak, duplicate, or stale payload handling is explicit and testable
+      - QA verdict states whether collector implementation is ready for broader source rollout
 
 

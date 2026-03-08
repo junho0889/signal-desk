@@ -108,3 +108,11 @@ one|stdout sink baseline
 - Decision: treat model output as a publish bundle of feature snapshots, ranking scores, explanation artifacts, evaluation snapshots, and immutable publish runs instead of a single opaque score row
 - Reason: the app, QA, and future model training all need lineage and per-run evidence, not just one final number
 
+### DEC-026
+- Decision: make collector implementation metadata-first and quality-gated before introducing any AI-based filtering
+- Reason: SignalDesk needs durable, inspectable, high-quality raw evidence more urgently than model-assisted filtering, and metadata completeness, source identity, timestamps, and dedup state are enough to reject a large class of bad payloads
+
+### DEC-027
+- Decision: require a local collector test database and fixture-backed ingest smoke before calling the collector runtime ready
+- Reason: collection reliability is a core project risk, so the first implementation wave must prove that payloads and metadata actually land in a replayable spool store with exact query evidence
+
