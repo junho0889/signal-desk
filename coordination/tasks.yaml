@@ -456,6 +456,25 @@ tasks:
       - ranking phases from explainable baseline to learned models are documented
       - feature groups and score outputs are explicit enough for downstream lanes
       - evaluation and regression metrics are documented
+  - id: MODEL-002
+    title: Define explainable model system v1, online inference pipeline, and offline research boundary
+    owner: signal-desk-model
+    status: done
+    depends_on:
+      - MODEL-001
+      - BE-004
+      - TRUST-001
+      - COL-002
+    files:
+      - docs/model/model-system-v1.md
+      - docs/model/ranking-roadmap.md
+      - coordination/dispatches/MODEL-002.md
+      - coordination/handoffs/MODEL-002.md
+      - coordination/resume/MODEL-002.md
+    acceptance:
+      - online path from normalized events and trust outputs to feature snapshots, ranking runs, and publish runs is explicit
+      - explainable shipping model, calibration strategy, and offline research boundary are documented clearly
+      - downstream lanes can identify required artifacts, thresholds, and feedback loops without guessing
   - id: TRUST-001
     title: Define trust-scoring, contradiction, and misinformation-risk framework
     owner: signal-desk-trust
