@@ -72,3 +72,7 @@ one|stdout sink baseline
 - Decision: use Raspberry Pi 4B 8GB as a collector-only node with local spool plus central transfer, while keeping canonical storage and ranking on the central host
 - Reason: collection needs 24/7 uptime and retry resilience, but the Pi should not become the primary database or heavy-compute node
 
+### DEC-018
+- Decision: freeze COL-001 collector contracts around a transport-agnostic central acknowledgement flow (`accepted`/`duplicate`/`rejected`), a fixed local spool envelope, and bounded retry/dead-letter rules
+- Reason: storage, model, trust, and ops lanes need stable ingestion semantics now, while preserving flexibility on the physical transfer mechanism
+

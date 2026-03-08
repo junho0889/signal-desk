@@ -407,7 +407,7 @@ tasks:
   - id: COL-001
     title: Design Raspberry Pi collector topology, spool contract, and source adapter plan
     owner: signal-desk-collector
-    status: pending
+    status: done
     depends_on:
       - DATA-001
       - INFRA-001
