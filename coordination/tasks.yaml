@@ -529,7 +529,7 @@ tasks:
   - id: BE-005
     title: Define central collector intake API and backend raw-ingest contract
     owner: signal-desk-backend
-    status: pending
+    status: done
     depends_on:
       - COL-002
       - BE-004

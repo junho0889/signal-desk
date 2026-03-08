@@ -278,3 +278,68 @@ Example:
   }
 }
 ```
+
+## Internal Collector Intake API
+Collector spool shipping targets the central host (`192.168.0.200`) through an internal endpoint.
+This contract is internal and separate from public mobile `/v1` endpoints.
+
+### `POST /internal/v1/collector/raw-ingest-batches`
+Accept a collector raw-ingest batch for central persistence and acknowledgement.
+
+Request fields:
+- `batch_id` (`string`, non-null): collector-generated stable batch id
+- `collector_node_id` (`string`, non-null)
+- `sent_at` (`string`, non-null): RFC3339 UTC
+- `items` (`array`, non-null, non-empty)
+
+`items[]`:
+- `spool_item_id` (`string`, non-null)
+- `source_id` (`string`, non-null)
+- `collected_at` (`string`, non-null)
+- `upstream_event_at` (`string`, nullable)
+- `payload_hash` (`string`, non-null)
+- `payload_version` (`string`, non-null)
+- `payload_json` (`object`, non-null)
+- `retry_count` (`integer`, non-null)
+- `transport_status` (`string`, nullable)
+
+Response fields:
+- `request_id` (`string`, nullable)
+- `batch_id` (`string`, non-null)
+- `batch_status` (`accepted|partially_accepted|rejected|retryable_failure`, non-null)
+- `summary` (`object`, non-null): `received_count`, `accepted_count`, `duplicate_count`, `rejected_count`, `retryable_failure_count`
+- `items` (`array`, non-null)
+
+`items[]` result:
+- `spool_item_id` (`string`, nullable)
+- `payload_hash` (`string`, non-null)
+- `status` (`accepted|duplicate|rejected|retryable_failure`, non-null)
+- `reason_code` (`string`, non-null)
+- `message` (`string`, nullable)
+- `ingest_ref` (`string`, nullable)
+
+Idempotency:
+- item-level key: `collector_node_id + source_id + payload_hash + payload_version`
+- batch replay key: `collector_node_id + batch_id`
+- replaying the same batch must not create duplicate canonical raw rows
+
+Acknowledgement class semantics:
+- `accepted`: persisted; collector marks delivered
+- `duplicate`: already persisted; collector marks delivered
+- `rejected`: non-retryable as-is; collector dead-letters
+- `retryable_failure`: transient failure; collector retries with backoff
+
+Retryable vs non-retryable backend outcomes:
+- retryable:
+  - HTTP `429`, `500`, `502`, `503`, `504`
+  - transport timeout / connection failures
+  - per-item `retryable_failure`
+- non-retryable as-is:
+  - HTTP `400` validation/schema errors
+  - HTTP `401`/`403` auth/authz failures until config is fixed
+  - HTTP `413` payload too large (requires batch split)
+  - per-item `rejected`
+
+Partial success expectation:
+- backend may return mixed per-item statuses in a single batch
+- collector must process acknowledgement per item, not only `batch_status`
