@@ -164,8 +164,12 @@ def evaluate_alerts(conn: psycopg.Connection, *, delta_threshold: float) -> dict
                 {
                     "alert_id": str(inserted["id"]),
                     "target_type": "keyword",
+                    "target_id": str(row["keyword_id"]),
+                    "target_label": row["canonical_name"],
+                    "keyword_id": str(row["keyword_id"]),
                     "severity": severity,
                     "message": message,
+                    "triggered_at": triggered_at.isoformat().replace("+00:00", "Z"),
                 }
             )
 
@@ -212,8 +216,12 @@ def evaluate_alerts(conn: psycopg.Connection, *, delta_threshold: float) -> dict
                 {
                     "alert_id": str(inserted["id"]),
                     "target_type": "stock",
+                    "target_id": str(row["stock_id"]),
+                    "target_label": row["ticker"],
+                    "keyword_id": str(row["keyword_id"]),
                     "severity": severity,
                     "message": message,
+                    "triggered_at": triggered_at.isoformat().replace("+00:00", "Z"),
                 }
             )
 

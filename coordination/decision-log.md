@@ -46,3 +46,9 @@
 - Decision: run the next parallel wave as BE-003, APP-004, and OPS-004, then gate it with QA-003 and REL-002`r
 - Reason: notification delivery, mobile pagination/stale-data behavior, and Flutter-capable verification readiness are the highest-value remaining gaps with clean file boundaries for parallel work
 
+
+### DEC-012
+- Decision: represent watchlist alert delivery as an internal notification payload contract with 
+one|stdout sink baseline
+- Reason: this preserves current alert persistence behavior while creating a stable bridge to future push delivery without prematurely binding the runtime to a specific provider
+

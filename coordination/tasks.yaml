@@ -296,7 +296,7 @@ tasks:
   - id: BE-003
     title: Implement alert notification delivery baseline and payload contract
     owner: signal-desk-backend
-    status: in_progress
+    status: done
     depends_on:
       - BE-002
       - OPS-003
@@ -371,4 +371,5 @@ tasks:
       - integrated status of the next hardening wave is recorded on main
       - remaining release blockers are listed with explicit owners
       - next release decision is documented
+
 

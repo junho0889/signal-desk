@@ -7,6 +7,7 @@ from typing import Any
 from .alerts import evaluate_alerts
 from .config import load_settings
 from .db import get_connection
+from .delivery import build_notification_deliveries, dispatch_deliveries
 from .demo_data import seed_demo_data
 from .migrations import apply_migrations
 
@@ -20,7 +21,7 @@ def cmd_migrate() -> None:
     with get_connection(settings.migrator_database_url) as conn:
         applied = apply_migrations(conn)
         conn.commit()
-    _print({"command": "migrate", "applied": applied})
+    _print({'command': 'migrate', 'applied': applied})
 
 
 def cmd_seed_demo() -> None:
@@ -28,7 +29,7 @@ def cmd_seed_demo() -> None:
     with get_connection(settings.app_database_url) as conn:
         summary = seed_demo_data(conn)
         conn.commit()
-    _print({"command": "seed-demo", "summary": summary})
+    _print({'command': 'seed-demo', 'summary': summary})
 
 
 def cmd_evaluate_alerts() -> None:
@@ -36,7 +37,24 @@ def cmd_evaluate_alerts() -> None:
     with get_connection(settings.app_database_url) as conn:
         result = evaluate_alerts(conn, delta_threshold=settings.alert_delta_threshold)
         conn.commit()
-    _print({"command": "evaluate-alerts", "result": result})
+
+    deliveries = build_notification_deliveries(
+        result['items'],
+        title_prefix=settings.notification_title_prefix,
+    )
+    delivery_result = dispatch_deliveries(
+        deliveries,
+        sink=settings.notification_sink,
+    )
+    _print(
+        {
+            'command': 'evaluate-alerts',
+            'result': {
+                **result,
+                'delivery': delivery_result,
+            },
+        }
+    )
 
 
 def cmd_run_once() -> None:
@@ -46,11 +64,11 @@ def cmd_run_once() -> None:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="SignalDesk jobs runner")
+    parser = argparse.ArgumentParser(description='SignalDesk jobs runner')
     parser.add_argument(
-        "command",
-        choices=["migrate", "seed-demo", "evaluate-alerts", "run-once"],
-        help="operation to execute",
+        'command',
+        choices=['migrate', 'seed-demo', 'evaluate-alerts', 'run-once'],
+        help='operation to execute',
     )
     return parser
 
@@ -59,15 +77,15 @@ def main() -> None:
     parser = build_parser()
     args = parser.parse_args()
 
-    if args.command == "migrate":
+    if args.command == 'migrate':
         cmd_migrate()
-    elif args.command == "seed-demo":
+    elif args.command == 'seed-demo':
         cmd_seed_demo()
-    elif args.command == "evaluate-alerts":
+    elif args.command == 'evaluate-alerts':
         cmd_evaluate_alerts()
     else:
         cmd_run_once()
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

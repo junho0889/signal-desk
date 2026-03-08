@@ -236,3 +236,45 @@ Explicit nullable fields in v1:
 - existing field names and enum literals are frozen in `v1`
 - removing or renaming fields requires `v2`
 - alias semantics (`score`, `delta_1d`) are frozen for mobile compatibility in `v1`
+
+## Internal Notification Payload
+Watchlist alert evaluation can emit notification-ready payloads for downstream delivery adapters.
+This is an internal backend contract, not a public mobile API endpoint.
+
+Payload fields:
+- `delivery_id` (`string`, non-null): stable per-channel identifier (`<alert_id>:push`)
+- `channel` (`push`, non-null)
+- `title` (`string`, non-null): formatted from notification title prefix + severity
+- `body` (`string`, non-null): user-visible alert summary
+- `route.name` (`keyword_detail|alerts`, non-null)
+- `route.params.keyword_id` (`string`, nullable): keyword detail target when available
+- `meta.alert_id` (`string`, non-null)
+- `meta.target_type` (`keyword|stock`, non-null)
+- `meta.target_id` (`string`, non-null)
+- `meta.target_label` (`string`, non-null)
+- `meta.keyword_id` (`string`, nullable)
+- `meta.severity` (`low|medium|high|critical`, non-null)
+- `meta.triggered_at` (`string`, non-null)
+
+Example:
+```json
+{
+  "delivery_id": "0c722c67-9186-4fa8-898f-4f0529a363f4:push",
+  "channel": "push",
+  "title": "SignalDesk | HIGH alert",
+  "body": "AI Infrastructure moved +5.20 in 24h (score 82.40)",
+  "route": {
+    "name": "keyword_detail",
+    "params": { "keyword_id": "00000000-0000-0000-0000-000000000101" }
+  },
+  "meta": {
+    "alert_id": "0c722c67-9186-4fa8-898f-4f0529a363f4",
+    "target_type": "keyword",
+    "target_id": "00000000-0000-0000-0000-000000000101",
+    "target_label": "AI Infrastructure",
+    "keyword_id": "00000000-0000-0000-0000-000000000101",
+    "severity": "high",
+    "triggered_at": "2026-03-08T06:22:40Z"
+  }
+}
+```

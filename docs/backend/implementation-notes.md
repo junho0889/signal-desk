@@ -1,74 +1,53 @@
-# Backend Implementation Notes (BE-002)
+# Backend Implementation Notes (BE-003)
 
 ## Scope Delivered
-BE-002 implements backend v1 contract-serving paths for:
-- `GET /v1/dashboard`
-- `GET /v1/keywords`
-- `GET /v1/keywords/{keyword_id}`
-- `GET /v1/watchlist`
-- `POST /v1/watchlist`
-- `GET /v1/alerts`
+BE-003 keeps the existing v1 endpoint surface intact and adds notification-delivery preparation for watchlist alerts.
 
-It also adds a jobs runtime baseline for:
-- schema migration application
-- demo data seeding
-- watchlist alert evaluation
+Delivered backend behavior:
+- `evaluate-alerts` still persists alert rows in `alerts`
+- new internal notification payload contract for downstream push delivery
+- configurable notification sink baseline:
+  - `none`: prepare nothing for delivery
+  - `stdout`: expose notification-ready payloads in command output for local verification
 
 ## Code Layout
-- `services/api/`: FastAPI contract server
-- `services/jobs/`: migration + data/jobs runner
-- `services/jobs/migrations/001_schema.sql`: BE-001-aligned schema bootstrap
+- `services/jobs/signaldesk_jobs/alerts.py`: alert persistence and created-alert metadata
+- `services/jobs/signaldesk_jobs/delivery.py`: notification payload builder and sink dispatcher
+- `services/jobs/signaldesk_jobs/config.py`: notification sink configuration
+- `services/jobs/signaldesk_jobs/main.py`: alert evaluation flow now includes delivery preparation
 
 ## Runtime Environment Variables
 - `SIGNALDESK_APP_DATABASE_URL`
   - runtime role: `signaldesk_app`
-  - used by API and data/jobs writes
 - `SIGNALDESK_MIGRATOR_DATABASE_URL`
   - runtime role: `signaldesk_migrator`
-  - used by migration command
 - `SIGNALDESK_ALERT_DELTA_THRESHOLD`
   - optional, default `2.0`
+- `SIGNALDESK_NOTIFICATION_SINK`
+  - optional, one of `none|stdout`
+  - default: `none`
+- `SIGNALDESK_NOTIFICATION_TITLE_PREFIX`
+  - optional title prefix for delivery payloads
+  - default: `SignalDesk`
 
-## Local Docker-First Bring-Up
-1. Start PostgreSQL container.
-2. Run migration job with migrator role.
-3. Seed demo data and evaluate alerts.
-4. Start API service and verify `/v1` endpoints.
-
-PowerShell example:
+## Local Verification
+Compile jobs package:
 ```powershell
-Set-Location E:\source\signal-desk
+python -m compileall services\jobs\signaldesk_jobs
+```
 
-# 1) postgres
-Copy-Item infra\local\.env.example infra\local\.env -ErrorAction SilentlyContinue
-docker compose -f infra/local/docker-compose.yml up -d postgres
-docker compose -f infra/local/docker-compose.yml ps
-
-# 2) env urls (replace passwords with your local .env values)
-$env:SIGNALDESK_MIGRATOR_DATABASE_URL="postgresql://signaldesk_migrator:<migrator_password>@127.0.0.1:5432/signaldesk"
-$env:SIGNALDESK_APP_DATABASE_URL="postgresql://signaldesk_app:<app_password>@127.0.0.1:5432/signaldesk"
-
-# 3) jobs
-python -m services.jobs.signaldesk_jobs.main migrate
-python -m services.jobs.signaldesk_jobs.main seed-demo
+Preview delivery payload formatting without external services:
+```powershell
+$env:SIGNALDESK_NOTIFICATION_SINK='stdout'
 python -m services.jobs.signaldesk_jobs.main evaluate-alerts
-
-# 4) api
-pip install -r services/api/requirements.txt
-uvicorn services.api.app.main:app --host 127.0.0.1 --port 8000
 ```
 
-## Contract Sanity Checks
-```powershell
-Invoke-RestMethod "http://127.0.0.1:8000/v1/dashboard"
-Invoke-RestMethod "http://127.0.0.1:8000/v1/keywords?period=daily&market=all&limit=20"
-Invoke-RestMethod "http://127.0.0.1:8000/v1/keywords/00000000-0000-0000-0000-000000000101?period=daily&points=24"
-Invoke-RestMethod "http://127.0.0.1:8000/v1/watchlist"
-Invoke-RestMethod "http://127.0.0.1:8000/v1/alerts?limit=20"
-Invoke-RestMethod -Method Post -Uri "http://127.0.0.1:8000/v1/watchlist" -ContentType "application/json" -Body '{"op":"add","target_type":"keyword","target_id":"00000000-0000-0000-0000-000000000103"}'
-```
+## Internal Delivery Contract
+- payload shape is documented in `docs/backend/api-contract.md` under `Internal Notification Payload`
+- stock-linked alerts route to keyword detail when `keyword_id` is available
+- unsupported sinks fail fast through config validation
 
 ## Known Gaps
-- authentication/user-scoped watchlist is out of MVP scope
-- cursor format is offset-token (`"0"`, `"20"`, ...), not opaque keyset
-- jobs runner is manual/one-shot baseline; scheduler/container integration is finalized in OPS-002
+- no FCM or external push provider integration yet
+- no durable notification outbox table yet; stdout sink is the local verification baseline
+- delivery retry, acknowledgement, and dead-letter handling remain future backend work
