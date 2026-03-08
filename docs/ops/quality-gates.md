@@ -14,11 +14,22 @@
 - QA review: defect-focused recheck on integrated or reviewable work
 
 ## Flutter Preview Gate
-- use `scripts/orchestrator/mobile-preview.ps1` or equivalent explicit commands when verifying mobile preview sessions
+- use `scripts/orchestrator/mobile-preview.ps1` when verifying mobile preview sessions
+- invoke the helper with `powershell -ExecutionPolicy Bypass -File ...`; do not change Windows execution policy globally from repo workflow
+- run `doctor` before `verify` or `run`
 - record whether the check was run in `mock` or `live` mode
+- for Android preview, record the exact `-DeviceId` used
 - `live` mode verification must confirm API health before claiming preview success
-- if preview smoke is blocked, record the exact blocker class: missing Flutter SDK, missing emulator or device, missing target platform scaffold in the mobile worktree, or unreachable live API
-- blocked preview is acceptable only when the handoff and resume note show the exact command and blocker outcome
+- record each stage separately: `mock doctor`, `mock verify`, `mock run`, `live doctor`, `live verify`, `live run`
+- if preview smoke is blocked, record every blocker category the helper reported, not just the first failure
+- blocked preview is acceptable only when the handoff and resume note show the exact command, target, mode, and blocker output
+
+## Blocker Classes
+- missing Flutter SDK
+- missing target platform scaffold in the mobile worktree
+- missing emulator or device
+- missing explicit Android device selection
+- unreachable live API
 
 ## Debugging Rules
 - reproduce before changing behavior when possible
