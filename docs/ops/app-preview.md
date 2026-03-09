@@ -1,50 +1,45 @@
-﻿# App Preview
+# App Preview
 
 ## Purpose
-Define how to inspect the app visually while development is in progress.
+Define a repeatable way to run the mobile app against live local API data.
 
-## Preview Modes
-- `flutter run -d windows`: fastest local layout preview if the app supports desktop
-- `flutter run -d chrome`: quick browser preview for layout and API wiring checks
-- `flutter run -d emulator-<id>`: primary Android preview during feature development
-- `flutter run -d <device-id>`: best validation path on a physical Android device
+## Live Integration Baseline
+- backend/API must run first (`infra/local/docker-compose.yml`)
+- mobile app must run with mock disabled:
+  - `--dart-define=SIGNALDESK_USE_MOCK=false`
+- current live preview reads the central app DB/API data path
+- collector spool data is not app-visible until collector-intake contracts are implemented (BE-005/BE-008/BE-009)
 
-## Recommended Progression
-1. use mock data and run the UI in a fast preview target first
-2. connect the app to the local Docker backend
-3. validate Android behavior in an emulator
-4. validate final behavior on a real Android device before release
-
-## Local Preview Windows
-- keep one support window for `docker compose up`
-- keep one support window for `flutter run`
-- launch the Android emulator separately when needed
-- do not count support windows as specialist worker sessions
-
-## Typical Commands
-Prepare backend:
+## Commands (Windows PowerShell)
+1. Start backend:
 - `Set-Location E:\source\signal-desk`
 - `docker compose --env-file .\infra\local\.env -f .\infra\local\docker-compose.yml up -d`
+- `docker compose --env-file .\infra\local\.env -f .\infra\local\docker-compose.yml ps`
 
-Run Flutter app from the future mobile worktree:
-- `Set-Location E:\source\signal-desk-worktrees\app-001`
+2. Verify API:
+- `Invoke-RestMethod "http://127.0.0.1:8000/healthz"`
+- `Invoke-RestMethod "http://127.0.0.1:8000/v1/dashboard"`
+
+3. Run app:
+- `Set-Location E:\source\signal-desk\app\mobile`
+- `flutter pub get`
 - `flutter devices`
-- `flutter run -d chrome`
-- `flutter run -d emulator-5554`
 
-Capture evidence for reviews:
-- take screenshots for major screens after each milestone
-- attach the preview target used in the handoff note
-- if layout differs by target, note the difference explicitly
+4. Run app with live API:
+- web server:
+  - `flutter run -d web-server --dart-define=SIGNALDESK_USE_MOCK=false --dart-define=SIGNALDESK_API_BASE_URL=http://127.0.0.1:8000 --web-port=7357`
+- chrome:
+  - `flutter run -d chrome --dart-define=SIGNALDESK_USE_MOCK=false --dart-define=SIGNALDESK_API_BASE_URL=http://127.0.0.1:8000`
+- android emulator:
+  - `flutter run -d emulator-5554 --dart-define=SIGNALDESK_USE_MOCK=false --dart-define=SIGNALDESK_API_BASE_URL=http://10.0.2.2:8000`
 
-## Preview Checklist
-- dashboard loads without empty-state confusion
-- keyword ranking is readable at phone width
-- detail screen shows score, evidence, and related items clearly
-- loading and error states are visible and understandable
-- local API endpoint configuration is documented
+## Base URL Rules
+- web/chrome/windows preview on same host: `http://127.0.0.1:8000`
+- Android emulator: `http://10.0.2.2:8000`
+- physical Android device: `http://<developer-pc-lan-ip>:8000`
 
-## When To Use Which Target
-- use browser preview for fast UI iteration
-- use emulator preview for Android behavior and navigation
-- use physical device preview for final acceptance and performance sanity checks
+## Verification Checklist
+- dashboard/ranking/detail/watchlist/alerts load from live API
+- watchlist add or remove succeeds and refresh reflects changes
+- alerts list returns server data (not static mock payload)
+- API errors show retry-capable UI state without app crash

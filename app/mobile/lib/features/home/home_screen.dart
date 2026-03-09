@@ -110,6 +110,15 @@ class _HomeScreenState extends State<HomeScreen> {
                       '${alert.severity.toUpperCase()} | '
                       '${alert.triggeredAt.toIso8601String()}',
                     ),
+                    onTap: () {
+                      if (alert.targetType == 'keyword' &&
+                          alert.targetId.isNotEmpty) {
+                        Navigator.of(context).pushNamed(
+                          AppRoutes.detail,
+                          arguments: alert.targetId,
+                        );
+                      }
+                    },
                   );
                 }),
               ],

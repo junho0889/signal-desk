@@ -98,7 +98,7 @@ class _RankingScreenState extends State<RankingScreen> {
                             'Reasons ${item.reasonTags.isEmpty ? '-' : item.reasonTags.join(', ')}\n'
                             'Risk ${item.riskFlags.isEmpty ? '-' : item.riskFlags.join(', ')}',
                           ),
-                          isFourLine: true,
+                          isThreeLine: true,
                           onTap: () => Navigator.of(context).pushNamed(
                             AppRoutes.detail,
                             arguments: item.keywordId,

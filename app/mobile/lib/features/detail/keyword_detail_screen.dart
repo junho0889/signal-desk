@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../core/models/api_models.dart';
 import '../../core/network/api_exception.dart';
@@ -25,6 +26,55 @@ class KeywordDetailScreen extends StatefulWidget {
 class _KeywordDetailScreenState extends State<KeywordDetailScreen> {
   late final LoadableController<KeywordDetailResponse> _controller;
   bool _watchlistUpdating = false;
+
+  Future<void> _copyLink(String rawUrl) async {
+    await Clipboard.setData(ClipboardData(text: rawUrl));
+    if (!mounted) {
+      return;
+    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Source link copied.')),
+    );
+  }
+
+  void _showNewsDetail(RelatedNewsItem item) {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text(
+                  item.title,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                const SizedBox(height: 8),
+                Text('Source: ${item.sourceName}'),
+                Text('Published: ${item.publishedAt.toIso8601String()}'),
+                if (item.relevanceScore != null)
+                  Text('Relevance: ${item.relevanceScore!.toStringAsFixed(3)}'),
+                const SizedBox(height: 12),
+                SelectableText(item.url),
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  child: FilledButton(
+                    onPressed: () => _copyLink(item.url),
+                    child: const Text('Copy Source Link'),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
 
   @override
   void initState() {
@@ -108,6 +158,29 @@ class _KeywordDetailScreenState extends State<KeywordDetailScreen> {
                 const SizedBox(height: 12),
                 Text(
                   'Related sectors: ${data.relatedSectors.isEmpty ? '-' : data.relatedSectors.join(', ')}',
+                ),
+                const SizedBox(height: 12),
+                const Text(
+                  'Related news (sources)',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                if (data.relatedNews.isEmpty)
+                  const ListTile(
+                    dense: true,
+                    title: Text('No related news sources available.'),
+                  ),
+                ...data.relatedNews.map(
+                  (news) => ListTile(
+                    dense: true,
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(news.title),
+                    subtitle: Text(
+                      '${news.sourceName} | ${news.publishedAt.toIso8601String()}\n${news.url}',
+                    ),
+                    isThreeLine: true,
+                    trailing: const Icon(Icons.open_in_new),
+                    onTap: () => _showNewsDetail(news),
+                  ),
                 ),
                 const SizedBox(height: 12),
                 const Text(

@@ -9,3 +9,8 @@ __pycache__/
 
 automation/runtime/*
 !automation/runtime/.gitignore
+/flutter/
+app/mobile/ios/
+app/mobile/linux/
+app/mobile/macos/
+app/mobile/windows/
