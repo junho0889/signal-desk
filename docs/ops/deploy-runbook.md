@@ -101,3 +101,31 @@ Retention baseline:
 - if jobs cycle fails twice consecutively: pause release and investigate
 - if role privilege drift is detected: block deploy until corrected
 - if API error rate spikes: investigate DB connectivity and recent bootstrap or jobs logs first
+
+## Collector Pi Deploy Smoke (COL-006)
+Target node:
+- host: `192.168.0.33`
+- user: `admin`
+- base path: `/home/admin/signal-desk-collector`
+
+Verified sequence:
+1. ssh and runtime checks:
+   - `ssh signaldesk-pi "echo SSH_OK && whoami && hostname"`
+   - `ssh signaldesk-pi "docker --version && docker compose version"`
+2. sync collector assets:
+   - `ssh signaldesk-pi "rm -rf ~/signal-desk-collector && mkdir -p ~/signal-desk-collector/infra ~/signal-desk-collector/services"`
+   - `scp -r "E:\source\signal-desk-worktrees\collector-006\infra\collector" signaldesk-pi:/home/admin/signal-desk-collector/infra/`
+   - `scp -r "E:\source\signal-desk-worktrees\collector-006\services\collector" signaldesk-pi:~/signal-desk-collector/services/`
+3. prepare env and clear stale named containers:
+   - `ssh signaldesk-pi "cd /home/admin/signal-desk-collector && cp infra/collector/.env.example infra/collector/.env"`
+   - `ssh signaldesk-pi "docker rm -f signaldesk-collector-db || true; docker rm -f signaldesk-collector-bootstrap signaldesk-collector-runner signaldesk-collector-shipper signaldesk-collector-monitor || true"`
+4. boot and run smoke:
+   - `ssh signaldesk-pi "cd /home/admin/signal-desk-collector && docker compose -f infra/collector/docker-compose.yml --env-file infra/collector/.env down -v --remove-orphans"`
+   - `ssh signaldesk-pi "cd /home/admin/signal-desk-collector && docker compose -f infra/collector/docker-compose.yml --env-file infra/collector/.env up -d collector-db"`
+   - `ssh signaldesk-pi "cd /home/admin/signal-desk-collector && docker compose -f infra/collector/docker-compose.yml --env-file infra/collector/.env run --rm collector-bootstrap"`
+   - `ssh signaldesk-pi "cd /home/admin/signal-desk-collector && docker compose -f infra/collector/docker-compose.yml --env-file infra/collector/.env run --rm collector-runner"`
+5. verify spool evidence:
+   - `ssh signaldesk-pi "cd /home/admin/signal-desk-collector && cat infra/collector/queries/spool-evidence.sql | docker compose -f infra/collector/docker-compose.yml --env-file infra/collector/.env exec -T collector-db psql -U collector -d signaldesk_collector -f -"`
+   - `ssh signaldesk-pi "cd /home/admin/signal-desk-collector && docker compose -f infra/collector/docker-compose.yml --env-file infra/collector/.env run --rm collector-shipper"`
+   - `ssh signaldesk-pi "cd /home/admin/signal-desk-collector && cat infra/collector/queries/spool-idempotency.sql | docker compose -f infra/collector/docker-compose.yml --env-file infra/collector/.env exec -T collector-db psql -U collector -d signaldesk_collector -f -"`
+   - `ssh signaldesk-pi "cd /home/admin/signal-desk-collector && docker compose -f infra/collector/docker-compose.yml --env-file infra/collector/.env ps"`
