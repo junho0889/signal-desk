@@ -1,5 +1,5 @@
 version: 1
-last_updated: 2026-03-08
+last_updated: 2026-03-10
 tasks:
   - id: ORCH-001
     title: Initialize repo conventions and specialist roles
@@ -873,5 +873,22 @@ tasks:
       - QA verifies fixture ingestion reaches the local collector test database with expected metadata
       - QA checks that weak, duplicate, or stale payload handling is explicit and testable
       - QA verdict states whether collector implementation is ready for broader source rollout
+  - id: COL-008
+    title: Implement metadata-enriched collector payloads with source links and evidence summary
+    owner: signal-desk-collector
+    status: done
+    depends_on: []
+    files:
+      - services/collector/
+      - infra/collector/
+      - docs/data/collector-metadata-quality-v1.md
+      - docs/data/source-catalog.md
+      - coordination/dispatches/COL-008.md
+      - coordination/handoffs/COL-008.md
+      - coordination/resume/COL-008.md
+    acceptance:
+      - collector spool row includes canonical URL, publisher domain, summary or excerpt, and outbound reference links when available
+      - fixture ingest proves metadata completeness and quality-state behavior for link-rich and link-poor payloads
+      - verification includes exact spool queries showing evidence metadata fields and counts
 
 

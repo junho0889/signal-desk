@@ -28,6 +28,9 @@ SignalDesk should prefer fewer high-quality payloads over a larger pile of weak,
 - `region`
 - `content_type`
 - `summary_text`
+- `excerpt_text`
+- `published_at`
+- `outbound_links[]` (`url`, `domain`, `label`, `type`, `extraction_confidence`)
 - `symbol_candidates`
 - `keyword_candidates`
 - `duplicate_of_hash`
@@ -48,6 +51,12 @@ SignalDesk should prefer fewer high-quality payloads over a larger pile of weak,
 - `mapping_low_confidence`
 - `quarantined`
 - `dead_letter`
+
+## Evidence Quality Rules (COL-008 Freeze)
+- missing evidence: if both `summary_text` and `excerpt_text` are empty and `outbound_links[]` is empty, set `quality_state=metadata_incomplete` with reason `missing_evidence_fields`
+- malformed evidence links: if any outbound link cannot be normalized to a valid URL/domain, set `quality_state=quarantined` with reason `malformed_outbound_links`
+- weak evidence: very short explainability text (below collector threshold) with no strong outbound-link support should set `quality_state=accepted_degraded` with reason `weak_evidence`
+- duplicate evidence: idempotency collisions should keep replayability while marking the row `quality_state=duplicate` with reason `duplicate_payload`
 
 ## Non-AI Filters The Collector Must Apply
 - canonical URL normalization

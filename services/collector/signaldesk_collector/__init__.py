@@ -1,0 +1,2 @@
+"""SignalDesk collector service package."""
+
