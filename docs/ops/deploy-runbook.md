@@ -111,7 +111,7 @@ Retention baseline:
 ### SSH Auth Preflight (Required)
 Run this exact command first:
 ```powershell
-ssh -o BatchMode=yes -o ConnectTimeout=10 -p 22 admin@192.168.0.33 "echo SSH_OK"
+ssh signaldesk-pi "echo SSH_OK"
 ```
 
 If it returns:
@@ -120,14 +120,21 @@ Permission denied (publickey,password)
 ```
 then remote deployment cannot proceed.
 
-Root cause from COL-007 debug baseline:
-- host is reachable on TCP 22
-- remote server offers `publickey,password`
-- local machine has no usable SSH identity at default paths for non-interactive auth
+Validated host alias config used for stable runs:
+```sshconfig
+Host signaldesk-pi
+  HostName 192.168.0.33
+  User admin
+  Port 22
+  IdentityFile ~/.ssh/signaldesk_pi_ed25519
+  IdentitiesOnly yes
+  PreferredAuthentications publickey,password
+  StrictHostKeyChecking accept-new
+```
 
 ### Focused Fix For Deployment Path
 1. Provision key auth for `admin@192.168.0.33`:
-   - ensure a local private key exists (default expected by scripts): `C:\Users\admin\.ssh\id_ed25519`
+   - ensure local private key exists at `C:\Users\admin\.ssh\signaldesk_pi_ed25519`
    - add its public key to the Pi user's `~/.ssh/authorized_keys` (one-time operator action)
 2. Re-run the same preflight command until it prints `SSH_OK`.
 
@@ -148,12 +155,12 @@ This script executes:
 
 ### Manual Equivalent (If Script Is Not Used)
 ```powershell
-ssh -o BatchMode=yes -o ConnectTimeout=10 -p 22 admin@192.168.0.33 "docker --version"
-ssh -o BatchMode=yes -o ConnectTimeout=10 -p 22 admin@192.168.0.33 "docker compose version"
-scp -P 22 -r infra/collector admin@192.168.0.33:~/signal-desk/infra/
-scp -P 22 -r services/collector admin@192.168.0.33:~/signal-desk/services/
-ssh -o BatchMode=yes -o ConnectTimeout=10 -p 22 admin@192.168.0.33 "docker compose -f ~/signal-desk/infra/collector/docker-compose.yml --env-file ~/signal-desk/infra/collector/.env.example up -d collector-db"
-ssh -o BatchMode=yes -o ConnectTimeout=10 -p 22 admin@192.168.0.33 "docker compose -f ~/signal-desk/infra/collector/docker-compose.yml --env-file ~/signal-desk/infra/collector/.env.example run --rm collector-bootstrap"
-ssh -o BatchMode=yes -o ConnectTimeout=10 -p 22 admin@192.168.0.33 "docker compose -f ~/signal-desk/infra/collector/docker-compose.yml --env-file ~/signal-desk/infra/collector/.env.example run --rm collector-runner"
-ssh -o BatchMode=yes -o ConnectTimeout=10 -p 22 admin@192.168.0.33 "cat ~/signal-desk/infra/collector/queries/spool-evidence.sql | docker compose -f ~/signal-desk/infra/collector/docker-compose.yml --env-file ~/signal-desk/infra/collector/.env.example exec -T collector-db psql -U collector -d signaldesk_collector -f -"
+ssh signaldesk-pi "docker --version"
+ssh signaldesk-pi "docker compose version"
+scp -r infra/collector signaldesk-pi:~/signal-desk/infra/
+scp -r services/collector signaldesk-pi:~/signal-desk/services/
+ssh signaldesk-pi "docker compose -f ~/signal-desk/infra/collector/docker-compose.yml --env-file ~/signal-desk/infra/collector/.env down -v --remove-orphans"
+ssh signaldesk-pi "docker compose -f ~/signal-desk/infra/collector/docker-compose.yml --env-file ~/signal-desk/infra/collector/.env run --rm collector-bootstrap"
+ssh signaldesk-pi "docker compose -f ~/signal-desk/infra/collector/docker-compose.yml --env-file ~/signal-desk/infra/collector/.env run --rm collector-runner"
+ssh signaldesk-pi "cat ~/signal-desk/infra/collector/queries/spool-evidence.sql | docker compose -f ~/signal-desk/infra/collector/docker-compose.yml --env-file ~/signal-desk/infra/collector/.env exec -T collector-db psql -U collector -d signaldesk_collector -f -"
 ```

@@ -2,8 +2,9 @@ param(
     [string]$PiHost = "192.168.0.33",
     [int]$PiPort = 22,
     [string]$PiUser = "admin",
-    [string]$SshKeyPath = "$env:USERPROFILE\.ssh\id_ed25519",
-    [string]$RemoteRoot = "~/signal-desk"
+    [string]$SshKeyPath = "$env:USERPROFILE\.ssh\signaldesk_pi_ed25519",
+    [string]$RemoteRoot = "~/signal-desk",
+    [string]$CollectorServicesPath = ""
 )
 
 $ErrorActionPreference = "Stop"
@@ -63,7 +64,12 @@ if (-not (Test-Path $SshKeyPath)) {
 
 $repoRoot = Resolve-Path (Join-Path $PSScriptRoot "..\..")
 $infraCollectorPath = Join-Path $repoRoot "infra\collector"
-$servicesCollectorPath = Join-Path $repoRoot "services\collector"
+$servicesCollectorPath = if ([string]::IsNullOrWhiteSpace($CollectorServicesPath)) {
+    Join-Path $repoRoot "services\collector"
+}
+else {
+    $CollectorServicesPath
+}
 
 if (-not (Test-Path (Join-Path $infraCollectorPath "docker-compose.yml"))) {
     throw "Collector infra assets are missing under: $infraCollectorPath"
