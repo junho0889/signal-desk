@@ -6,7 +6,7 @@ import hashlib
 import json
 from pathlib import Path
 from typing import Any
-from urllib.parse import urlparse
+from urllib.parse import urlparse, urlunparse
 import uuid
 
 from .config import Settings, load_settings
@@ -20,6 +20,12 @@ STALE_THRESHOLDS_HOURS = {
     "search_trends": 6,
     "market_ohlcv": 6,
     "dart_disclosures": 24 * 7,
+}
+REQUIRED_FIELDS_BY_SOURCE = {
+    "news_primary": ("source_name", "title", "published_at"),
+    "search_trends": ("keyword", "region", "window_end"),
+    "market_ohlcv": ("symbol", "ts"),
+    "dart_disclosures": ("filing_id", "filed_at", "title"),
 }
 
 
@@ -38,15 +44,129 @@ def _normalize_title(title: str) -> str:
     return " ".join(title.strip().lower().split())
 
 
+def _normalize_whitespace(value: Any) -> str:
+    if value is None:
+        return ""
+    return " ".join(str(value).strip().split())
+
+
+def _normalize_timestamp_literal(raw_value: Any) -> str:
+    raw = _normalize_whitespace(raw_value)
+    if not raw:
+        return ""
+    try:
+        parsed = _parse_upstream_ts(raw)
+    except (TypeError, ValueError):
+        return raw
+    if parsed is None:
+        return ""
+    return parsed.replace(microsecond=0).isoformat()
+
+
+def _normalize_url(raw_url: Any) -> str:
+    value = _normalize_whitespace(raw_url)
+    if not value:
+        return ""
+    parsed = urlparse(value)
+    host = (parsed.hostname or "").lower()
+    scheme = (parsed.scheme or "https").lower()
+    path = parsed.path or "/"
+    if path != "/" and path.endswith("/"):
+        path = path.rstrip("/")
+    return urlunparse((scheme, host, path, "", "", ""))
+
+
+def _synthetic_url(source_id: str, row: dict[str, Any]) -> str:
+    if source_id == "search_trends":
+        key = "|".join(
+            (
+                _normalize_whitespace(row.get("keyword")).lower(),
+                _normalize_whitespace(row.get("region")).lower(),
+                _normalize_timestamp_literal(row.get("window_end")),
+            )
+        )
+    elif source_id == "market_ohlcv":
+        key = "|".join(
+            (
+                _normalize_whitespace(row.get("symbol")).upper(),
+                _normalize_timestamp_literal(row.get("ts")),
+            )
+        )
+    elif source_id == "dart_disclosures":
+        key = _normalize_whitespace(row.get("filing_id"))
+    else:
+        key = _normalize_whitespace(row.get("external_id")) or _normalize_whitespace(
+            row.get("title")
+        )
+    key_hash = hashlib.sha1(key.encode("utf-8")).hexdigest()[:16]
+    return f"https://synthetic.signaldesk.local/{source_id}/{key_hash}"
+
+
+def _normalize_market_scope(raw_scope: Any, default_scope: str) -> str:
+    value = _normalize_whitespace(raw_scope).upper()
+    if not value:
+        return default_scope.upper()
+    aliases = {
+        "KOSPI": "KRX",
+        "KOSDAQ": "KRX",
+        "NASDAQ": "US",
+        "NYSE": "US",
+        "AMEX": "US",
+    }
+    return aliases.get(value, value)
+
+
+def _normalize_row(settings: Settings, row: dict[str, Any]) -> dict[str, Any]:
+    normalized = dict(row)
+    normalized["source_name"] = _normalize_whitespace(
+        row.get("source_name") or row.get("issuer") or settings.source_id
+    )
+    normalized["title"] = _normalize_whitespace(row.get("title"))
+    normalized["language"] = _normalize_whitespace(
+        row.get("language", settings.default_language)
+    ).lower()
+    normalized["market_scope"] = _normalize_market_scope(
+        row.get("market_scope", settings.default_market_scope),
+        settings.default_market_scope,
+    )
+    normalized["external_id"] = _normalize_whitespace(row.get("external_id"))
+    normalized["published_at"] = _normalize_timestamp_literal(row.get("published_at"))
+    normalized["window_end"] = _normalize_timestamp_literal(row.get("window_end"))
+    normalized["ts"] = _normalize_timestamp_literal(row.get("ts"))
+    normalized["filed_at"] = _normalize_timestamp_literal(row.get("filed_at"))
+    normalized["url"] = _normalize_url(row.get("url")) or _synthetic_url(
+        settings.source_id, row
+    )
+    return normalized
+
+
 def _idempotency_key(source_id: str, row: dict[str, Any]) -> str:
     if source_id == "news_primary":
-        material = f"{row.get('source_name', '')}|{_normalize_title(row.get('title', ''))}|{row.get('published_at', '')}"
+        material = "|".join(
+            (
+                _normalize_whitespace(row.get("source_name")).lower(),
+                _normalize_title(str(row.get("title", ""))),
+                _normalize_url(row.get("url")),
+                _normalize_timestamp_literal(row.get("published_at")),
+            )
+        )
     elif source_id == "search_trends":
-        material = f"{row.get('keyword', '')}|{row.get('region', '')}|{row.get('window_end', '')}"
+        material = "|".join(
+            (
+                _normalize_whitespace(row.get("keyword")).lower(),
+                _normalize_whitespace(row.get("region")).lower(),
+                _normalize_timestamp_literal(row.get("window_end")),
+            )
+        )
     elif source_id == "market_ohlcv":
-        material = f"{row.get('symbol', '')}|{row.get('ts', '')}"
+        material = "|".join(
+            (
+                _normalize_whitespace(row.get("symbol")).upper(),
+                _normalize_timestamp_literal(row.get("ts")),
+            )
+        )
     elif source_id == "dart_disclosures":
-        material = str(row.get("filing_id", ""))
+        material = _normalize_whitespace(row.get("filing_id"))
     else:
         canonical = json.dumps(row, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
         material = canonical
@@ -78,8 +198,11 @@ def _infer_upstream_event_raw(source_id: str, row: dict[str, Any]) -> str | None
 
 
 def _validate_envelope(row: dict[str, Any], settings: Settings, now: datetime) -> dict[str, Any]:
-    required_payload_fields = ("source_name", "title", "url")
-    missing = [key for key in required_payload_fields if not row.get(key)]
+    required_payload_fields = REQUIRED_FIELDS_BY_SOURCE.get(
+        settings.source_id,
+        ("source_name", "title"),
+    )
+    missing = [key for key in required_payload_fields if not _normalize_whitespace(row.get(key))]
     if missing:
         return {
             "ingest_status": "rejected",
@@ -90,7 +213,7 @@ def _validate_envelope(row: dict[str, Any], settings: Settings, now: datetime) -
             "publisher_domain": "",
         }
 
-    url = str(row["url"])
+    url = _normalize_url(row.get("url"))
     publisher_domain = (urlparse(url).hostname or "").lower()
     if not publisher_domain:
         return {
@@ -105,7 +228,7 @@ def _validate_envelope(row: dict[str, Any], settings: Settings, now: datetime) -
     upstream_raw = _infer_upstream_event_raw(settings.source_id, row)
     try:
         upstream_event_at = _parse_upstream_ts(upstream_raw)
-    except ValueError:
+    except (TypeError, ValueError):
         return {
             "ingest_status": "rejected",
             "quality_state": "dead_letter",
@@ -124,7 +247,7 @@ def _validate_envelope(row: dict[str, Any], settings: Settings, now: datetime) -
         quality_state = "accepted_degraded"
         reason_code = "metadata_incomplete"
 
-    language = str(row.get("language", settings.default_language)).lower()
+    language = _normalize_whitespace(row.get("language", settings.default_language)).lower()
     if language not in KNOWN_LANGUAGES and quality_state == "accepted":
         quality_state = "accepted_degraded"
         reason_code = "unknown_language"
@@ -242,6 +365,11 @@ def command_ingest_fixture(fixture_path: str | None) -> None:
         DO UPDATE SET
             payload_hash = EXCLUDED.payload_hash,
             raw_payload_json = EXCLUDED.raw_payload_json,
+            publisher_domain = EXCLUDED.publisher_domain,
+            canonical_url = EXCLUDED.canonical_url,
+            language = EXCLUDED.language,
+            market_scope = EXCLUDED.market_scope,
+            title = EXCLUDED.title,
             ingest_status = 'accepted',
             quality_state = 'duplicate',
             status = 'pending',
@@ -255,9 +383,10 @@ def command_ingest_fixture(fixture_path: str | None) -> None:
     with connect(settings.db_url) as conn:
         with conn.cursor() as cur:
             for row in fixture_rows:
-                validator = _validate_envelope(row, settings, now)
-                idem_key = _idempotency_key(settings.source_id, row)
-                payload_hash = _payload_hash(row)
+                normalized_row = _normalize_row(settings, row)
+                validator = _validate_envelope(normalized_row, settings, now)
+                idem_key = _idempotency_key(settings.source_id, normalized_row)
+                payload_hash = _payload_hash(normalized_row)
 
                 params = {
                     "spool_id": str(uuid.uuid5(SPOOL_NAMESPACE, idem_key)),
@@ -266,15 +395,17 @@ def command_ingest_fixture(fixture_path: str | None) -> None:
                     "collector_node_id": settings.collector_node_id,
                     "collected_at": now,
                     "upstream_event_at": validator["upstream_event_at"],
-                    "publisher_name": row.get("source_name", "unknown"),
+                    "publisher_name": normalized_row.get("source_name", "unknown"),
                     "publisher_domain": validator["publisher_domain"],
-                    "canonical_url": row.get("url", ""),
-                    "external_id": row.get("external_id"),
+                    "canonical_url": normalized_row.get("url", ""),
+                    "external_id": normalized_row.get("external_id") or None,
                     "payload_hash": payload_hash,
                     "payload_version": "v1",
-                    "language": row.get("language", settings.default_language).lower(),
-                    "market_scope": row.get("market_scope", settings.default_market_scope),
-                    "title": row.get("title", "missing_title"),
+                    "language": normalized_row.get("language", settings.default_language).lower(),
+                    "market_scope": normalized_row.get(
+                        "market_scope", settings.default_market_scope
+                    ),
+                    "title": normalized_row.get("title", "missing_title"),
                     "raw_payload_json": json.dumps(row, ensure_ascii=False),
                     "idempotency_key": idem_key,
                     "ingest_status": validator["ingest_status"],
@@ -325,6 +456,7 @@ def _shipper_outcome(settings: Settings) -> dict[str, Any]:
             "last_error_code": f"central_offline_{settings.central_host}",
             "reason_code": "storage_unavailable",
             "transport_status": "offline_retry",
+            "increment_retry": True,
         }
 
     if settings.shipper_mode == "simulate-intake":
@@ -352,6 +484,14 @@ def _shipper_outcome(settings: Settings) -> dict[str, Any]:
             "rejected": "rejected",
             "retryable_failure": None,
         }
+        transport_map = {
+            "accepted": "delivered",
+            "accepted_degraded": "delivered",
+            "duplicate": "delivered",
+            "quarantined": "intake_response",
+            "rejected": "intake_response",
+            "retryable_failure": "offline_retry",
+        }
         intake_status = settings.simulated_intake_status
         return {
             "status": status_map.get(intake_status, "pending"),
@@ -362,7 +502,8 @@ def _shipper_outcome(settings: Settings) -> dict[str, Any]:
             if intake_status in ("rejected", "retryable_failure")
             else None,
             "reason_code": settings.simulated_reason_code,
-            "transport_status": "intake_response",
+            "transport_status": transport_map.get(intake_status, "intake_response"),
+            "increment_retry": intake_status == "retryable_failure",
         }
 
     return {
@@ -373,6 +514,7 @@ def _shipper_outcome(settings: Settings) -> dict[str, Any]:
         "last_error_code": None,
         "reason_code": None,
         "transport_status": "shipping",
+        "increment_retry": False,
     }
 
 
@@ -399,7 +541,7 @@ def command_ship_once() -> None:
                     """
                     UPDATE spool_items
                     SET
-                        retry_count = retry_count + 1,
+                        retry_count = CASE WHEN %(increment_retry)s THEN retry_count + 1 ELSE retry_count END,
                         last_ship_attempt_at = now(),
                         status = %(status)s,
                         quality_state = COALESCE(%(quality_state)s, quality_state),
@@ -420,6 +562,7 @@ def command_ship_once() -> None:
                         "last_error_code": outcome["last_error_code"],
                         "reason_code": outcome["reason_code"],
                         "transport_status": outcome["transport_status"],
+                        "increment_retry": outcome["increment_retry"],
                     },
                 )
         conn.commit()

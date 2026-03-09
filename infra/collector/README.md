@@ -20,3 +20,10 @@ docker compose -f infra/collector/docker-compose.yml --env-file infra/collector/
 ```powershell
 powershell -ExecutionPolicy Bypass -File infra/collector/reset-test-db.ps1 -StartDb
 ```
+
+## Evidence Queries
+```powershell
+Get-Content -Raw 'infra/collector/queries/spool-evidence.sql' | docker compose -f infra/collector/docker-compose.yml --env-file infra/collector/.env.example exec -T collector-db psql -U collector -d signaldesk_collector -f -
+Get-Content -Raw 'infra/collector/queries/spool-idempotency.sql' | docker compose -f infra/collector/docker-compose.yml --env-file infra/collector/.env.example exec -T collector-db psql -U collector -d signaldesk_collector -f -
+Get-Content -Raw 'infra/collector/queries/spool-quality-summary.sql' | docker compose -f infra/collector/docker-compose.yml --env-file infra/collector/.env.example exec -T collector-db psql -U collector -d signaldesk_collector -f -
+```
