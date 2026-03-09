@@ -29,3 +29,8 @@
 - implement `EV2` list rows on Detail `Z4`, newest first
 - keep `Open source` always visible when URL exists; disabled `Source unavailable` when URL missing
 - keep stale/evidence warnings inline in the evidence time row, not in a separate modal/tab
+
+## Checkpoint
+- commit: `b31b24c`
+- branch: `codex/design-003`
+- pushed: yes (`origin/codex/design-003`)

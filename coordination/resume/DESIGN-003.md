@@ -34,8 +34,8 @@
 - `coordination/resume/DESIGN-003.md`
 
 ## Last Commit And Push
-- commit: pending
-- push: pending
+- commit: `b31b24c` (`DESIGN-003 docs: freeze evidence UI placement and degraded states`)
+- push: `origin/codex/design-003`
 
 ## Notes For Next Session
 - do not expand scope beyond evidence presentation on visible mobile surfaces.
