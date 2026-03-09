@@ -25,6 +25,34 @@ Production polish rules for primary mobile surfaces:
 - secondary radius: `10dp`
 - minimum tap target: `44dp`
 
+## Evidence Contract Alignment (DESIGN-003)
+Use only fields already in API v1 plus additive fields from `WAVE-EVIDENCE-001`.
+
+Field-slot mapping:
+- publisher label:
+  - v1 fallback: `related_news[].source_name`
+  - additive target: `publisher_name`
+- publisher domain chip:
+  - v1 fallback: parse host from `related_news[].url`
+  - additive target: `publisher_domain`
+- published time:
+  - v1 fallback: `related_news[].published_at`
+  - additive target: `published_at`
+- evidence headline:
+  - v1 fallback: `related_news[].title`
+  - additive target: `title`
+- primary outbound link:
+  - v1 fallback: `related_news[].url`
+  - additive target: `canonical_url`
+- summary/excerpt body:
+  - v1 fallback: unavailable
+  - additive target: `summary_text` then `excerpt_text`
+- outbound reference count:
+  - v1 fallback: unavailable
+  - additive target: `outbound_links[]`
+
+Do not invent additional evidence fields in app rendering.
+
 ## Typography And Formatting
 - `hero_value`: 24/28 semibold with tabular numerals
 - `section_title`: 17/22 semibold
@@ -113,6 +141,61 @@ Use this as implementation freeze guidance for mobile polish.
 - trust state must be visible in ranking row and detail top fold
 - contradiction state cannot be hidden behind tabs
 - stale age and interpretation note must appear together on each primary screen
+
+### F7 Evidence Placement Freeze
+Component IDs:
+- `EV1` compact evidence preview card (Home and Ranking entry surfaces)
+- `EV2` detail evidence row (Keyword Detail list body)
+- `EV3` link action strip (primary source link + optional references)
+
+`EV1` structure (`min-height: 88dp`):
+1. line 1: publisher badge + domain chip + relative time
+2. line 2: headline (`maxLines=2`)
+3. line 3: trust/freshness cue + `Open source` action
+
+`EV2` structure (`min-height: 112dp`):
+1. line 1: publisher badge + domain chip + absolute+relative time
+2. line 2: headline (`maxLines=2`)
+3. line 3: summary/excerpt (`maxLines=3`; hide line when missing)
+4. line 4: `EV3` action strip
+
+`EV3` action strip:
+- primary button: `Open source` (external-link icon trailing)
+- secondary link: `View references (n)` only when `outbound_links[]` exists
+- action order is fixed: primary left, secondary right
+- both actions respect `44dp` touch target
+
+### F8 Evidence Link Affordance And Safety
+- `Open source` is always visible when source URL exists.
+- If URL is missing, keep row visible and show disabled `Source unavailable` text in action slot.
+- link action failure state must keep user in place and show one inline message: `Could not open link. Try again.`
+- no silent redirect and no auto-open behavior on row render.
+
+### F9 Evidence Degraded States
+- metadata-incomplete row (missing publisher or time):
+  - show placeholder `-` for missing slot
+  - keep headline and source action if URL exists
+- summary-missing row:
+  - remove summary line; do not collapse publisher/time line
+- stale-evidence state:
+  - show stale cue in same row as time using warning icon + label
+  - stale cue source: `risk_flags` and/or generated-time age context
+- empty evidence list:
+  - show neutral card `No evidence available yet` + `Refresh`
+- evidence-load error:
+  - show inline error card above list and keep retry action in same zone
+
+### F10 KR/EN Evidence Typography And Spacing
+- publisher/domain/time line uses `label` style and `8dp` horizontal chip padding.
+- headline uses `body` style, `maxLines=2`, ellipsis, no uppercase transform.
+- summary uses `micro` style, `maxLines=3`, line-height `14`.
+- fixed vertical rhythm inside each evidence row: `8dp` between line groups.
+
+### F11 No-Go Patterns
+- do not place source link only behind overflow menu
+- do not hide publish time behind a secondary detail screen
+- do not use color-only state indication for stale or trust warnings
+- do not reorder publisher/time/link slots between rows
 
 ## Acceptance Gate For Mobile
 - first-time user can identify primary action within 3 seconds on each screen

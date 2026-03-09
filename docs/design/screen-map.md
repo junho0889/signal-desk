@@ -42,6 +42,9 @@ Text-fit rules at all breakpoints:
 API mapping:
 - `GET /dashboard.generated_at` -> `Z0`
 - `top_keywords[]` -> `Z1` + `Z2`
+- top-keyword evidence preview:
+  - v1 fallback: `GET /keywords/{keyword_id}.related_news[0]`
+  - additive target: compact evidence block on dashboard payload
 - `hot_sectors[]` -> `Z3`
 - `risk_alerts[]` -> `Z4`
 
@@ -49,13 +52,19 @@ Layout blueprint:
 - `Z0`: sticky freshness rail
 - `Z1`: top-keyword hero list (top 3)
 - `Z2`: trust and risk strip for hero items
-- `Z3`: sector movers list
-- `Z4`: recent alerts list
-- `Z5`: primary action (`View full ranking`)
+- `Z3`: sector movers list + chart entry hint
+- `Z4`: `EV1` evidence preview row directly under each visible hero keyword
+- `Z5`: recent alerts list then primary action (`View full ranking`)
+
+Concrete zone mapping example (Home first hero):
+1. `Z1`: `AI Infrastructure` hero movement card
+2. `Z2`: trust and freshness chips
+3. `Z4`: `EV1` (`Ked Global | kedglobal.com | 12m ago` + headline + `Open source`)
+4. `Z5`: primary action (`View full ranking`)
 
 Action contract:
 - primary: navigate to ranking from `Z5`
-- secondary: tap keyword card to detail
+- secondary: tap keyword card to detail, or tap `EV1` `Open source`
 
 ## Keyword Ranking
 
@@ -71,11 +80,12 @@ Layout blueprint:
   1. rank + keyword
   2. movement (`score`, `delta_1d`) + CE1 sparkline
   3. trust/freshness cue
-  4. evidence cue (`reason_tags`, related sector)
+  4. compact evidence cue (`publisher/time` from `EV1`) + link icon
 
 Action contract:
 - primary: full-row tap -> keyword detail
 - secondary: sticky filter controls
+- chart entry: tapping CE1 opens detail anchored to `Z3` chart block
 
 ## Keyword Detail
 
@@ -83,7 +93,8 @@ API mapping:
 - `GET /keywords/{keyword_id}.generated_at` -> `Z0`
 - `score_summary` -> `Z1` + `Z2` + CE3 inputs
 - `timeseries[]` -> `Z3` CE2 chart
-- `reason_block`, `risk_flags` -> `Z4`
+- `reason_block`, `risk_flags`, `related_news[]` -> `Z4`
+- additive target in `Z4`: evidence list fields (`publisher_name`, `publisher_domain`, `canonical_url`, `summary_text` or `excerpt_text`, `published_at`, `outbound_links[]`)
 - `POST /watchlist` -> `Z5`
 
 Layout blueprint:
@@ -91,12 +102,18 @@ Layout blueprint:
 - `Z1`: keyword header + movement card
 - `Z2`: trust/freshness cards (2-col on standard/wide, 1-col on compact)
 - `Z3`: contradiction card (conditional) + CE2 trend chart
-- `Z4`: contribution entry + reason summary + related entities
+- `Z4`: contribution entry + reason summary + `EV2` evidence list (latest first)
 - `Z5`: watchlist primary action (top fold trailing + sticky bottom)
+
+Concrete zone mapping example (Detail top evidence row):
+1. `Z4` row header: `Reuters | reuters.com | 2026-03-09 08:12 (18m ago)`
+2. `Z4` row body: headline (2 lines) + summary (up to 3 lines)
+3. `Z4` row actions: `Open source` + `View references (3)` when available
 
 Action contract:
 - primary: `Add/Remove Watchlist` always visible in top fold and sticky bottom
 - secondary: contradiction jump link to evidence block
+- evidence link action: `Open source` from each `EV2` row
 
 ## Watchlist
 
@@ -144,14 +161,17 @@ Action contract:
 
 ### Loading
 - skeleton geometry must match final card/list geometry
+- evidence skeleton must include publisher/time line, headline block, and action strip placeholders
 
 ### Error
 - summary and retry in one card
 - retry control must meet `44x44dp` minimum
+- evidence-list error remains in `Z4` and does not replace `Z1-Z3`
 
 ### Stale
 - stale age appears in `Z0`
 - interpretation note appears in `Z2` or top-of-list context
+- evidence stale cue appears inside each evidence row time slot
 
 ## Mobile Acceptance Checks
 - hierarchy:
@@ -166,6 +186,10 @@ Action contract:
   - no clipping with long Korean strings in title, reason, or alert message fields
 - chart clarity:
   - CE1 and CE2 render with title, start/end value context, and non-color-only differentiation
+- evidence placement:
+  - Home and Detail both render visible evidence entry surfaces without opening a secondary tab
+- link affordance:
+  - source link action is visible, labeled, and reachable in one tap on every evidence row
 
 ## Trust Visibility Rules
 - trust state remains visible in ranking rows, detail top fold, watchlist rows, and alerts metadata

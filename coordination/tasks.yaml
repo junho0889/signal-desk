@@ -1,5 +1,5 @@
 version: 1
-last_updated: 2026-03-08
+last_updated: 2026-03-10
 tasks:
   - id: ORCH-001
     title: Initialize repo conventions and specialist roles
@@ -490,6 +490,22 @@ tasks:
       - chart and stat-card patterns are defined for mobile use
       - design direction supports trust, freshness, ranking, and evidence in one glance
       - updated screen-map guidance is concrete enough for implementation planning
+  - id: DESIGN-003
+    title: Design evidence-first mobile presentation for source links and explainability context
+    owner: signal-desk-design
+    status: done
+    depends_on:
+      - COL-008
+    files:
+      - docs/design/analytics-visual-system.md
+      - docs/design/screen-map.md
+      - coordination/dispatches/DESIGN-003.md
+      - coordination/handoffs/DESIGN-003.md
+      - coordination/resume/DESIGN-003.md
+    acceptance:
+      - screen guidance defines where source links, publisher metadata, and evidence summary appear in home and detail
+      - link affordance, trust cues, and readability rules are explicit for Korean and English
+      - mobile lane can implement without inventing placement or hierarchy rules
   - id: APP-006
     title: Plan mobile integration for charts, trust surfaces, and next-phase analytics UI
     owner: signal-desk-mobile
