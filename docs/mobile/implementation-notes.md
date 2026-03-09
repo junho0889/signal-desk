@@ -125,6 +125,49 @@ Outcome:
 - `run -d chrome ... --no-resident`: launch smoke succeeded (`Waiting for connection from debug service on Chrome...`, `Application finished.`) after Flutter pre-launch warning (`This application is not configured to build on the web.`)
 - `run -d windows ... --no-resident`: expected failure in this repo because Windows desktop project is not configured
 
+## APP Data Debug Pass (APP-005 Follow-Up)
+Goal: verify fixture-backed and live API behavior, then separate app bugs from backend-contract blockers.
+
+Data-path validation:
+- fixture-backed app path (`SIGNALDESK_USE_MOCK=true`) launches cleanly
+- live API path (`SIGNALDESK_USE_MOCK=false`, `SIGNALDESK_API_BASE_URL=http://127.0.0.1:8000`) launches cleanly
+- backend endpoint checks returned HTTP `200` for:
+  - `/v1/keywords?period=daily&limit=2`
+  - `/v1/keywords/{keyword_id}?period=daily`
+  - `/v1/alerts?limit=2`
+
+Behavior validation coverage:
+- list/detail rendering
+- freshness and trust/status labels
+- pagination and next-page error state
+- initial-load retry error state
+- Korean mode visible shell and ranking chrome
+
+Added verification test coverage:
+- `app/mobile/test/app_data_debug_test.dart`
+  - ranking/detail labels and navigation
+  - ranking initial-load error and retry recovery
+  - ranking next-page error state
+  - stale freshness banner state
+  - Korean toggle chrome verification
+
+Exact commands run in this pass:
+- `E:\source\signal-desk\flutter\bin\flutter.bat --version`
+- `E:\source\signal-desk\flutter\bin\flutter.bat devices`
+- `E:\source\signal-desk\flutter\bin\flutter.bat pub get`
+- `E:\source\signal-desk\flutter\bin\flutter.bat analyze`
+- `E:\source\signal-desk\flutter\bin\flutter.bat test`
+- `E:\source\signal-desk\flutter\bin\flutter.bat run -d chrome --dart-define=SIGNALDESK_USE_MOCK=true --no-resident`
+- `E:\source\signal-desk\flutter\bin\flutter.bat run -d chrome --dart-define=SIGNALDESK_USE_MOCK=false --dart-define=SIGNALDESK_API_BASE_URL=http://127.0.0.1:8000 --no-resident`
+- `Invoke-WebRequest http://127.0.0.1:8000/v1/keywords?period=daily&limit=2`
+- `Invoke-WebRequest http://127.0.0.1:8000/v1/keywords/00000000-0000-0000-0000-000000000101?period=daily`
+- `Invoke-WebRequest http://127.0.0.1:8000/v1/alerts?limit=2`
+
+Blocker separation:
+- app bug blockers: none found in this pass
+- backend contract blockers: none found in this pass
+- non-blocking environment note: Flutter still warns that web support is not fully configured, but Chrome runtime smoke launches and exits successfully
+
 ## Current Limitations
 - no persistent local cache or offline store yet
 - no authentication flow (out of scope for current personal MVP)
