@@ -151,6 +151,85 @@ The following fields are frozen for downstream lanes to consume consistently:
 - `adapter_version`
 - `retrieval_status`
 
+## Recent Spool Evidence Snapshot (2026-03-09, collector-003 fixture rerun)
+Evidence source:
+- local collector test-db query against `spool_items` after bootstrap, fixture ingest x2, and shipper simulate-offline x1
+
+| metric | observed | note |
+|---|---:|---|
+| spool rows | `2` | fixture payload count |
+| total ingest events (`SUM(ingest_count)`) | `4` | rerun doubled ingest counters |
+| metadata completeness ratio | `100.00%` | all required envelope fields present |
+| duplicate ratio (`(sum(ingest_count)-count(*))/sum(ingest_count)`) | `50.00%` | high during rerun scenario |
+| `quality_state=duplicate` row ratio | `100.00%` | both canonical rows moved to duplicate state after rerun |
+| stale ratio (`quality_state=stale_source`) | `0.00%` | no stale fixture evidence |
+| missing required fields ratio | `0.00%` | none missing in fixture |
+| blank `source_cursor` ratio | `100.00%` | currently empty for `news_primary` fixture |
+| publisher/domain validity (`publisher_domain` matches URL host) | `100.00%` | fixture domain valid |
+| shipper retry-marked rows | `2/2` | `retry_count=1`, `last_intake_status=retryable_failure` |
+
+## TOP 5 FIXES
+1. Preserve canonical quality state on idempotent reruns.
+- observed gap: rerun turns all rows into `quality_state=duplicate`, collapsing canonical `accepted` evidence.
+- threshold: `quality_state=duplicate` row ratio must stay `< 5%` in normal ingestion windows; idempotent reruns should not rewrite canonical row quality state.
+- exact collector rule change:
+  - on `ON CONFLICT (idempotency_key)`, keep existing `quality_state` unless new payload hash conflicts unexpectedly.
+  - increment `ingest_count`, set `reason_code=idempotent_rerun`, and keep canonical row in accepted lane.
+  - use `quality_state=duplicate` only for true duplicate payload records that are not canonical.
+- implementation detail:
+  - update upsert clause in collector ingest SQL to avoid unconditional quality-state override.
+  - add `duplicate_hits` counter (or equivalent) if duplicate frequency is needed without state rewrite.
+
+2. Make `source_cursor` policy explicit by source family.
+- observed gap: `source_cursor` is blank in `100%` of sampled rows, but policy currently treats it as conditional without enforcement.
+- threshold: cursor-driven sources must have `source_cursor` missing ratio `0%`; non-cursor sources must emit `source_cursor='not_applicable'`.
+- exact collector rule change:
+  - maintain source-level config `requires_cursor` in adapter settings.
+  - if `requires_cursor=true` and cursor missing, set `quality_state=metadata_incomplete` and `reason_code=cursor_missing`.
+  - if `requires_cursor=false`, emit literal `not_applicable` instead of blank.
+- implementation detail:
+  - enforce during envelope build, before DB write.
+  - add query check for blank cursor values as a release gate.
+
+3. Enforce strict publisher-domain validation with quarantine behavior.
+- observed gap: domain validity is `100%` in fixtures, but only one trusted fixture domain is covered.
+- threshold: `publisher_domain_valid_pct` must remain `100%`; any mismatch goes to quarantine, not accepted lane.
+- exact collector rule change:
+  - normalize hostname from `canonical_url` and compare with normalized `publisher_domain`.
+  - if mismatch or parsing fails, set `quality_state=quarantined`, `ingest_status=accepted`, `reason_code=publisher_domain_mismatch`.
+  - require explicit allowlist entry per source family before moving from quarantine.
+- implementation detail:
+  - implement deterministic domain normalizer (lowercase + punycode handling).
+  - add per-source allowlist map and quarantine audit query.
+
+4. Add source-family stale checks with measurable limits.
+- observed gap: stale ratio is `0%`, but stale rule execution has no explicit sampled evidence in current fixture set.
+- threshold: stale ratio targets by source family:
+  - `news_primary` <= `10%` per 24h ingest window
+  - `search_trends` <= `5%` per 24h
+  - `market_ohlcv` <= `2%` during market session windows
+  - `dart_disclosures` <= `15%` per 24h
+- exact collector rule change:
+  - evaluate source-specific freshness windows at ingest time.
+  - rows beyond threshold set `quality_state=stale_source`, `reason_code=stale_threshold_exceeded`.
+  - stale rows remain replayable but excluded from default publish candidate queries.
+- implementation detail:
+  - introduce fixture cases intentionally stale for each source family.
+  - add stale-ratio SQL query to smoke verification commands.
+
+5. Add field-level missing metadata telemetry and hard reject gates.
+- observed gap: completeness is `100%` on tiny fixture sample, but per-field missing telemetry is not persisted in a queryable structure.
+- threshold:
+  - core required field missing ratio must be `0%` (hard reject to dead-letter).
+  - non-core recommended field missing ratio alert at `> 20%`.
+- exact collector rule change:
+  - compute `missing_required_fields` and `missing_recommended_fields` arrays per payload.
+  - if required array non-empty, set `quality_state=dead_letter`, `ingest_status=rejected`, and persist exact missing list.
+  - if only recommended fields missing, allow `accepted_degraded` with reason codes.
+- implementation detail:
+  - add explicit missing-field computation in adapter envelope pipeline.
+  - expose missing-field counters in spool evidence SQL for QA gating.
+
 ## Test Expectations
 - fixture ingest must land rows in the local collector test database
 - query evidence must show metadata completeness and state transitions
