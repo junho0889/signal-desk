@@ -8,32 +8,33 @@
 - last updated: 2026-03-08
 
 ## Current State
-- requested design freeze is complete for ranking, detail, chart entry points, and loading/error/stale/trust states
-- docs are concise and implementation-ready for APP lanes
+- production polish pass is complete for home/ranking/detail/watchlist/alerts
+- docs now include explicit defect inventory and app-ready implementation fixes with acceptance gates
 
 ## Last Completed
-- narrowed `docs/design/analytics-visual-system.md` to visible-surface freeze rules only
-- narrowed `docs/design/screen-map.md` to ranking/detail + shared state blueprints only
-- updated handoff with compliance and consistency verification
+- expanded `docs/design/analytics-visual-system.md` with `DESIGN DEFECT LIST` and `APP-READY FIX SPEC`
+- expanded `docs/design/screen-map.md` to include Home, Watchlist, Alerts, breakpoint rules, and mobile acceptance checks
+- updated `coordination/handoffs/DESIGN-002.md` with defect/fix freeze and verification evidence
 
 ## Next Exact Step
-- APP lanes can implement from this freeze set without adding new layout/action rules
-- optional later pass: additive trust/model label refinement when MODEL/TRUST handoffs land
+- APP implementation can apply this pass directly for key-screen polish without inventing new spacing or button-placement behavior
+- optional later pass: align with newest trust/model freeze when those handoffs are merged into this branch
 
 ## Open Blockers
-- none for requested freeze scope
+- none for requested polish scope
+- branch-local coordination docs are older than `main`; premium brief and quality gate were reviewed from repository root path
 
 ## Verification Status
 - `git diff --check` passed (CRLF warnings only)
-- compliance check against premium brief and mobile UI quality gate completed
-- model/trust consistency check completed for visible-surface fields
+- design section checks for defects/fixes/screen coverage completed
+- model/trust consistency check completed for trust, contradiction, freshness, confidence, and risk cues
 
 ## Files In Progress
 - none
 
 ## Last Commit And Push
-- commit: `4946f0e` (`DESIGN-002 docs: finalize visible-surface mobile freeze for app build`)
-- push: `origin/codex/design-002` (pushed on 2026-03-08)
+- commit:
+- push:
 
 ## Notes For Next Session
-- keep DESIGN-002 concise; expand only if orchestrator requests additional surfaces
+- use the acceptance checks in `screen-map.md` as release-gate criteria for APP/QA implementation review

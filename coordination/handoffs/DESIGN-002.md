@@ -1,42 +1,57 @@
 ## Task
 - id: DESIGN-002
 - owner: signal-desk-design
-- status: in_progress
+- status: done
 
 ## Completion Scope (Requested)
-Design freeze is complete for visible mobile surfaces only:
+Design debug and polish pass is complete for key screens:
+- Home
 - Ranking
-- Keyword Detail
-- Chart entry points
-- Loading / Error / Stale / Trust states
+- Detail
+- Watchlist
+- Alerts
+- shared Loading / Error / Stale / Trust states
 
 ## What Changed
-- tightened `docs/design/analytics-visual-system.md` to concise APP build rules for ranking/detail/chart-entry/state surfaces only
-- tightened `docs/design/screen-map.md` to ranking/detail/state blueprint only
-- removed non-essential surface guidance from this freeze pass
+- expanded `docs/design/analytics-visual-system.md` with:
+  - `DESIGN DEFECT LIST` (screen-by-screen defects from current UI behavior)
+  - `APP-READY FIX SPEC` (concrete spacing, hierarchy, button-placement, Korean text-fit, and chart-clarity fixes)
+- expanded `docs/design/screen-map.md` from ranking/detail only to full key-screen map:
+  - Home, Ranking, Detail, Watchlist, Alerts
+  - breakpoint rules and text-fit rules
+  - screen-level action placement and acceptance checks
 
-## Freeze Outputs APP Can Implement Directly
-- fixed spacing/shape/type/format tokens
-- fixed ranking row order and geometry (`104dp` collapsed)
-- fixed detail top-fold order and watchlist action placement
-- frozen chart entry points (`CE1`, `CE2`, `CE3`) and minimum readability requirements
-- frozen loading/error/stale behavior and trust visibility rules
+## DESIGN DEFECT LIST
+- `D-001` to `D-011` recorded in `docs/design/analytics-visual-system.md`.
+- includes hierarchy, readability, spacing, button placement, Korean fit, and chart clarity risks across all key screens.
+
+## APP-READY FIX SPEC
+- implementation-ready fix groups `F1` through `F6`:
+  - hierarchy/readability slot model
+  - spacing standardization
+  - primary/secondary action placement
+  - Korean text-fit constraints
+  - chart clarity requirements (`CE1`, `CE2`)
+  - trust/risk visibility rules
+- mobile acceptance gates now explicitly test:
+  - primary action discoverability
+  - fixed score/delta/trust slot positions
+  - Korean/English overflow safety at compact/standard/wide breakpoints
+  - chart readability and stale/error state behavior
 
 ## Verification
 - commands:
   - `git -C E:\source\signal-desk-worktrees\design-002 diff --check`
-  - `Select-String -Path docs/design/analytics-visual-system.md,docs/design/screen-map.md -Pattern "Ranking|Detail|Loading|Error|Stale|Trust|Chart|contradiction" -CaseSensitive:$false`
-  - `Select-String -Path E:\source\signal-desk\coordination\premium-mobile-brief.md,E:\source\signal-desk\coordination\mobile-ui-quality-gate.md,docs/design/analytics-visual-system.md,docs/design/screen-map.md -Pattern "spacing scale|primary action|row layout|legend|overflow|Korean|loading|error|stale|trust|chart" -CaseSensitive:$false`
-  - `Select-String -Path docs/model/ranking-roadmap.md,docs/trust/trust-framework.md,docs/design/analytics-visual-system.md -Pattern "contribution|dimension|trust|contradiction|stale|confidence" -CaseSensitive:$false`
+  - `Select-String -Path E:\source\signal-desk-worktrees\design-002\docs\design\analytics-visual-system.md,E:\source\signal-desk-worktrees\design-002\docs\design\screen-map.md -Pattern 'DESIGN DEFECT LIST','APP-READY FIX SPEC','Home','Ranking','Detail','Watchlist','Alerts','Korean','chart','breakpoint','acceptance' -CaseSensitive:$false`
+  - `Select-String -Path E:\source\signal-desk-worktrees\design-002\docs\model\ranking-roadmap.md,E:\source\signal-desk-worktrees\design-002\docs\trust\trust-framework.md,E:\source\signal-desk-worktrees\design-002\docs\design\analytics-visual-system.md,E:\source\signal-desk-worktrees\design-002\docs\design\screen-map.md -Pattern 'trust|contradiction|freshness|confidence|evaluation|risk_flags|warning' -CaseSensitive:$false`
 - result:
   - `git diff --check` passed (CRLF warnings only)
-  - visible-surface scope coverage is explicit in both design docs
-  - premium brief and quality gate constraints are represented in frozen rules
-  - model/trust concepts used by visible surfaces remain mapped
+  - key-screen defect list and app-ready fix spec sections are explicit in docs
+  - model/trust consistency cues (trust, contradiction, freshness, confidence, risk) remain mapped in design rules
 
 ## Blockers
-- none for APP implementation of requested visible-surface freeze
-- MODEL/TRUST handoffs remain future additive refinement input only
+- none for requested design polish scope
+- this branch predates newer coordination files from `main`; required premium brief and quality gate were reviewed from `E:\source\signal-desk\coordination\`
 
 ## Files Touched
 - `docs/design/analytics-visual-system.md`
