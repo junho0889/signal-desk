@@ -138,29 +138,49 @@ Host signaldesk-pi
    - add its public key to the Pi user's `~/.ssh/authorized_keys` (one-time operator action)
 2. Re-run the same preflight command until it prints `SSH_OK`.
 
-### Remote Collector Smoke Command Surface
-Once SSH preflight passes, run:
+### 24/7 Daemon Deploy (Pi)
+Use `/home/admin/signal-desk-collector` as the fixed remote collector root.
+
 ```powershell
-powershell -ExecutionPolicy Bypass -File infra/collector/pi-remote-smoke.ps1
+ssh signaldesk-pi "echo SSH_OK && whoami && hostname"
+ssh signaldesk-pi "docker --version && docker compose version"
+ssh signaldesk-pi "rm -rf /home/admin/signal-desk-collector && mkdir -p /home/admin/signal-desk-collector/infra /home/admin/signal-desk-collector/services"
+scp -r infra/collector signaldesk-pi:/home/admin/signal-desk-collector/infra/
+scp -r services/collector signaldesk-pi:/home/admin/signal-desk-collector/services/
+ssh signaldesk-pi "cp /home/admin/signal-desk-collector/infra/collector/.env.example /home/admin/signal-desk-collector/infra/collector/.env"
+ssh signaldesk-pi "sed -i 's/^SIGNALDESK_COLLECTOR_NODE_ID=.*/SIGNALDESK_COLLECTOR_NODE_ID=collector-pi-192-168-0-33/' /home/admin/signal-desk-collector/infra/collector/.env"
+ssh signaldesk-pi "sed -i 's/^SIGNALDESK_COLLECTOR_DAEMON_INTERVAL_SECONDS=.*/SIGNALDESK_COLLECTOR_DAEMON_INTERVAL_SECONDS=15/' /home/admin/signal-desk-collector/infra/collector/.env"
+ssh signaldesk-pi "sed -i 's/^SIGNALDESK_COLLECTOR_DAEMON_SHIP_EVERY_CYCLES=.*/SIGNALDESK_COLLECTOR_DAEMON_SHIP_EVERY_CYCLES=1/' /home/admin/signal-desk-collector/infra/collector/.env"
+ssh signaldesk-pi "sed -i 's/^SIGNALDESK_COLLECTOR_DAEMON_STREAM_MODE=.*/SIGNALDESK_COLLECTOR_DAEMON_STREAM_MODE=true/' /home/admin/signal-desk-collector/infra/collector/.env"
+ssh signaldesk-pi "sed -i 's/^SIGNALDESK_COLLECTOR_DAEMON_EVENT_STEP_MINUTES=.*/SIGNALDESK_COLLECTOR_DAEMON_EVENT_STEP_MINUTES=1/' /home/admin/signal-desk-collector/infra/collector/.env"
+ssh signaldesk-pi "sed -i 's/^SIGNALDESK_COLLECTOR_DAEMON_MAX_CYCLES=.*/SIGNALDESK_COLLECTOR_DAEMON_MAX_CYCLES=0/' /home/admin/signal-desk-collector/infra/collector/.env"
+ssh signaldesk-pi "cd /home/admin/signal-desk-collector && docker compose -f infra/collector/docker-compose.yml --env-file infra/collector/.env down -v --remove-orphans"
+ssh signaldesk-pi "cd /home/admin/signal-desk-collector && docker compose -f infra/collector/docker-compose.yml --env-file infra/collector/.env up -d collector-db"
+ssh signaldesk-pi "cd /home/admin/signal-desk-collector && docker compose -f infra/collector/docker-compose.yml --env-file infra/collector/.env run --rm collector-bootstrap"
+ssh signaldesk-pi "cd /home/admin/signal-desk-collector && docker compose -f infra/collector/docker-compose.yml --env-file infra/collector/.env up -d collector-daemon"
+ssh signaldesk-pi "cd /home/admin/signal-desk-collector && docker compose -f infra/collector/docker-compose.yml --env-file infra/collector/.env ps"
+ssh signaldesk-pi "docker inspect -f '{{.HostConfig.RestartPolicy.Name}}' signaldesk_collector-collector-daemon-1"
 ```
 
-This script executes:
-- remote `docker --version`
-- remote `docker compose version`
-- asset sync (`infra/collector`, `services/collector`)
-- remote `collector-db` boot
-- remote `collector-bootstrap`
-- remote `collector-runner`
-- remote `spool-evidence.sql` query
-
-### Manual Equivalent (If Script Is Not Used)
+### 24/7 Evidence And Logs
 ```powershell
-ssh signaldesk-pi "docker --version"
-ssh signaldesk-pi "docker compose version"
-scp -r infra/collector signaldesk-pi:~/signal-desk/infra/
-scp -r services/collector signaldesk-pi:~/signal-desk/services/
-ssh signaldesk-pi "docker compose -f ~/signal-desk/infra/collector/docker-compose.yml --env-file ~/signal-desk/infra/collector/.env down -v --remove-orphans"
-ssh signaldesk-pi "docker compose -f ~/signal-desk/infra/collector/docker-compose.yml --env-file ~/signal-desk/infra/collector/.env run --rm collector-bootstrap"
-ssh signaldesk-pi "docker compose -f ~/signal-desk/infra/collector/docker-compose.yml --env-file ~/signal-desk/infra/collector/.env run --rm collector-runner"
-ssh signaldesk-pi "cat ~/signal-desk/infra/collector/queries/spool-evidence.sql | docker compose -f ~/signal-desk/infra/collector/docker-compose.yml --env-file ~/signal-desk/infra/collector/.env exec -T collector-db psql -U collector -d signaldesk_collector -f -"
+ssh signaldesk-pi "cd /home/admin/signal-desk-collector && cat infra/collector/queries/spool-evidence.sql | docker compose -f infra/collector/docker-compose.yml --env-file infra/collector/.env exec -T collector-db psql -U collector -d signaldesk_collector -f -"
+ssh signaldesk-pi "cd /home/admin/signal-desk-collector && cat infra/collector/queries/spool-idempotency.sql | docker compose -f infra/collector/docker-compose.yml --env-file infra/collector/.env exec -T collector-db psql -U collector -d signaldesk_collector -f -"
+ssh signaldesk-pi "cd /home/admin/signal-desk-collector && docker compose -f infra/collector/docker-compose.yml --env-file infra/collector/.env exec -T collector-db psql -U collector -d signaldesk_collector -c 'SELECT COUNT(*) AS total_rows, COUNT(*) FILTER (WHERE COALESCE(octet_length(collector_node_id),0)=0 OR COALESCE(octet_length(payload_hash),0)=0 OR COALESCE(octet_length(idempotency_key),0)=0 OR COALESCE(octet_length(publisher_domain),0)=0 OR COALESCE(octet_length(canonical_url),0)=0) AS rows_with_missing_required_metadata FROM spool_items;' -c 'SELECT quality_state, COUNT(*) AS row_count FROM spool_items GROUP BY quality_state ORDER BY quality_state;'"
+```
+
+### 24/7 Restart And Recovery
+```powershell
+# restart daemon only
+ssh signaldesk-pi "cd /home/admin/signal-desk-collector && docker compose -f infra/collector/docker-compose.yml --env-file infra/collector/.env restart collector-daemon"
+
+# restart full collector runtime
+ssh signaldesk-pi "cd /home/admin/signal-desk-collector && docker compose -f infra/collector/docker-compose.yml --env-file infra/collector/.env down"
+ssh signaldesk-pi "cd /home/admin/signal-desk-collector && docker compose -f infra/collector/docker-compose.yml --env-file infra/collector/.env up -d collector-db collector-daemon"
+
+# destructive recovery when state is broken
+ssh signaldesk-pi "cd /home/admin/signal-desk-collector && docker compose -f infra/collector/docker-compose.yml --env-file infra/collector/.env down -v --remove-orphans"
+ssh signaldesk-pi "cd /home/admin/signal-desk-collector && docker compose -f infra/collector/docker-compose.yml --env-file infra/collector/.env up -d collector-db"
+ssh signaldesk-pi "cd /home/admin/signal-desk-collector && docker compose -f infra/collector/docker-compose.yml --env-file infra/collector/.env run --rm collector-bootstrap"
+ssh signaldesk-pi "cd /home/admin/signal-desk-collector && docker compose -f infra/collector/docker-compose.yml --env-file infra/collector/.env up -d collector-daemon"
 ```
